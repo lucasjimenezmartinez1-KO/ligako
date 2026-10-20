@@ -36,44 +36,31 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 - **Venta tras el evento:** precio × (puntos obtenidos / puntos esperados), limitado entre 0,3× y 2,5×.
 - **Carteleras:** se usan las carteleras oficiales de los eventos numerados en cuanto se anuncian (el 333 del 24 oct 2026 ya está cargado). Los luchadores de la cartelera que no están en el top 15 entran como "sin clasificar". En la app se muestran como "Evento 333", sin la marca.
 
-## Puntuación
-
-### Resultado
+## Puntuación (v2, implementada en `shared/scoring.js`)
 
 | Acción | Puntos |
 |---|---|
-| Victoria por KO/TKO o sumisión | +30 |
-| Victoria por decisión unánime | +20 |
-| Victoria por decisión dividida o mayoritaria | +15 |
-| Derrota por finalización | -5 |
-
-### Bonus por finalizar
-
-| Asalto de la finalización | Puntos |
-|---|---|
-| Asalto 1 | +15 |
-| Asalto 2 | +10 |
-| Asalto 3 o posterior | +5 |
-
-### Estadísticas
-
-| Acción | Puntos |
-|---|---|
+| Victoria por KO/TKO o sumisión | +25 |
+| Victoria por decisión unánime | +15 |
+| Victoria por decisión dividida o mayoritaria | +8 |
+| Derrota por decisión | 0 |
+| Derrota por finalización | −5 |
+| Finalizar en el asalto 1 / 2 / 3+ | +15 / +10 / +5 |
 | Golpe significativo | +0,5 |
-| Derribo | +10 |
-| Takedown | +5 |
+| Knockdown | +10 |
+| Takedown | +4 |
 | Intento de sumisión | +3 |
-| Minuto de control | +1 |
-
-### Extras y penalizaciones
-
-| Acción | Puntos |
-|---|---|
-| Actuación de la noche o pelea de la noche | +15 |
+| Minuto de control | +0,5 |
+| Pelea intensa (8+ golpes significativos/min entre los dos) | +10 cada uno |
+| Pelea muy intensa (12+ golpes/min) | +20 cada uno |
+| Ida y vuelta (los dos tumbaron al rival) | +10 cada uno |
 | Ganar un combate por el título | +20 |
 | Ganar a un rival mejor clasificado | +10 |
-| No dar el peso | -10 |
-| Punto restado | -5 |
+| Bono oficial de pelea de la noche | +25 |
+| Bono oficial de actuación de la noche | +20 |
+| No dar el peso / punto restado | −10 / −5 |
+
+Objetivo: perder una guerra puntúa más que ganar una decisión dividida sin hacer nada.
 
 ### Multiplicador según la pelea
 

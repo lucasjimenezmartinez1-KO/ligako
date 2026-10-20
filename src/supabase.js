@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // La URL y la clave "anon" son públicas por diseño: la seguridad está en las reglas (RLS) de la base de datos.
-const url = import.meta.env.VITE_SUPABASE_URL;
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL || 'https://vizqrxhulaqzehtlnvpx.supabase.co';
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_lUI5vonaUzj-6fPG6x_YVQ_CrCPDaSe';
 
 export const configured = Boolean(url && key);
 export const supabase = configured ? createClient(url, key, { auth: { persistSession: true, autoRefreshToken: true } }) : null;
