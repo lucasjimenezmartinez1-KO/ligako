@@ -873,7 +873,9 @@
   "division": "medio",
   "rank": 12,
   "nr": false,
-  "p4p": null
+  "p4p": null,
+  "photo": "/fighters/abus-magomedov.webp",
+  "credit": "Verisurma · CC0 · https://commons.wikimedia.org/wiki/File:Abusupiyan_Magomedov_on_Rue_Saint-Honor%C3%A9,_Paris,_2026-02-13_(cropped).jpg"
  },
  {
   "id": "ikram-aliskerov",
@@ -1695,7 +1697,9 @@
   "division": "ligero",
   "rank": 16,
   "nr": true,
-  "p4p": null
+  "p4p": null,
+  "photo": "/fighters/nurullo-aliev.webp",
+  "credit": "Nurullo Aliev · CC BY-SA 4.0 · https://commons.wikimedia.org/wiki/File:Nurullo_Aliev.jpg"
  },
  {
   "id": "kody-steele",
