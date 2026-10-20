@@ -4,9 +4,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { scoreFighter } from '../shared/scoring.js';
 
-const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://vizqrxhulaqzehtlnvpx.supabase.co';
+const { SUPABASE_SERVICE_KEY } = process.env;
 const DRY = process.env.DRY === '1';
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) { console.log('::error::Faltan SUPABASE_URL y SUPABASE_SERVICE_KEY'); process.exit(1); }
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) { console.log('::error::Falta el secreto SUPABASE_SERVICE_KEY'); process.exit(1); }
 const log = (m) => console.log(process.env.GITHUB_ACTIONS ? '::notice::' + m : m);
 const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 
