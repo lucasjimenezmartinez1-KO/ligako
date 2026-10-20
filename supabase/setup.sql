@@ -255,7 +255,7 @@ declare v_id uuid; v_code text;
 begin
   if auth.uid() is null then raise exception 'Inicia sesión primero'; end if;
   loop
-    v_code := upper(substr(translate(encode(gen_random_bytes(6), 'base64'), '+/=0O1Il', ''), 1, 6));
+    select string_agg(substr('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 1 + floor(random() * 32)::int, 1), '') into v_code from generate_series(1, 6);
     exit when length(v_code) = 6 and not exists (select 1 from leagues where code = v_code);
   end loop;
   insert into leagues (name, code, owner) values (coalesce(nullif(trim(p_name), ''), 'Mi liga'), v_code, auth.uid()) returning id into v_id;
