@@ -6,7 +6,8 @@ import { scoreFighter } from '../shared/scoring.js';
 
 const { SUPABASE_URL, SUPABASE_SERVICE_KEY } = process.env;
 const DRY = process.env.DRY === '1';
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) { console.error('Faltan SUPABASE_URL y SUPABASE_SERVICE_KEY'); process.exit(1); }
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) { console.log('::error::Faltan SUPABASE_URL y SUPABASE_SERVICE_KEY'); process.exit(1); }
+const log = (m) => console.log(process.env.GITHUB_ACTIONS ? '::notice::' + m : m);
 const db = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
 
 const SITE = 'https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard';
@@ -62,7 +63,7 @@ async function main() {
   const ev = process.env.EVENT_ID ? (await q(db.from('events').select('*').eq('id', Number(process.env.EVENT_ID))))[0] : evs[0];
   if (!ev) { console.log('No hay evento pendiente'); return; }
   const start = new Date(ev.starts_at).getTime();
-  if (process.env.FORCE !== '1' && Date.now() < start - 30 * 60e3) { console.log(`Evento ${ev.id}: aún no ha empezado`); return; }
+  if (process.env.FORCE !== '1' && Date.now() < start - 30 * 60e3) { log(`Evento ${ev.id}: aún no ha empezado`); return; }
 
   const fights = await q(db.from('fights').select('*').eq('event_id', ev.id).order('ord'));
   const F = Object.fromEntries((await q(db.from('fighters').select('id, name, rank'))).map((f) => [f.id, f]));
@@ -74,7 +75,8 @@ async function main() {
   const day = new Date(start).toISOString().slice(0, 10).replace(/-/g, '');
   const board = await get(`${SITE}?dates=${day}`);
   const espnEv = (board.events || []).find((e) => (e.competitions || []).length >= 5) || (board.events || [])[0];
-  if (!espnEv) { console.log('ESPN no tiene el evento todavía'); return; }
+  if (!espnEv) { log('ESPN no tiene el evento todavía'); return; }
+  log(`ESPN: ${espnEv.name} (${espnEv.competitions.length} peleas)`);
 
   let changed = 0;
   for (const f of fights.filter((x) => x.status !== 'cancelled')) {
@@ -82,7 +84,7 @@ async function main() {
       const n = c.competitors.map((x) => x.athlete?.displayName || '');
       return (same(n[0], F[f.a].name) && same(n[1], F[f.b].name)) || (same(n[0], F[f.b].name) && same(n[1], F[f.a].name));
     });
-    if (!comp) { console.log(`Sin datos de ESPN para ${F[f.a].name} vs ${F[f.b].name}`); continue; }
+    if (!comp) { log(`Sin datos de ESPN para ${F[f.a].name} vs ${F[f.b].name}`); continue; }
     const st = comp.status?.type || {};
     const state = st.completed || st.state === 'post' ? 'finished' : st.state === 'in' ? 'live' : 'scheduled';
     if (state === 'scheduled') continue;
@@ -107,7 +109,7 @@ async function main() {
       return { event_id: ev.id, fighter_id: fid, total: sc.total, lines: sc.lines, stats: stats[fid], updated_at: new Date().toISOString() };
     });
     const upd = { status: state, winner: result.winner, method: result.method || null, decision: result.decision || null, round: result.round, clock: result.clock, updated_at: new Date().toISOString() };
-    console.log(`${F[f.a].name} vs ${F[f.b].name}: ${state} ${result.method || ''} ${fp.map((x) => x.total).join(' / ')}`);
+    log(`${F[f.a].name} vs ${F[f.b].name}: ${state} ${result.method || ''} ${fp.map((x) => x.total).join(' / ')}`);
     if (!DRY) {
       await q(db.from('fighter_points').upsert(fp));
       await q(db.from('fights').update(upd).eq('id', f.id));
@@ -131,4 +133,8 @@ async function main() {
   }
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  if (process.env.GITHUB_ACTIONS) console.log('::error::' + String(e?.message || JSON.stringify(e)).replace(/\n/g, ' '));
+  process.exit(1);
+});
