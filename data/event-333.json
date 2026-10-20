@@ -1,0 +1,24 @@
+{
+  "id": 333,
+  "title": "Volkanovski vs. Evloev",
+  "place": "Etihad Arena, Abu Dhabi",
+  "starts_at": "2026-10-24T14:00:00Z",
+  "market_closes_at": "2026-10-23T21:59:00Z",
+  "odds_source": "Cuotas moneyline publicadas el 19 oct 2026 (Yahoo Sports / Uncrowned)",
+  "fights": [
+    ["Alexander Volkanovski", "Movsar Evloev", true, "Estelar", -110, -110],
+    ["Petr Yan", "Merab Dvalishvili", true, "Coestelar", -175, 145],
+    ["Lone'er Kavanagh", "Ramazan Temirov", false, "Cartelera principal", -105, -115],
+    ["Alexander Volkov", "Rizvan Kuniev", false, "Cartelera principal", -120, 100],
+    ["Aaron Pico", "Losene Keita", false, "Cartelera principal", -105, -115],
+    ["Azamat Murzakanov", "Dominick Reyes", false, "Preliminares", -220, 180],
+    ["Nikita Krylov", "Abdul-Rakhman Yakhyaev", false, "Preliminares", 350, -450],
+    ["Abus Magomedov", "Cam Rowston", false, "Preliminares", -120, 100],
+    ["Grant Dawson", "Nurullo Aliev", false, "Preliminares", -125, 105],
+    ["Colby Thicknesse", "Asaf Chopurov", false, "Primeras preliminares", 400, -550],
+    ["Abubakar Vagaev", "Jacob Malkoun", false, "Primeras preliminares", -190, 160],
+    ["Bolaji Oki", "Daniel Santos", false, "Primeras preliminares", 110, -130],
+    ["Kody Steele", "Noah Gugnon", false, "Primeras preliminares", -155, 130],
+    ["Iasmin Lucindo", "Nicolle Caliari", false, "Primeras preliminares", -350, 275]
+  ]
+}

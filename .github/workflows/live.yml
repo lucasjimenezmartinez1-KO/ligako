@@ -1,0 +1,36 @@
+name: Puntos en directo
+
+on:
+  schedule:
+    # Sábados y madrugada del domingo (UTC), cada 5 minutos: cubre eventos en Europa, Oriente Medio y América
+    - cron: '*/5 12-23 * * 6'
+    - cron: '*/5 0-7 * * 0'
+    # Cierre de mercados y comprobación diaria
+    - cron: '5 22 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Forzar lectura aunque no haya empezado (1)'
+        required: false
+        default: ''
+
+concurrency:
+  group: live
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --omit=dev
+      - run: node scripts/live.js
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          FORCE: ${{ github.event.inputs.force }}
