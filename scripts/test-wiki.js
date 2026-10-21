@@ -6,4 +6,7 @@ const j = await r.json(); const w = j.parse?.wikitext || JSON.stringify(j).slice
 const i = w.search(/record/i);
 log('len ' + w.length + ' first record idx ' + i);
 const k = w.search(/\{\|\s*class="wikitable[^\n]*\n[^]*?(Win|Loss)/);
-log(w.slice(Math.max(0, w.indexOf('Professional record breakdown') - 50), w.indexOf('Professional record breakdown') + 1800));
+const a = w.search(/\n\|\s*\{\{[^}]*\}\}?\s*Win|\n\|\s*Win/i);
+log('idx win ' + a);
+const h = w.search(/==\s*Mixed martial arts record/i);
+log(w.slice(h, h + 2500));

@@ -20,4 +20,4 @@ jobs:
           DB: ${{ secrets.SUPABASE_DB_URL }}
         run: |
           echo "::notice::longitud=${#DB} empieza=$(echo "$DB" | cut -c1-24) usuario=$(echo "$DB" | sed -E 's#^[a-z]+://([^:]+):.*#\1#') servidor=$(echo "$DB" | sed -E 's#.*@([^/?]+).*#\1#') corchetes=$(echo "$DB" | grep -c '\[')"
-          out=$(psql "$DB" -c "select 1" 2>&1) && echo "::notice::conexión OK" || echo "::notice::error: $(echo "$out" | tr '\n' ' ')"
+          DB=$(printf %s "$DB" | tr -d "[:space:]"); out=$(psql "$DB" -c "select 1" 2>&1) && echo "::notice::conexión OK" || echo "::notice::error: $(echo "$out" | tr '\n' ' ')"
