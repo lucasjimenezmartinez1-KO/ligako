@@ -115,7 +115,7 @@ export default function Inicio(c) {
         <p className="xs muted">{c.members.length} de 12 mánagers. Quien entre antes del cierre del mercado recibe su luchador del sorteo.</p>
       </section>
 
-      <HowTo budget={c.league.budget} open={c.members.length < 2 || !mySquad?.captain && team.length <= 1} />
+      <HowTo budget={200} open={c.members.length < 2 || !mySquad?.captain && team.length <= 1} />
     </>
   );
 }

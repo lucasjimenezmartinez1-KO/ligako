@@ -53,7 +53,7 @@ export default function Liga(c) {
         </div>
       </section>
 
-      <HowTo budget={c.league.budget} />
+      <HowTo budget={200} />
 
 
 
