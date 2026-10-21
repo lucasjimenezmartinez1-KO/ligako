@@ -7,6 +7,10 @@ on:
         description: 'Nombres separados por comas'
         required: false
         default: ''
+      script:
+        description: 'Script'
+        required: false
+        default: 'test-records.js'
 
 jobs:
   test:
@@ -17,4 +21,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/test-records.js "${{ github.event.inputs.names }}"
+      - run: node scripts/${{ github.event.inputs.script || 'test-records.js' }} "${{ github.event.inputs.names }}"
+        env:
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}

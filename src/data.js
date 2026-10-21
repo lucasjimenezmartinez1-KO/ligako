@@ -25,6 +25,7 @@ export function useLeague(leagueId, userId) {
   const load = useCallback(async () => {
     try {
       if (!synced.current) { await supabase.rpc('sync_league', { p_league: leagueId }); synced.current = true; }
+      await supabase.rpc('close_due_waves');
       const F = await loadFighters();
       let ev = (await q(supabase.from('events').select('*').neq('status', 'finished').order('starts_at').limit(1)))[0];
       const last = (await q(supabase.from('events').select('*').eq('status', 'finished').order('starts_at', { ascending: false }).limit(1)))[0];

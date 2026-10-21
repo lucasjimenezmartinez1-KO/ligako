@@ -37,6 +37,7 @@ export default function Mercado(c) {
     if (ph !== 'market') return 'Sin dueño';
     if (!marketStarted(c)) return 'Sale cuando estéis todos listos';
     if (o.opens_at && new Date(o.opens_at).getTime() > now) return `Tanda ${o.wave} · ${new Date(o.opens_at).toLocaleString('es-ES', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).replace(',', '')}`;
+    if (o.closes_at && new Date(o.closes_at).getTime() <= now) return 'Tanda cerrada · repartiendo';
     return 'En puja ahora';
   };
   const closeOf = (o) => new Date(o.closes_at || c.ev.market_closes_at).getTime();
