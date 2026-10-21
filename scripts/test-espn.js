@@ -47,7 +47,7 @@ for (const c of ev.competitions) {
   const result = { winner: w?.id || null, ...m, round: c.status?.period, clock: c.status?.displayClock };
   const stats = { [A.id]: sa, [B.id]: sb };
   const pa = scoreFighter(A.id, fight, result, stats, {}, {}), pb = scoreFighter(B.id, fight, result, stats, {}, {});
-  log(`${A.athlete.displayName} ${pa.total} – ${pb.total} ${B.athlete.displayName} · ${res?.displayName || '?'} R${result.round} ${result.clock} · golpes ${sa.sig}/${sb.sig} kd ${sa.kd}/${sb.kd} td ${sa.td}/${sb.td} ctrl ${sa.ctrl}/${sb.ctrl}s`);
+  console.log(`${A.athlete.displayName} ${pa.total} – ${pb.total} ${B.athlete.displayName} · ${res?.displayName || '?'} R${result.round} ${result.clock} · golpes ${sa.sig}/${sb.sig} kd ${sa.kd}/${sb.kd} td ${sa.td}/${sb.td} ctrl ${sa.ctrl}/${sb.ctrl}s`);
 }
 
 // Bonos de la noche desde Wikipedia

@@ -220,6 +220,8 @@ async function main() {
     await rpc('recalc_event', { p_event: ev.id });
   }
 
+  log(`Evento ${ev.id} (${espnEv.name}): ${fights.filter((x) => x.status !== 'cancelled').length} peleas, ${fights.filter((x) => x.status === 'finished').length} terminadas, ${fights.filter((x) => x.status === 'cancelled').length} caídas`);
+
   // Cierre del evento: todas las peleas terminadas y ya están los bonos (o han pasado 12 horas sin publicarse)
   const now = fights.filter((x) => x.status !== 'cancelled');
   const allDone = now.length > 0 && now.every((x) => x.status === 'finished');
