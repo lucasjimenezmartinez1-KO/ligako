@@ -15,25 +15,26 @@ const shrink = (x, n, prior, k) => (x == null || !n ? prior : (x * n + prior * k
 // Número aleatorio de sucesos con media m (Poisson)
 const pois = (m) => { if (m <= 0) return 0; let L = Math.exp(-m), k = 0, p = 1; do { k++; p *= Math.random(); } while (p > L); return k - 1; };
 
-// Medias de la élite (por minuto / por cada 15 min)
-const AVG = { slpm: 3.9, td15: 1.4, sub15: 0.5 };
+// Medias de la élite (por minuto / por cada 15 min / fracción del tiempo controlando)
+const AVG = { slpm: 3.9, sapm: 3.9, td15: 1.4, tda15: 1.4, sub15: 0.5, kd15: 0.3, ctrl: 0.15, octrl: 0.15 };
+const K_MIN = 40; // minutos de peso de la media cuando hay pocos datos
 
-// Perfil de un luchador a partir de sus estadísticas de carrera
+// Perfil de un luchador a partir de sus estadísticas (pelea a pelea en la élite + récord profesional)
 export function profile(s = {}) {
-  const n = s.n || 0;
+  const m = s.min || 0;
   const w = s.w || 0, l = s.l || 0;
   const fins = (s.ko || 0) + (s.sub || 0);
-  return {
-    slpm: shrink(s.slpm, n, AVG.slpm, 3),
-    td15: shrink(s.td15, n, AVG.td15, 3),
-    sub15: shrink(s.sub15, n, AVG.sub15, 3),
-    // Cuánto finaliza cuando gana (el récord incluye peleas fuera de la élite: se rebaja un 15 %)
-    finWin: shrink(w ? (0.85 * fins) / w : null, w, 0.45, 6),
-    // Cuánto le finalizan cuando pierde
-    finLoss: shrink(l ? ((s.kol || 0) + (s.subl || 0)) / l : null, l, 0.45, 3),
-    koShare: shrink(fins ? (s.ko || 0) / fins : null, fins, 0.62, 3),
-  };
+  const P = {};
+  for (const k of Object.keys(AVG)) P[k] = shrink(s[k], m, AVG[k], K_MIN);
+  // Cuánto finaliza cuando gana (el récord incluye peleas fuera de la élite: se rebaja un 15 %)
+  P.finWin = shrink(w ? (0.85 * fins) / w : null, w, 0.45, 6);
+  // Cuánto le finalizan cuando pierde
+  P.finLoss = shrink(l ? ((s.kol || 0) + (s.subl || 0)) / l : null, l, 0.45, 3);
+  P.koShare = shrink(fins ? (s.ko || 0) / fins : null, fins, 0.62, 3);
+  return P;
 }
+// Ritmo esperado de A contra B: lo que suele hacer A y lo que suele recibir B
+const vs = (a, b, ea = 0.5) => Math.pow(Math.max(a, 0.01), ea) * Math.pow(Math.max(b, 0.01), 1 - ea);
 
 // Reparto del método si gana W: { KO, SUB, DEC } (suma 1)
 function methodDist(fight, W) {
@@ -64,15 +65,18 @@ function simulate(fight) {
   }
   const stats = {};
   for (const P of [W, L]) {
-    const win = P === W, pr = fight.prof[P];
+    const win = P === W, me = fight.prof[P], op = fight.prof[P === A ? B : A];
     const form = rf(0.75, 1.25); // noche buena o mala
-    const td = pois((pr.td15 / 15) * mins * (win ? 1.15 : 0.8) * form);
+    const edge = win ? 1.12 : 0.85; // el que gana suele hacer más
+    const td = pois((vs(me.td15, op.tda15, 0.6) / 15) * mins * edge * form);
+    let kd = pois((me.kd15 / 15) * mins * 0.6 * edge);
+    if (win && method === 'KO' && kd === 0 && Math.random() < 0.7) kd = 1;
     stats[P] = {
-      sig: Math.round(pr.slpm * mins * (win ? 1.1 : 0.9) * form),
-      kd: win ? (method === 'KO' ? 1 + (Math.random() < 0.3 ? 1 : 0) : (Math.random() < 0.12 ? 1 : 0)) : (Math.random() < 0.07 ? 1 : 0),
+      sig: Math.round(vs(me.slpm, op.sapm) * mins * edge * form),
+      kd,
       td,
-      sub: pois((pr.sub15 / 15) * mins * form) + (win && method === 'SUB' ? 1 : 0),
-      ctrl: Math.round(td * rf(35, 85) + mins * 60 * rf(0.02, 0.08)),
+      sub: pois((me.sub15 / 15) * mins * form) + (win && method === 'SUB' ? 1 : 0),
+      ctrl: Math.round(Math.min(0.85, vs(me.ctrl, op.octrl, 0.6) * edge * form) * mins * 60),
     };
   }
   // Bonos de la noche (unos 4 por evento): actuación para algunas finalizaciones, pelea de la noche al azar

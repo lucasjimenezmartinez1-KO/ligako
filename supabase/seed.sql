@@ -1,4 +1,4 @@
--- Generado por scripts/build-seed.js. Cuotas moneyline publicadas el 19 oct 2026 (Yahoo Sports / Uncrowned)
+-- Generado por scripts/build-seed.js. Consenso sin margen, 21 oct 2026: FanDuel, BetRivers, DraftKings, BetOnline y Kalshi (mercado de intercambio). Cuotas de método: BetOnline 14 oct.
 
 insert into fighters (id, name, division, rank, nr, photo, photo_credit) values
 
@@ -218,32 +218,32 @@ on conflict (id) do update set ord = excluded.ord, slot = excluded.slot, a = exc
 
 insert into event_fighters (event_id, fighter_id, exp, raw) values
 
-(333, 'alexander-volkanovski', 99.2, 42.534),
-(333, 'movsar-evloev', 109.1, 45.607),
-(333, 'petr-yan', 111.3, 49.948),
-(333, 'merab-dvalishvili', 96.8, 38.096),
-(333, 'lone-er-kavanagh', 43.5, 11.485),
-(333, 'ramazan-temirov', 50.6, 14.396),
-(333, 'alexander-volkov', 45.4, 12.224),
-(333, 'rizvan-kuniev', 47.8, 13.227),
-(333, 'aaron-pico', 43.7, 11.547),
-(333, 'losene-keita', 50.2, 14.247),
-(333, 'azamat-murzakanov', 23.8, 4.649),
-(333, 'dominick-reyes', 18.0, 3.057),
-(333, 'nikita-krylov', 15.9, 2.548),
-(333, 'abdul-rakhman-yakhyaev', 26.0, 5.294),
-(333, 'abus-magomedov', 20.9, 3.816),
-(333, 'cam-rowston', 20.7, 3.764),
-(333, 'grant-dawson', 21.5, 3.978),
-(333, 'nurullo-aliev', 20.6, 3.752),
-(333, 'colby-thicknesse', 9.9, 1.242),
-(333, 'asaf-chopurov', 17.6, 2.949),
-(333, 'abubakar-vagaev', 15.7, 2.486),
-(333, 'jacob-malkoun', 12.3, 1.719),
-(333, 'bolaji-oki', 13.5, 1.990),
-(333, 'daniel-santos', 14.5, 2.210),
-(333, 'kody-steele', 15.1, 2.339),
-(333, 'noah-gugnon', 12.7, 1.809),
-(333, 'iasmin-lucindo', 17.0, 2.798),
-(333, 'nicolle-caliari', 10.9, 1.440)
+(333, 'alexander-volkanovski', 106.2, 46.774),
+(333, 'movsar-evloev', 108.9, 45.447),
+(333, 'petr-yan', 115.7, 52.797),
+(333, 'merab-dvalishvili', 124.5, 55.543),
+(333, 'lone-er-kavanagh', 40.6, 10.353),
+(333, 'ramazan-temirov', 53.2, 15.499),
+(333, 'alexander-volkov', 39.4, 9.905),
+(333, 'rizvan-kuniev', 47.0, 12.887),
+(333, 'aaron-pico', 45.0, 12.083),
+(333, 'losene-keita', 46.1, 12.509),
+(333, 'azamat-murzakanov', 24.2, 4.749),
+(333, 'dominick-reyes', 17.1, 2.826),
+(333, 'nikita-krylov', 14.4, 2.192),
+(333, 'abdul-rakhman-yakhyaev', 27.6, 5.808),
+(333, 'abus-magomedov', 20.0, 3.583),
+(333, 'cam-rowston', 21.1, 3.875),
+(333, 'grant-dawson', 20.7, 3.779),
+(333, 'nurullo-aliev', 18.0, 3.054),
+(333, 'colby-thicknesse', 10.0, 1.266),
+(333, 'asaf-chopurov', 17.5, 2.938),
+(333, 'abubakar-vagaev', 13.5, 1.985),
+(333, 'jacob-malkoun', 14.3, 2.170),
+(333, 'bolaji-oki', 14.0, 2.105),
+(333, 'daniel-santos', 15.2, 2.377),
+(333, 'kody-steele', 14.9, 2.311),
+(333, 'noah-gugnon', 13.3, 1.940),
+(333, 'iasmin-lucindo', 16.6, 2.698),
+(333, 'nicolle-caliari', 10.7, 1.407)
 on conflict (event_id, fighter_id) do update set exp = excluded.exp, raw = excluded.raw;

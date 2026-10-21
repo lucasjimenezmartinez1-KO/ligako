@@ -4,21 +4,161 @@
   "place": "Etihad Arena, Abu Dhabi",
   "starts_at": "2026-10-24T14:00:00Z",
   "market_closes_at": "2026-10-23T21:59:00Z",
-  "odds_source": "Cuotas moneyline publicadas el 19 oct 2026 (Yahoo Sports / Uncrowned)",
+  "odds_source": "Consenso sin margen, 21 oct 2026: FanDuel, BetRivers, DraftKings, BetOnline y Kalshi (mercado de intercambio). Cuotas de método: BetOnline 14 oct.",
   "fights": [
-    ["Alexander Volkanovski", "Movsar Evloev", true, "Estelar", -110, -110],
-    ["Petr Yan", "Merab Dvalishvili", true, "Coestelar", -175, 145],
-    ["Lone'er Kavanagh", "Ramazan Temirov", false, "Cartelera principal", -105, -115],
-    ["Alexander Volkov", "Rizvan Kuniev", false, "Cartelera principal", -120, 100],
-    ["Aaron Pico", "Losene Keita", false, "Cartelera principal", -105, -115],
-    ["Azamat Murzakanov", "Dominick Reyes", false, "Preliminares", -220, 180],
-    ["Nikita Krylov", "Abdul-Rakhman Yakhyaev", false, "Preliminares", 350, -450],
-    ["Abus Magomedov", "Cam Rowston", false, "Preliminares", -120, 100],
-    ["Grant Dawson", "Nurullo Aliev", false, "Preliminares", -125, 105],
-    ["Colby Thicknesse", "Asaf Chopurov", false, "Primeras preliminares", 400, -550],
-    ["Abubakar Vagaev", "Jacob Malkoun", false, "Primeras preliminares", -190, 160],
-    ["Bolaji Oki", "Daniel Santos", false, "Primeras preliminares", 110, -130],
-    ["Kody Steele", "Noah Gugnon", false, "Primeras preliminares", -155, 130],
-    ["Iasmin Lucindo", "Nicolle Caliari", false, "Primeras preliminares", -350, 275]
-  ]
+    [
+      "Alexander Volkanovski",
+      "Movsar Evloev",
+      true,
+      "Estelar",
+      -100,
+      100
+    ],
+    [
+      "Petr Yan",
+      "Merab Dvalishvili",
+      true,
+      "Coestelar",
+      -152,
+      152
+    ],
+    [
+      "Lone'er Kavanagh",
+      "Ramazan Temirov",
+      false,
+      "Cartelera principal",
+      102,
+      -102
+    ],
+    [
+      "Alexander Volkov",
+      "Rizvan Kuniev",
+      false,
+      "Cartelera principal",
+      -112,
+      112
+    ],
+    [
+      "Aaron Pico",
+      "Losene Keita",
+      false,
+      "Cartelera principal",
+      -108,
+      108
+    ],
+    [
+      "Azamat Murzakanov",
+      "Dominick Reyes",
+      false,
+      "Preliminares",
+      -192,
+      192
+    ],
+    [
+      "Nikita Krylov",
+      "Abdul-Rakhman Yakhyaev",
+      false,
+      "Preliminares",
+      421,
+      -421
+    ],
+    [
+      "Abus Magomedov",
+      "Cam Rowston",
+      false,
+      "Preliminares",
+      -111,
+      111
+    ],
+    [
+      "Grant Dawson",
+      "Nurullo Aliev",
+      false,
+      "Preliminares",
+      -113,
+      113
+    ],
+    [
+      "Colby Thicknesse",
+      "Asaf Chopurov",
+      false,
+      "Primeras preliminares",
+      452,
+      -452
+    ],
+    [
+      "Abubakar Vagaev",
+      "Jacob Malkoun",
+      false,
+      "Primeras preliminares",
+      -148,
+      148
+    ],
+    [
+      "Bolaji Oki",
+      "Daniel Santos",
+      false,
+      "Primeras preliminares",
+      110,
+      -110
+    ],
+    [
+      "Kody Steele",
+      "Noah Gugnon",
+      false,
+      "Primeras preliminares",
+      -144,
+      144
+    ],
+    [
+      "Iasmin Lucindo",
+      "Nicolle Caliari",
+      false,
+      "Primeras preliminares",
+      -313,
+      313
+    ]
+  ],
+  "prob": {
+    "Alexander Volkanovski vs Movsar Evloev": 0.501,
+    "Petr Yan vs Merab Dvalishvili": 0.603,
+    "Lone'er Kavanagh vs Ramazan Temirov": 0.494,
+    "Alexander Volkov vs Rizvan Kuniev": 0.528,
+    "Aaron Pico vs Losene Keita": 0.519,
+    "Azamat Murzakanov vs Dominick Reyes": 0.6579999999999999,
+    "Nikita Krylov vs Abdul-Rakhman Yakhyaev": 0.192,
+    "Abus Magomedov vs Cam Rowston": 0.525,
+    "Grant Dawson vs Nurullo Aliev": 0.531,
+    "Colby Thicknesse vs Asaf Chopurov": 0.18100000000000002,
+    "Abubakar Vagaev vs Jacob Malkoun": 0.597,
+    "Bolaji Oki vs Daniel Santos": 0.47700000000000004,
+    "Kody Steele vs Noah Gugnon": 0.59,
+    "Iasmin Lucindo vs Nicolle Caliari": 0.758
+  },
+  "method_props": {
+    "Alexander Volkanovski vs Movsar Evloev": {
+      "a": {
+        "KO": 360,
+        "SUB": 1900,
+        "DEC": 250
+      },
+      "b": {
+        "KO": 1000,
+        "SUB": 1200,
+        "DEC": 140
+      }
+    },
+    "Petr Yan vs Merab Dvalishvili": {
+      "a": {
+        "KO": 550,
+        "SUB": 2200,
+        "DEC": 105
+      },
+      "b": {
+        "KO": 1600,
+        "SUB": 1300,
+        "DEC": 210
+      }
+    }
+  }
 }
