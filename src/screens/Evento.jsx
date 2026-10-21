@@ -2,7 +2,7 @@ import { Fragment, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
 import { DIVS, METHODS, fmt, fmtM, fmtDate, fmtTime, rankLabel, surname } from '../format.js';
 import { Avatar, FaceOff, OwnerTag, useToast } from '../ui.jsx';
-import { phase, slotGroups, activeFights } from '../helpers.js';
+import { phase, slotGroups, activeFights , mainFights } from '../helpers.js';
 
 export default function Evento(c) {
   const ph = phase(c.ev, c.le);
@@ -109,8 +109,8 @@ function Predicciones(c) {
 
   return (
     <>
-      <p className="small muted">Acierta el ganador (+1 M), también el método (+2 M) y el asalto (+3 M). El dinero se suma a tu presupuesto del siguiente evento. Se cierran cuando empieza la primera pelea.</p>
-      {activeFights(c).map((f) => {
+      <p className="small muted">Acierta el ganador (+1 M), también el método (+2 M) y el asalto (+3 M). El dinero se suma a tu presupuesto del siguiente evento. Solo de la cartelera principal. Se cierran cuando empieza la primera pelea.</p>
+      {mainFights(c).map((f) => {
         const p = P[f.id] || null;
         const rounds = Array.from({ length: f.rounds }, (_, i) => i + 1);
         return (

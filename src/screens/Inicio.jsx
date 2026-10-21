@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DIVS, countdown, fmtDate, fmt, fmtM, rankLabel } from '../format.js';
 import { Avatar, FaceOff, useToast } from '../ui.jsx';
-import { phase, myTeam, maxTeam, oppOf, activeFights, share } from '../helpers.js';
+import { phase, myTeam, maxTeam, oppOf, activeFights, share, mainFights } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
 import { InstallHint } from '../InstallHint.jsx';
 import { WaitingRoom, marketStarted } from '../Ready.jsx';
@@ -21,7 +21,8 @@ export default function Inicio(c) {
   const team = myTeam(c);
   const assigned = team.find((o) => o.assigned);
   const titles = activeFights(c).filter((f) => f.title).length;
-  const nPred = Object.keys(c.preds).length;
+  const mains = mainFights(c);
+  const nPred = mains.filter((f) => c.preds[f.id]).length;
   const total = activeFights(c).length;
   const target = ph === 'market' ? ev.market_closes_at : ev.starts_at;
   const cd = countdown(target, now);
@@ -90,7 +91,7 @@ export default function Inicio(c) {
         <section className="card tight" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
           <Check ok={team.length >= 2} text={`Equipo ${team.length}/${maxTeam(c)}`} onClick={() => c.go('equipo')} />
           <Check ok={!!mySquad?.captain} text={mySquad?.captain ? 'Capitán: ' + F[mySquad.captain].name.split(' ').pop() : 'Sin capitán'} onClick={() => c.go('equipo')} />
-          <Check ok={nPred === total} text={`Predicciones ${nPred}/${total}`} onClick={() => c.go('evento')} />
+          <Check ok={nPred === mains.length} text={`Predicciones ${nPred}/${mains.length}`} onClick={() => c.go('evento')} />
           <Check ok text={`Presupuesto ${fmtM(mySquad?.start_money)}`} onClick={() => c.go('mercado')} />
         </section>
       )}

@@ -34,3 +34,7 @@ export async function share(text, url) {
   } catch { return 'cancel'; }
   try { await navigator.clipboard.writeText(text + ' ' + url); return 'copied'; } catch { return 'fail'; }
 }
+
+// Peleas de la cartelera principal (las únicas con predicciones)
+export const MAIN_SLOTS = ['Estelar', 'Coestelar', 'Cartelera principal'];
+export const mainFights = (c) => activeFights(c).filter((f) => MAIN_SLOTS.includes(f.slot));
