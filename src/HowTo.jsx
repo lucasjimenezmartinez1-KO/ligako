@@ -38,7 +38,7 @@ export function HowTo({ budget = 100, open = false }) {
       <div className="small" style={{ marginTop: 14, lineHeight: 1.45 }}>
         <b>Cómo puntúan tus luchadores.</b> <span className="muted">Por ganar (más si es por KO o sumisión y pronto) y por lo que hacen en la pelea: golpes, knockdowns, derribos, sumisiones y control. Las peleas de la cartelera principal son las que más dan; las preliminares dan poco, salvo que el luchador se lleve un bono de la noche.</span>
       </div>
-      <p className="small muted" style={{ marginTop: 8, lineHeight: 1.45 }}>Para quitarle un luchador a otro mánager paga su cláusula (el doble de su valor); el dinero se lo lleva él.</p>
+      <p className="small muted" style={{ marginTop: 8, lineHeight: 1.45 }}>Para quitarle un luchador a otro mánager paga su cláusula (un 25 % más de lo que pagó él); el dinero se lo lleva él.</p>
       <button className="btn sm" style={{ marginTop: 10 }} onClick={() => setAll(!all)}>{all ? 'Ocultar la tabla de puntos' : 'Ver todos los puntos'}</button>
       {all && (
         <div className="stack" style={{ marginTop: 10, gap: 12 }}>

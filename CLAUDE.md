@@ -20,12 +20,12 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 
 ## Ciclo de cada evento (solo eventos numerados)
 
-1. **Sorteo:** al abrirse la cartelera de un evento numerado se asigna al azar **un luchador de la cartelera a cada jugador**, gratis.
+1. **Sorteo:** cuando todos pulsan "Estoy listo" se asigna al azar **un luchador de las preliminares a cada jugador**, gratis (el presupuesto baja un 25 % de su valor).
 2. **Mercado por tandas:** tras el sorteo, el resto de luchadores sale al mercado en 3 tandas (mezcla de oro, plata y bronce) repartidas hasta el viernes 23:59. Pujas secretas (solo se ve cuántos han pujado): gana la más alta al cerrar su tanda (mínimo, el valor). Los que nadie ficha vuelven al mercado hasta el cierre. El sábado solo cláusulas.
    - El sorteo lo lanza el workflow "Sorteo de luchadores" cuando el usuario avisa; resta del presupuesto el 25 % del valor del luchador que toca.
 3. **Fichar a un luchador de otro jugador:** solo de dos formas:
    - Oferta que el dueño acepta.
-   - Pago de la **cláusula** (por defecto, 2 veces su valor). El dinero va al dueño.
+   - Pago de la **cláusula**: un 25 % más de lo que pagó el dueño (o de su valor si le tocó en el sorteo). El dinero va al dueño.
    (Ahora aplica a todos los luchadores, no solo al del sorteo. Pendiente de confirmar.)
 4. **Equipo:** máximo **luchadores de la cartelera ÷ jugadores** (redondeando hacia arriba; p. ej. 30 luchadores y 3 jugadores → 10). Todos puntúan. Un **capitán** puntúa doble.
 5. **Evento:** solo puntúan y dan dinero los luchadores de esa cartelera.
