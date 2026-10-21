@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DIVS, countdown, fmtDate, fmt, fmtM, rankLabel } from '../format.js';
 import { Avatar, FaceOff, useToast } from '../ui.jsx';
 import { phase, myTeam, maxTeam, oppOf, activeFights, share } from '../helpers.js';
+import { HowTo } from '../HowTo.jsx';
 
 function useNow(ms = 30000) {
   const [n, setN] = useState(Date.now());
@@ -103,6 +104,8 @@ export default function Inicio(c) {
         </div>
         <p className="xs muted">{c.members.length} de 12 mánagers. Quien entre antes del cierre del mercado recibe su luchador del sorteo.</p>
       </section>
+
+      <HowTo budget={c.league.budget} open={c.members.length < 2 || !mySquad?.captain && team.length <= 1} />
     </>
   );
 }

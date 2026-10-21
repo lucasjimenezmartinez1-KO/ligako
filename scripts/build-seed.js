@@ -1,49 +1,12 @@
 // Genera supabase/seed.sql: luchadores, evento, peleas y puntos esperados (precio) de cada luchador.
 // Uso: node scripts/build-seed.js data/event-333.json
 import fs from 'node:fs';
-import { scoreFighter } from '../shared/scoring.js';
+import { expectedPoints, rawPrice, oddsProb } from './pricing.js';
 
 const fighters = JSON.parse(fs.readFileSync(new URL('../data/fighters.json', import.meta.url)));
 const ev = JSON.parse(fs.readFileSync(process.argv[2] || new URL('../data/event-333.json', import.meta.url)));
 const byName = Object.fromEntries(fighters.map((f) => [f.name, f]));
-const RUNS = 4000;
-
 const q = (s) => (s == null ? 'null' : "'" + String(s).replace(/'/g, "''") + "'");
-const imp = (o) => (o < 0 ? -o / (-o + 100) : 100 / (o + 100));
-const oddsProb = (a, b) => imp(a) / (imp(a) + imp(b));
-const rf = (a, b) => a + Math.random() * (b - a);
-const ri = (a, b) => Math.floor(rf(a, b + 1));
-
-// Una pelea simulada: ganador por cuotas, método y estadísticas aproximadas por minuto
-function simulate(fight, pA) {
-  const A = fight.a, B = fight.b;
-  const W = Math.random() < pA ? A : B, L = W === A ? B : A;
-  const x = Math.random();
-  const method = x < 0.32 ? 'KO' : x < 0.52 ? 'SUB' : 'DEC';
-  let round, mins, clock, decision = null;
-  if (method === 'DEC') {
-    round = fight.rounds; mins = fight.rounds * 5; clock = '5:00';
-    const d = Math.random(); decision = d < 0.72 ? 'UD' : d < 0.9 ? 'SD' : 'MD';
-  } else {
-    const w = [0.42, 0.28, 0.17, 0.08, 0.05].slice(0, fight.rounds);
-    let y = Math.random() * w.reduce((s, v) => s + v, 0); round = 1;
-    for (let i = 0; i < w.length; i++) { y -= w[i]; if (y <= 0) { round = i + 1; break; } }
-    const t = rf(0.3, 4.95); mins = (round - 1) * 5 + t;
-    clock = Math.floor(t) + ':' + String(Math.floor((t % 1) * 60)).padStart(2, '0');
-  }
-  const stats = {};
-  for (const P of [W, L]) {
-    const win = P === W;
-    stats[P] = {
-      sig: Math.round(mins * (win ? rf(3.4, 5.6) : rf(2.2, 4.4))),
-      kd: win ? (method === 'KO' ? 1 + (Math.random() < 0.3 ? 1 : 0) : (Math.random() < 0.12 ? 1 : 0)) : (Math.random() < 0.07 ? 1 : 0),
-      td: Math.round((mins / 5) * 0.8 * (win ? 1 : 0.6) * rf(0.4, 1.5)),
-      sub: (Math.random() < 0.25 ? 1 : 0) + (win && method === 'SUB' ? 1 : 0),
-      ctrl: Math.floor(mins * 60 * rf(0.05, 0.25) * (win ? 1 : 0.5)),
-    };
-  }
-  return { result: { winner: W, method, decision, round, clock }, stats };
-}
 
 const rows = [];
 rows.push('-- Generado por scripts/build-seed.js. ' + ev.odds_source);
@@ -64,17 +27,8 @@ rows.push(fights.map((f) => `(${q(f.id)}, ${ev.id}, ${f.ord}, ${q(f.slot)}, ${q(
   '\non conflict (id) do update set ord = excluded.ord, slot = excluded.slot, a = excluded.a, b = excluded.b, division = excluded.division, title = excluded.title, rounds = excluded.rounds;');
 
 const rank = Object.fromEntries(fighters.map((f) => [f.id, f.rank]));
-const exp = {};
-for (const f of fights) {
-  let sa = 0, sb = 0;
-  for (let i = 0; i < RUNS; i++) {
-    const { result, stats } = simulate(f, f.pA);
-    sa += scoreFighter(f.a, f, result, stats, rank).total;
-    sb += scoreFighter(f.b, f, result, stats, rank).total;
-  }
-  exp[f.a] = sa / RUNS; exp[f.b] = sb / RUNS;
-}
-const raw = (id) => Math.max(0.5, Math.pow(exp[id], 1.5) / 25 + (rank[id] === 0 ? 3 : 0));
+const exp = expectedPoints(fights, rank);
+const raw = (id) => rawPrice(exp[id], rank[id]);
 rows.push('insert into event_fighters (event_id, fighter_id, exp, raw) values');
 rows.push(Object.keys(exp).map((id) => `(${ev.id}, ${q(id)}, ${exp[id].toFixed(1)}, ${raw(id).toFixed(3)})`).join(',\n') +
   '\non conflict (event_id, fighter_id) do update set exp = excluded.exp, raw = excluded.raw;');

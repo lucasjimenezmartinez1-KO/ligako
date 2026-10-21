@@ -36,7 +36,7 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 - **Venta tras el evento:** precio × (puntos obtenidos / puntos esperados), limitado entre 0,3× y 2,5×.
 - **Carteleras:** se usan las carteleras oficiales de los eventos numerados en cuanto se anuncian (el 333 del 24 oct 2026 ya está cargado). Los luchadores de la cartelera que no están en el top 15 entran como "sin clasificar". En la app se muestran como "Evento 333", sin la marca.
 
-## Puntuación (v2, implementada en `shared/scoring.js`)
+## Puntuación (v3, implementada en `shared/scoring.js`)
 
 | Acción | Puntos |
 |---|---|
@@ -51,28 +51,27 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 | Takedown | +4 |
 | Intento de sumisión | +3 |
 | Minuto de control | +0,5 |
-| Pelea intensa (8+ golpes significativos/min entre los dos) | +10 cada uno |
-| Pelea muy intensa (12+ golpes/min) | +20 cada uno |
-| Ida y vuelta (los dos tumbaron al rival) | +10 cada uno |
 | Ganar un combate por el título | +20 |
 | Ganar a un rival mejor clasificado | +10 |
-| Bono oficial de pelea de la noche | +25 |
-| Bono oficial de actuación de la noche | +20 |
 | No dar el peso / punto restado | −10 / −5 |
 
-Objetivo: perder una guerra puntúa más que ganar una decisión dividida sin hacer nada.
+Sin bonos por intensidad ni "ida y vuelta" (quitados en v3).
 
-### Multiplicador según la pelea
+### Multiplicador y tope según la pelea
 
 Se aplica al total de puntos del luchador en esa pelea (también a los negativos):
 
-| Pelea | Multiplicador |
-|---|---|
-| Por el título | ×1,5 |
-| Estelar sin título | ×1,25 |
-| Cartelera principal (incluye coestelar sin título) | ×1 |
-| Preliminares | ×0,75 |
-| Primeras preliminares | ×0,5 |
+| Pelea | Multiplicador | Máximo |
+|---|---|---|
+| Por el título | ×1,5 | — |
+| Estelar sin título | ×1,25 | — |
+| Cartelera principal (incluye coestelar sin título) | ×1 | — |
+| Preliminares | ×0,5 | 25 |
+| Primeras preliminares | ×0,3 | 15 |
+
+### Bonos oficiales de la noche
+
+Se suman enteros después del multiplicador y del tope, en cualquier pelea: pelea de la noche +25, actuación de la noche +20. Se leen solos de Wikipedia (`scripts/bonuses.js`).
 
 El capitán multiplica por 2 su puntuación total del evento.
 
@@ -110,5 +109,7 @@ App real en construcción para el evento 333 (24 oct 2026). El prototipo antiguo
 - **Datos del evento:** `data/event-<n>.json` (cartelera y cuotas) → `node scripts/build-seed.js data/event-<n>.json` genera `supabase/seed.sql` con los puntos esperados (simulación) y el precio bruto.
 - **Puntos:** `shared/scoring.js` (sistema v2: premia peleas intensas, ida y vuelta, bonos; multiplicador por parte de la cartelera).
 - **Directo:** `scripts/live.js` lee ESPN (scoreboard + estadísticas por luchador) y escribe `fighter_points` y `fights`; lo ejecuta `.github/workflows/live.yml` cada 5 min los sábados. Secretos de GitHub: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`.
-- **Bonos y sanciones:** a mano en la tabla `event_extras` (p. ej. 'Pelea de la noche', 25).
+- **Bonos:** automáticos desde Wikipedia (`event_extras`). Sanciones (no dar el peso) a mano en `event_extras`.
+- **Cambios de cartelera:** automáticos en `scripts/live.js` (peleas caídas → `cancel_fight`, sustitutos → nueva pelea + `add_fight_to_markets`).
+- **Precios:** `scripts/update-prices.js` (workflow "Recalcular precios") recalcula `event_fighters` y reescala las ligas.
 - **Variables de Vercel:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.

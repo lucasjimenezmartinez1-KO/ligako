@@ -1,6 +1,7 @@
 // Prueba sin tocar la base de datos: lee el último evento terminado de ESPN y calcula los puntos con nuestro sistema.
 // Uso: node scripts/test-espn.js [YYYYMMDD-YYYYMMDD]
 import { scoreFighter } from '../shared/scoring.js';
+import { fetchBonusLines, parseBonuses } from './bonuses.js';
 
 const SITE = 'https://site.api.espn.com/apis/site/v2/sports/mma/ufc/scoreboard';
 const CORE = 'https://sports.core.api.espn.com/v2/sports/mma/leagues/ufc';
@@ -48,3 +49,9 @@ for (const c of ev.competitions) {
   const pa = scoreFighter(A.id, fight, result, stats, {}, {}), pb = scoreFighter(B.id, fight, result, stats, {}, {});
   log(`${A.athlete.displayName} ${pa.total} – ${pb.total} ${B.athlete.displayName} · ${res?.displayName || '?'} R${result.round} ${result.clock} · golpes ${sa.sig}/${sb.sig} kd ${sa.kd}/${sb.kd} td ${sa.td}/${sb.td} ctrl ${sa.ctrl}/${sb.ctrl}s`);
 }
+
+// Bonos de la noche desde Wikipedia
+const lines = (await fetchBonusLines(ev.name)).concat(await fetchBonusLines(ev.name.split(':')[0]));
+const card = ev.competitions.flatMap((c) => c.competitors.map((x) => ({ id: x.athlete.displayName, name: x.athlete.displayName })));
+log('Wikipedia: ' + (lines.join(' | ') || 'sin bonos'));
+log('Bonos detectados: ' + parseBonuses(lines, card).map((b) => `${b.fighter_id} ${b.label}`).join(', '));

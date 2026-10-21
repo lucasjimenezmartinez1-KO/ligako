@@ -1,18 +1,9 @@
-import { Fragment } from 'react';
 import { supabase } from '../supabase.js';
-import { fmt, fmtM } from '../format.js';
+import { fmt } from '../format.js';
 import { useToast } from '../ui.jsx';
 import { share } from '../helpers.js';
+import { HowTo } from '../HowTo.jsx';
 
-const RULES = [
-  ['Victoria por KO/TKO o sumisión', '+25'], ['Victoria por decisión unánime', '+15'], ['Victoria por decisión dividida o mayoritaria', '+8'],
-  ['Derrota por decisión', '0'], ['Derrota por finalización', '−5'], ['Finalizar en el asalto 1 / 2 / 3+', '+15 / +10 / +5'],
-  ['Golpe significativo', '+0,5'], ['Knockdown', '+10'], ['Takedown', '+4'], ['Intento de sumisión', '+3'], ['Minuto de control', '+0,5'],
-  ['Pelea intensa (8+ golpes/min entre los dos)', '+10 cada uno'], ['Pelea muy intensa (12+ golpes/min)', '+20 cada uno'], ['Ida y vuelta (los dos tumbaron)', '+10'],
-  ['Ganar un combate por el título', '+20'], ['Ganar a un rival mejor clasificado', '+10'], ['Bono de pelea de la noche', '+25'], ['Bono de actuación de la noche', '+20'],
-  ['No dar el peso', '−10'], ['Punto restado', '−5'],
-  ['Pelea por el título', '×1,5'], ['Estelar sin título', '×1,25'], ['Preliminares', '×0,75'], ['Primeras preliminares', '×0,5'], ['Capitán', '×2'],
-];
 
 export default function Liga(c) {
   const toast = useToast();
@@ -62,18 +53,7 @@ export default function Liga(c) {
         </div>
       </section>
 
-      <details className="card">
-        <summary className="bold" style={{ cursor: 'pointer' }}>Cómo se juega</summary>
-        <div className="stack small" style={{ marginTop: 8 }}>
-          <p>Antes de cada evento numerado se sortea un luchador de la cartelera para cada mánager. El resto sale al mercado con pujas cerradas: gana la más alta al cerrar el mercado.</p>
-          <p>Cada evento tienes un presupuesto de {fmtM(c.league.budget)} más lo que ganaste o perdiste en el anterior. Los precios se calculan con los puntos que se espera que haga cada luchador, y toda la cartelera vale lo mismo que el presupuesto de todos los mánagers juntos.</p>
-          <p>Para quitarle un luchador a otro mánager, paga su cláusula: el doble de su valor. Al terminar el evento todos los luchadores se venden solos según lo que hayan rendido.</p>
-          <p>Predicciones: acertar el ganador da 1 M, el método 2 M más y el asalto 3 M más.</p>
-        </div>
-        <div className="breakdown small" style={{ marginTop: 10 }}>
-          {RULES.map(([t, v]) => <Fragment key={t}><span className="muted">{t}</span><span style={{ textAlign: 'right' }}>{v}</span></Fragment>)}
-        </div>
-      </details>
+      <HowTo budget={c.league.budget} />
 
       <details className="card">
         <summary className="bold" style={{ cursor: 'pointer' }}>Créditos de las fotos</summary>

@@ -1,21 +1,25 @@
-// Sistema de puntos de Liga KO (v2). Lo usan la app, el cálculo de precios y el actualizador en directo.
+// Sistema de puntos de Liga KO (v3). Lo usan la app, el cálculo de precios y el actualizador en directo.
 
 export const SLOT_MULT = {
   'Pelea por el título': 1.5,
   'Estelar': 1.25,
   'Coestelar': 1,
   'Cartelera principal': 1,
-  'Preliminares': 0.75,
-  'Primeras preliminares': 0.5,
+  'Preliminares': 0.5,
+  'Primeras preliminares': 0.3,
 };
 
+// Multiplicador y tope según la parte de la cartelera. Las preliminares dan pocos puntos:
+// solo un bono oficial de la noche (que va aparte, sin multiplicar ni tope) puede hacer que una de ellas puntúe mucho.
 export function slotMult(fight) {
-  if (fight.title) return { x: 1.5, label: 'Pelea por el título' };
-  if (fight.slot === 'Estelar') return { x: 1.25, label: 'Pelea estelar' };
-  if (fight.slot === 'Preliminares') return { x: 0.75, label: 'Preliminares' };
-  if (fight.slot === 'Primeras preliminares') return { x: 0.5, label: 'Primeras preliminares' };
-  return { x: 1, label: '' };
+  if (fight.title) return { x: 1.5, cap: null, label: 'Pelea por el título' };
+  if (fight.slot === 'Estelar') return { x: 1.25, cap: null, label: 'Pelea estelar' };
+  if (fight.slot === 'Preliminares') return { x: 0.5, cap: 25, label: 'Preliminares' };
+  if (fight.slot === 'Primeras preliminares') return { x: 0.3, cap: 15, label: 'Primeras preliminares' };
+  return { x: 1, cap: null, label: '' };
 }
+
+const isNightBonus = (label) => /noche/i.test(label);
 
 const r1 = (x) => Math.round(x * 10) / 10;
 
@@ -61,20 +65,18 @@ export function scoreFighter(fid, fight, result, stats, preRank, extras = {}) {
   const ctrlMin = Math.floor((s.ctrl || 0) / 60);
   if (ctrlMin) lines.push([ctrlMin + ' min de control', ctrlMin * 0.5]);
 
-  if (result.winner) {
-    const mins = Math.max(1, fightMinutes(result));
-    const pace = ((s.sig || 0) + (o.sig || 0)) / mins;
-    if (pace >= 12) lines.push(['Pelea muy intensa (' + r1(pace) + ' golpes/min)', 20]);
-    else if (pace >= 8) lines.push(['Pelea intensa (' + r1(pace) + ' golpes/min)', 10]);
-    if ((s.kd || 0) > 0 && (o.kd || 0) > 0) lines.push(['Ida y vuelta (los dos tumbaron)', 10]);
-  }
-
-  (extras[fid] || []).forEach(([t, v]) => lines.push([t, Number(v)]));
+  // Sanciones (no dar el peso, punto restado) cuentan con el resto; los bonos de la noche van aparte
+  const all = extras[fid] || [];
+  all.filter(([t]) => !isNightBonus(t)).forEach(([t, v]) => lines.push([t, Number(v)]));
 
   const sub = lines.reduce((t, l) => t + l[1], 0);
   const m = slotMult(fight);
+  let total = sub * m.x;
   if (m.x !== 1 && sub !== 0) lines.push([m.label + ' ×' + String(m.x).replace('.', ','), r1(sub * (m.x - 1))]);
-  return { total: r1(sub * m.x), lines: lines.map(([t, v]) => [t, r1(v)]) };
+  if (m.cap != null && total > m.cap) { lines.push(['Máximo en ' + m.label.toLowerCase() + ': ' + m.cap, r1(m.cap - total)]); total = m.cap; }
+
+  all.filter(([t]) => isNightBonus(t)).forEach(([t, v]) => { lines.push([t, Number(v)]); total += Number(v); });
+  return { total: r1(total), lines: lines.map(([t, v]) => [t, r1(v)]) };
 }
 
 export function predictionMoney(pred, fight) {

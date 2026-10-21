@@ -83,11 +83,11 @@ function Cartelera(c) {
       ))}
       {g.main.map((f) => <MidRow key={f.id} c={c} f={f} />)}
       {g.prelims.length > 0 && <>
-        <div className="row between" style={{ marginTop: 6 }}><h2 className="h-display" style={{ fontSize: 20 }}>Preliminares</h2><span className="small muted">{fmtTime(t0 + 2 * 3600e3)} · ×0,75</span></div>
+        <div className="row between" style={{ marginTop: 6 }}><h2 className="h-display" style={{ fontSize: 20 }}>Preliminares</h2><span className="small muted">{fmtTime(t0 + 2 * 3600e3)} · pocos puntos</span></div>
         <CompactList c={c} fights={g.prelims} />
       </>}
       {g.early.length > 0 && <>
-        <div className="row between" style={{ marginTop: 6 }}><h2 className="h-display" style={{ fontSize: 20 }}>Primeras preliminares</h2><span className="small muted">{fmtTime(t0)} · ×0,5</span></div>
+        <div className="row between" style={{ marginTop: 6 }}><h2 className="h-display" style={{ fontSize: 20 }}>Primeras preliminares</h2><span className="small muted">{fmtTime(t0)} · pocos puntos</span></div>
         <CompactList c={c} fights={g.early} />
       </>}
       <p className="note">En negrita, tus luchadores y aquellos por los que has pujado.</p>
@@ -188,7 +188,7 @@ function Directo(c) {
               <div key={X.id} className="stack" style={{ borderTop: '1px solid var(--line)', paddingTop: 8 }}>
                 <span className="small bold">{X.name}</span>
                 <div className="breakdown small">
-                  {c.points[X.id].lines.map(([t, v], i) => <Fragment key={i}><span className={/intensa|Ida y vuelta|noche/.test(t) ? 'hl' : ''}>{t}</span><span style={{ textAlign: 'right' }} className={v < 0 ? 'red' : ''}>{v > 0 ? '+' : ''}{fmt(v)}</span></Fragment>)}
+                  {c.points[X.id].lines.map(([t, v], i) => <Fragment key={i}><span className={/noche/.test(t) ? 'hl' : ''}>{t}</span><span style={{ textAlign: 'right' }} className={v < 0 ? 'red' : ''}>{v > 0 ? '+' : ''}{fmt(v)}</span></Fragment>)}
                   <span className="tot">Total</span><span className="tot" style={{ textAlign: 'right' }}>{fmt(c.points[X.id].total)}</span>
                 </div>
               </div>
