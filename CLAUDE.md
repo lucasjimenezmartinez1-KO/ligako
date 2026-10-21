@@ -107,7 +107,7 @@ App real en construcción para el evento 333 (24 oct 2026). El prototipo antiguo
 - **Frontend:** Vite + React (JS), PWA instalable (`public/manifest.webmanifest`). Pantallas en `src/screens/`. Estilo oscuro con esquina roja/azul y dorado (`src/styles.css`).
 - **Backend:** Supabase. Esquema, seguridad (RLS) y toda la lógica del juego en `supabase/schema.sql` (funciones `sync_league`, `place_bid`, `close_market`, `pay_clause`, `set_captain`, `set_prediction`, `recalc_event`, `settle_event`, `cancel_fight`, `add_fight_to_markets`). Los clientes solo escriben mediante esas funciones.
 - **Datos del evento:** `data/event-<n>.json` (cartelera y cuotas) → `node scripts/build-seed.js data/event-<n>.json` genera `supabase/seed.sql` con los puntos esperados (simulación) y el precio bruto.
-- **Puntos:** `shared/scoring.js` (sistema v2: premia peleas intensas, ida y vuelta, bonos; multiplicador por parte de la cartelera).
+- **Puntos:** `shared/scoring.js` (sistema v3: multiplicador y tope por parte de la cartelera; bonos de la noche aparte).
 - **Directo:** `scripts/live.js` lee ESPN (scoreboard + estadísticas por luchador) y escribe `fighter_points` y `fights`; lo ejecuta `.github/workflows/live.yml` cada 5 min los sábados. Secretos de GitHub: `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`.
 - **Bonos:** automáticos desde Wikipedia (`event_extras`). Sanciones (no dar el peso) a mano en `event_extras`.
 - **Cambios de cartelera:** automáticos en `scripts/live.js` (peleas caídas → `cancel_fight`, sustitutos → nueva pelea + `add_fight_to_markets`).
