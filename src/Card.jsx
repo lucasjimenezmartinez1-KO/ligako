@@ -27,7 +27,13 @@ function Photo({ f }) {
       </>
     );
   }
-  return <img className="fc-img" src={src} alt="" loading="lazy" onError={() => setSrc(src.startsWith('/cards/') && f.photo ? f.photo : null)} />;
+  return (
+    <div className="fc-photo">
+      <img className="fc-img" src={src} alt="" loading="lazy" onError={() => setSrc(src.startsWith('/cards/') && f.photo ? f.photo : null)} />
+      <span className="fc-tint" aria-hidden="true" />
+      <span className="fc-grain" aria-hidden="true" />
+    </div>
+  );
 }
 
 /**
