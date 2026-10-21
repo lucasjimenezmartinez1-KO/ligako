@@ -56,6 +56,16 @@ export default function Auth() {
         {err && <p className="error" role="alert">{err}</p>}
         {info && <p className="green small">{info}</p>}
         <button className="btn primary block" disabled={busy}>{busy ? 'Un momento…' : mode === 'signup' ? 'Crear cuenta' : 'Entrar'}</button>
+        {mode === 'login' && (
+          <button type="button" className="btn block" disabled={busy} onClick={async () => {
+            setErr(''); setInfo('');
+            if (!email.includes('@')) { setErr('Escribe tu email y vuelve a pulsar'); return; }
+            setBusy(true);
+            const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: location.origin });
+            setBusy(false);
+            if (error) setErr(errText(error)); else setInfo('Te hemos enviado un correo para poner una contraseña nueva. Mira también en spam.');
+          }}>He olvidado mi contraseña</button>
+        )}
       </form>
     </div>
   );

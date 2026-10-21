@@ -16,11 +16,12 @@ const TABS = [['inicio', 'Inicio'], ['equipo', 'Equipo'], ['mercado', 'Mercado']
 export default function App() {
   const [session, setSession] = useState(undefined);
   const [leagueId, setLeagueId] = useState(undefined);
+  const [recovery, setRecovery] = useState(() => /type=recovery/.test(location.hash));
 
   useEffect(() => {
     if (!configured) return;
     supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data } = supabase.auth.onAuthStateChange((e, s) => { setSession(s); if (e === 'PASSWORD_RECOVERY') setRecovery(true); });
     return () => data.subscription.unsubscribe();
   }, []);
 
@@ -33,6 +34,7 @@ export default function App() {
   if (!configured) return <div className="center-screen"><p>Falta configurar la conexión con la base de datos.</p></div>;
   if (session === undefined || (session && leagueId === undefined)) return <Splash />;
   if (!session) return <Auth />;
+  if (recovery) return <NewPassword onDone={() => { setRecovery(false); history.replaceState(null, '', location.pathname + location.search); }} />;
   if (!leagueId) return <Onboarding onJoined={setLeagueId} />;
   return <Shell leagueId={leagueId} userId={session.user.id} />;
 }
@@ -82,6 +84,32 @@ function Shell({ leagueId, userId }) {
           ))}
         </div>
       </nav>
+    </div>
+  );
+}
+
+function NewPassword({ onDone }) {
+  const [pw, setPw] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  return (
+    <div className="center-screen">
+      <div className="hero-word">Liga <b>KO</b></div>
+      <form className="card" onSubmit={async (e) => {
+        e.preventDefault(); setErr('');
+        if (pw.length < 6) { setErr('La contraseña debe tener al menos 6 caracteres'); return; }
+        setBusy(true);
+        const { error } = await supabase.auth.updateUser({ password: pw });
+        setBusy(false);
+        if (error) setErr(errText(error)); else onDone();
+      }}>
+        <h2 className="h-display" style={{ fontSize: 24 }}>Nueva contraseña</h2>
+        <label className="field" htmlFor="newpw">Escribe tu contraseña nueva
+          <input id="newpw" className="input" type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="new-password" />
+        </label>
+        {err && <p className="error" role="alert">{err}</p>}
+        <button className="btn primary block" disabled={busy}>{busy ? 'Un momento…' : 'Guardar y entrar'}</button>
+      </form>
     </div>
   );
 }

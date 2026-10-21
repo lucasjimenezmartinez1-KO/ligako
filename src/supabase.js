@@ -14,6 +14,7 @@ export function errText(e) {
   if (/User already registered/i.test(m)) return 'Ya hay una cuenta con ese email. Inicia sesión.';
   if (/Password should be at least/i.test(m)) return 'La contraseña debe tener al menos 6 caracteres';
   if (/Unable to validate email|invalid format/i.test(m)) return 'Ese email no es válido';
+  if (/rate limit|security purposes/i.test(m)) return 'Has pedido demasiados correos seguidos. Espera unos minutos y vuelve a probar';
   if (/Failed to fetch|NetworkError/i.test(m)) return 'Sin conexión. Revisa tu internet e inténtalo de nuevo';
   return m;
 }
