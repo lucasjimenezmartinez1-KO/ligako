@@ -12,9 +12,11 @@ for (const c of ev.competitions) for (const x of c.competitors) {
   const a = (await get(`https://site.web.api.espn.com/apis/common/v3/sports/mma/athletes/${id}`))?.athlete;
   const st = await get(`https://sports.core.api.espn.com/v2/sports/mma/athletes/${id}/statistics`);
   const S = Object.fromEntries((st?.splits?.categories || []).flatMap((k) => k.stats).map((s) => [s.name, s.value]));
+  const fs = await get(`https://site.web.api.espn.com/apis/common/v3/sports/mma/athletes/${id}/stats`);
+  const n = (fs?.categories?.[0]?.statistics || []).filter((r) => r.stats?.[5] && r.stats[5] !== '-').length;
   const sum = Object.fromEntries((a?.statsSummary?.statistics || []).map((s) => [s.name, s.displayValue]));
   const [w, l, d] = pair(sum['wins-losses-draws']), [ko, kol] = pair(sum['tkos-tkoLosses']), [sub, subl] = pair(sum['submissions-submissionLosses']);
-  out[name] = { slpm: S.strikeLPM ?? null, td15: S.takedownAvg ?? null, sub15: S.submissionAvg ?? null, w, l, d, ko, kol, sub, subl };
+  out[name] = { n, slpm: S.strikeLPM ?? null, td15: S.takedownAvg ?? null, sub15: S.submissionAvg ?? null, w, l, d, ko, kol, sub, subl };
 }
 const s = JSON.stringify(out);
 for (let i = 0; i < s.length; i += 3000) log('STATS' + Math.floor(i / 3000) + ' ' + s.slice(i, i + 3000));
