@@ -16,7 +16,7 @@ export const BONUS = [['Pelea de la noche', '+25'], ['Actuación de la noche', '
 
 const STEPS = (budget) => [
   ['Te toca un luchador', 'Al abrirse cada evento se sortea un luchador de la cartelera para cada mánager. Es tuyo gratis.'],
-  ['Ficha en el mercado', `Tienes ${fmtM(budget)} por evento. Puja por los luchadores libres: las pujas son secretas y gana la más alta cuando cierra el mercado. Los buenos son caros: tú decides si una estrella o varios baratos.`],
+  ['Ficha en el mercado', `Tienes ${fmtM(budget)} por evento. Los luchadores salen al mercado por tandas: puja por ellos antes de que cierre su tanda. Las pujas son secretas (solo se ve cuántos han pujado) y gana la más alta. Los buenos son caros: tú decides si una estrella o varios baratos.`],
   ['Elige capitán', 'Tu capitán puntúa el doble. Todos tus luchadores puntúan, no hay banquillo.'],
   ['Predice las peleas', 'Acierta ganador (+1 M), método (+2 M) y asalto (+3 M). Es dinero extra para el siguiente mercado, no puntos.'],
   ['Sigue el evento en directo', 'Los puntos se actualizan solos según acaba cada pelea. Al terminar, tus luchadores se venden solos: si rinden más de lo esperado, ganas dinero.'],

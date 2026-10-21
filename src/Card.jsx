@@ -73,3 +73,19 @@ export const fmtLeft = (ms) => {
   const p = (n) => String(n).padStart(2, '0');
   return d > 0 ? `${d}d ${p(h)}:${p(m)}:${p(x)}` : `${p(h)}:${p(m)}:${p(x)}`;
 };
+
+// Récord profesional, en la élite y últimos resultados
+export function Records({ f }) {
+  if (!f.record && !f.streak) return null;
+  return (
+    <div className="recs">
+      {f.record && <div><span>Récord profesional</span><b>{f.record}</b></div>}
+      {f.elite_record && <div><span>En la élite</span><b>{f.elite_record}</b></div>}
+      {f.streak && (
+        <div><span>Últimas peleas</span>
+          <b className="streak">{[...f.streak].map((r, i) => <i key={i} className={r} title={{ V: 'Victoria', D: 'Derrota', E: 'Empate', N: 'Sin resultado' }[r]}>{r}</i>)}</b>
+        </div>
+      )}
+    </div>
+  );
+}

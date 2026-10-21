@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import { scoreFighter } from '../shared/scoring.js';
 import { expectedPoints, rawPrice } from './pricing.js';
 import { fetchBonusLines, parseBonuses } from './bonuses.js';
+import { recordsFor, espnRecords, norm as nrm } from './records.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://vizqrxhulaqzehtlnvpx.supabase.co';
 const { SUPABASE_SERVICE_KEY } = process.env;
@@ -128,6 +129,21 @@ async function syncCard(ev, fights, F, espnEv) {
   }
 }
 
+// ───────────── Récords (una vez al día antes del evento) ─────────────
+async function syncRecords(fights, F, espnEv) {
+  const ids = fights.filter((f) => f.status !== 'cancelled').flatMap((f) => [f.a, f.b]);
+  const stale = ids.filter((id) => !F[id].records_at || Date.now() - new Date(F[id].records_at).getTime() > 20 * 3600e3);
+  if (!stale.length) return;
+  const espn = espnRecords(espnEv);
+  let n = 0;
+  for (const id of stale) {
+    const r = (await recordsFor(F[id].name).catch(() => null)) || (espn[nrm(F[id].name)] ? { record: espn[nrm(F[id].name)], elite_record: null, streak: null } : null);
+    if (!DRY) await q(db.from('fighters').update({ ...(r || {}), records_at: new Date().toISOString() }).eq('id', id));
+    if (r) n++;
+  }
+  log(`Récords actualizados: ${n} de ${stale.length}`);
+}
+
 // ───────────── Bonos de la noche (Wikipedia) ─────────────
 async function syncBonuses(ev, fights, F, espnEv, extrasRows) {
   if (extrasRows.some((x) => /noche/i.test(x.label))) return;
@@ -164,6 +180,7 @@ async function main() {
 
   if (Date.now() < start) {
     await syncCard(ev, fights, F, espnEv);
+    await syncRecords(fights, F, espnEv);
     if (process.env.FORCE !== '1' && Date.now() < start - 30 * 60e3) { log(`Evento ${ev.id}: cartelera revisada, aún no ha empezado`); return; }
   }
 

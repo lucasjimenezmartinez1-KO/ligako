@@ -215,3 +215,21 @@ table.stand tr.me td { font-weight: 800; }
 .sheet { width: 100%; max-width: 480px; background: var(--card); border: 1px solid var(--line); border-radius: 20px 20px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; max-height: 92vh; overflow-y: auto; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .red { color: var(--red); }
+.waves { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
+.waves li { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 7px 8px; display: flex; flex-direction: column; font-size: 12px; color: var(--muted); }
+.waves li b { font-size: 11px; letter-spacing: .8px; text-transform: uppercase; color: var(--ink-2); }
+.waves li.on { background: #2A1416; border-color: var(--red); }
+.waves li.on b { color: var(--red-soft); }
+.waves li.past { opacity: .55; }
+.locked-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.locked { width: 40px; height: 54px; border-radius: 8px; display: grid; place-items: center; font-family: var(--display); font-weight: 900; font-size: 20px; border: 1px dashed #C98A5B; background: #1A130F; color: #A88C78; }
+.locked.oro { border-color: var(--gold); background: #19140A; color: #B5A27A; }
+.locked.plata { border-color: #C9D1DC; background: #141820; color: var(--muted); }
+.recs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.recs > div { background: var(--card-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 3px; }
+.recs span { font-size: 11px; color: var(--muted); }
+.recs b { font-size: 16px; }
+.streak { display: flex; gap: 3px; }
+.streak i { font-style: normal; font-size: 11px; font-weight: 800; width: 18px; height: 18px; border-radius: 4px; display: grid; place-items: center; background: var(--line-2); color: var(--ink); }
+.streak i.V { background: var(--green); color: var(--bg); }
+.streak i.D { background: var(--red); color: #fff; }

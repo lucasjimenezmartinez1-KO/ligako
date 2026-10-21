@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
 import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
-import { FighterCard, fmtLeft } from '../Card.jsx';
+import { FighterCard, fmtLeft, tierOf, Records } from '../Card.jsx';
 import { phase, myTeam, maxTeam, committed, oppOf, activeFights } from '../helpers.js';
 
 export default function Mercado(c) {
@@ -24,7 +24,13 @@ export default function Mercado(c) {
   const slots = max - team.length - Object.keys(c.bids).length;
   const ids = new Set(activeFights(c).flatMap((f) => [f.a, f.b]));
   const rows = Object.values(c.own).filter((o) => ids.has(o.fighter_id));
-  const free = rows.filter((o) => !o.owner).sort((a, b) => b.value - a.value);
+  const isOpen = (o) => (!o.opens_at || new Date(o.opens_at).getTime() <= now) && (!o.closes_at || new Date(o.closes_at).getTime() > now);
+  const free = rows.filter((o) => !o.owner && isOpen(o)).sort((a, b) => b.value - a.value);
+  const upcoming = rows.filter((o) => !o.owner && o.opens_at && new Date(o.opens_at).getTime() > now);
+  const waves = [...new Set(rows.filter((o) => o.wave).map((o) => o.wave))].sort();
+  const wInfo = (w) => { const r = rows.find((o) => o.wave === w); return r ? { opens: r.opens_at, closes: r.closes_at || c.ev.market_closes_at } : null; };
+  const curWave = waves.find((w) => { const i = wInfo(w); return new Date(i.opens).getTime() <= now && new Date(i.closes).getTime() > now; });
+  const closeOf = (o) => new Date(o.closes_at || c.ev.market_closes_at).getTime();
   const others = rows.filter((o) => o.owner && o.owner !== c.me);
 
   async function bid(o) {
@@ -70,7 +76,7 @@ export default function Mercado(c) {
           <Stat label="Tu equipo" value={`${team.length} de ${max}`} />
         </div>
         <p className="xs muted">
-          {ph === 'market' ? 'Pujas cerradas: nadie ve las pujas de los demás. Al cerrar el mercado gana la más alta.'
+          {ph === 'market' ? 'Pujas secretas: nadie ve cuánto pujan los demás, solo cuántos han pujado. Al cerrar cada tanda gana la puja más alta.'
             : started ? 'El evento ya ha empezado. El mercado vuelve a abrirse con la cartelera del siguiente evento numerado.'
             : 'Las pujas ya se han resuelto. Hasta que empiece el evento aún puedes pagar la cláusula de un luchador de otro mánager.'}
         </p>
@@ -83,11 +89,17 @@ export default function Mercado(c) {
 
       {tab === 'libres' && (ph !== 'market' ? (
         <section className="card"><p className="muted small">Con el mercado cerrado, los luchadores que han quedado libres no puntúan para nadie.</p></section>
-      ) : free.length === 0 ? (
+      ) : free.length === 0 && upcoming.length === 0 ? (
         <section className="card"><p className="muted small">No quedan luchadores libres.</p></section>
       ) : (
         <>
-          <div className="row between"><span className="xs muted">Pujas secretas: solo se ve cuántos han pujado.</span><span className="xs red bold">{fmtLeft(new Date(c.ev.market_closes_at).getTime() - now)}</span></div>
+          {waves.length > 0 && (
+            <ol className="waves">
+              {waves.map((w) => { const i = wInfo(w); const on = w === curWave; const past = new Date(i.closes).getTime() <= now;
+                return <li key={w} className={on ? 'on' : past ? 'past' : ''}><b>Tanda {w}{on ? ' · ahora' : ''}</b><span>{past ? 'cerrada' : on ? 'cierra ' + fmtDate(i.closes) : 'sale ' + fmtDate(i.opens)}</span></li>; })}
+            </ol>
+          )}
+          <div className="row between"><span className="xs muted">Pujas secretas: solo se ve cuántos han pujado.</span><span className="xs red bold">{fmtLeft((free[0] ? Math.min(...free.map(closeOf)) : new Date(c.ev.market_closes_at).getTime()) - now)}</span></div>
           <section className="cards-grid">
             {free.map((o) => {
               const f = c.F[o.fighter_id]; const myBid = c.bids[o.fighter_id];
@@ -98,6 +110,16 @@ export default function Mercado(c) {
               );
             })}
           </section>
+          {upcoming.length > 0 && [...new Set(upcoming.map((o) => o.wave))].sort().map((w) => {
+            const list = upcoming.filter((o) => o.wave === w);
+            return (
+              <section key={w} className="stack" style={{ gap: 8 }}>
+                <div className="row between"><h2 className="h-display" style={{ fontSize: 20 }}>Tanda {w}</h2><span className="xs muted">se descubre {fmtDate(wInfo(w).opens)}</span></div>
+                <div className="locked-row">{list.map((o) => <span key={o.fighter_id} className={`locked ${tierOf(fightOf(o.fighter_id))}`} aria-hidden="true">?</span>)}</div>
+                <span className="xs muted">{list.length} luchadores: {['oro', 'plata', 'bronce'].map((t) => [t, list.filter((o) => tierOf(fightOf(o.fighter_id)) === t).length]).filter(([, n]) => n).map(([t, n]) => `${n} ${t}`).join(', ')}</span>
+              </section>
+            );
+          })}
           {slots <= 0 && <p className="xs gold">Con tus luchadores y tus pujas ya llenas el equipo ({max}). Retira una puja para pujar por otro.</p>}
         </>
       ))}
@@ -108,7 +130,8 @@ export default function Mercado(c) {
           <div className="sheet-back" onClick={() => setSel(null)}>
             <div className="sheet" role="dialog" aria-label={'Pujar por ' + f.name} onClick={(e) => e.stopPropagation()}>
               <FighterCard f={f} fight={fightOf(sel)} opp={oppOf(c, sel)} value={o.value} exp={c.exp[sel]} size="lg"
-                bids={c.bidCounts ? (c.bidCounts[sel] || 0) : null} closesIn={fmtLeft(new Date(c.ev.market_closes_at).getTime() - now)} />
+                bids={c.bidCounts ? (c.bidCounts[sel] || 0) : null} closesIn={fmtLeft(closeOf(o) - now)} />
+              <Records f={f} />
               <div className="row between"><b>{myBid != null ? 'Cambiar tu puja' : 'Tu puja secreta'}</b><span className="xs muted">mínimo {fmtM(o.value)}</span></div>
               <div className="row">
                 <label className="sr-only" htmlFor="bid-amount">Puja en millones</label>
@@ -121,7 +144,7 @@ export default function Mercado(c) {
               <button className="btn primary block" disabled={busy === sel || (slots <= 0 && myBid == null)} onClick={async () => { if (await bid(o)) setSel(null); }}>
                 {myBid != null ? 'Cambiar puja' : 'Pujar ' + fmtM(Number(String(amounts[sel] ?? o.value).replace(',', '.')) || o.value)}</button>
               {myBid != null && <button className="btn block" disabled={busy === sel} onClick={async () => { await unbid(o); setSel(null); }}>Retirar puja</button>}
-              <p className="xs muted">Nadie ve cuánto pujas. Al cerrar el mercado gana la puja más alta y se te cobra lo que pujaste. Tienes {fmtM(avail)} disponibles.</p>
+              <p className="xs muted">Nadie ve cuánto pujas. Al cerrar la tanda gana la puja más alta y se te cobra lo que pujaste; si nadie lo ficha, vuelve al mercado hasta el viernes. Tienes {fmtM(avail)} disponibles.</p>
             </div>
           </div>
         );

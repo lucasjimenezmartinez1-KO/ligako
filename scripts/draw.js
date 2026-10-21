@@ -41,5 +41,11 @@ for (const L of leagues) {
   // Pujas que alguien tuviera por un luchador que ahora es de otro: se anulan
   const taken = (await q(db.from('ownership').select('fighter_id').eq('league_id', L.id).eq('event_id', ev.id).not('owner', 'is', null))).map((o) => o.fighter_id);
   if (taken.length) await q(db.from('bids').delete().eq('league_id', L.id).eq('event_id', ev.id).in('fighter_id', taken));
-  log(`Sorteo en ${L.name} (${members.length} mánagers): ${out.join(' · ')}`);
+  // Mercado por tandas: 3 tandas repartidas hasta el cierre del mercado (en horas en punto)
+  const end = new Date(ev.market_closes_at).getTime(), now = Date.now(), N = Number(process.env.WAVES || 3);
+  const closes = [];
+  for (let k = 1; k < N; k++) { const t = now + ((end - now) * k) / N; closes.push(new Date(Math.round(t / 3600e3) * 3600e3).toISOString()); }
+  closes.push(new Date(end).toISOString());
+  const { error: we } = await db.rpc('setup_waves', { p_league: L.id, p_closes: closes });
+  log(`Sorteo en ${L.name} (${members.length} mánagers): ${out.join(' · ')}. Tandas: ${we ? 'error ' + we.message : closes.join(' | ')}`);
 }

@@ -52,6 +52,8 @@ export function useLeague(leagueId, userId) {
         synced.closing = false;
         return load();
       }
+      const bc = await supabase.rpc('bid_counts', { p_league: leagueId });
+      const bidCounts = bc.error ? null : Object.fromEntries((bc.data || []).map((r) => [r.fighter_id, r.n]));
       const names = Object.fromEntries(profiles.map((p) => [p.id, p.username]));
       const prevSquads = last && last.id !== E
         ? await q(supabase.from('squads').select('*').eq('league_id', leagueId).eq('event_id', last.id)) : [];
@@ -65,7 +67,7 @@ export function useLeague(leagueId, userId) {
         bids: Object.fromEntries(bids.map((b) => [b.fighter_id, Number(b.amount)])),
         preds: preds.filter((p) => p.user_id === userId).reduce((a, p) => ({ ...a, [p.fight_id]: p }), {}),
         allPreds: preds,
-        moves, le: le[0] || null, prevSquads,
+        moves, le: le[0] || null, prevSquads, bidCounts,
         loadedAt: Date.now(),
       });
     } catch (e) {
