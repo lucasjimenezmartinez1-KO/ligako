@@ -192,7 +192,10 @@ table.stand tr.me td { font-weight: 800; }
 .fcard.bronce .fc-img { filter: sepia(.18) saturate(.95); }
 .fcard.plata .fc-img { filter: saturate(.9) contrast(1.04); }
 .fcard.oro .fc-img { filter: saturate(1.06) contrast(1.05); }
-.fc-sil { position: absolute; left: 30%; top: 16px; width: 60%; height: 54%; color: color-mix(in srgb, var(--tc) 20%, var(--tbg)); }
+.fc-sil { position: absolute; left: 26%; top: 18px; width: 68%; height: 60%; color: color-mix(in srgb, var(--tc) 32%, var(--tbg)); }
+.fc-mono { position: absolute; right: -6px; top: 6px; font-family: var(--display); font-weight: 900; font-size: 120px; line-height: .8; letter-spacing: -4px;
+  color: transparent; -webkit-text-stroke: 1.5px color-mix(in srgb, var(--tc) 40%, transparent); opacity: .7; }
+.fcard.lg .fc-mono { font-size: 200px; }
 .fc-shade { position: absolute; inset: 0; background:
   radial-gradient(120% 70% at 70% 20%, transparent 40%, color-mix(in srgb, var(--tbg) 70%, transparent) 100%),
   linear-gradient(90deg, var(--tbg) 0%, color-mix(in srgb, var(--tbg) 55%, transparent) 18%, transparent 40%),
@@ -281,3 +284,10 @@ table.stand tr.me td { font-weight: 800; }
 .eyebrow.gold { color: var(--gold); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .red { color: var(--red); }
+.tier-h { font-size: 22px; margin-top: 6px; }
+.tier-h.oro { color: var(--gold); }
+.tier-h.plata { color: #C9D1DC; }
+.tier-h.bronce { color: #C98A5B; }
+.seg { overflow-x: auto; scrollbar-width: none; }
+.seg::-webkit-scrollbar { display: none; }
+.seg .chip { flex: none; white-space: nowrap; }

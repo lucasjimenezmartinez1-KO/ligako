@@ -16,10 +16,15 @@ const badge = (f) => (f.nr ? 'NR' : f.rank === 0 ? 'C' : '#' + f.rank);
 function Photo({ f }) {
   const [src, setSrc] = useState(`/cards/${f.id}.jpg`);
   if (!src) {
+    const ini = f.name.replace(/ Jr\.$/, '').split(' ').map((w) => w[0]).filter(Boolean);
     return (
-      <svg className="fc-sil" viewBox="0 0 120 150" aria-hidden="true">
-        <circle cx="60" cy="52" r="26" fill="currentColor" /><path d="M8 150c4-38 24-56 52-56s48 18 52 56z" fill="currentColor" />
-      </svg>
+      <>
+        <span className="fc-mono" aria-hidden="true">{(ini[0] || '') + (ini.length > 1 ? ini[ini.length - 1] : '')}</span>
+        <svg className="fc-sil" viewBox="0 0 120 150" aria-hidden="true">
+          <defs><linearGradient id={'g' + f.id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="currentColor" stopOpacity=".9" /><stop offset="1" stopColor="currentColor" stopOpacity="0" /></linearGradient></defs>
+          <path d="M60 18c14 0 24 11 24 26 0 9-3 16-8 21l-2 7c16 4 30 13 36 30l8 48H2l8-48c6-17 20-26 36-30l-2-7c-5-5-8-12-8-21 0-15 10-26 24-26z" fill={`url(#g${f.id})`} />
+        </svg>
+      </>
     );
   }
   return <img className="fc-img" src={src} alt="" loading="lazy" onError={() => setSrc(src.startsWith('/cards/') && f.photo ? f.photo : null)} />;

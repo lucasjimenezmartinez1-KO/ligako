@@ -31,6 +31,14 @@ export default function Mercado(c) {
   const waves = [...new Set(rows.filter((o) => o.wave).map((o) => o.wave))].sort();
   const wInfo = (w) => { const r = rows.find((o) => o.wave === w); return r ? { opens: r.opens_at, closes: r.closes_at || c.ev.market_closes_at } : null; };
   const curWave = waves.find((w) => { const i = wInfo(w); return new Date(i.opens).getTime() <= now && new Date(i.closes).getTime() > now; });
+  const ownerName = (u) => (u === c.me ? 'Tuyo' : 'De ' + (c.members.find((m) => m.user_id === u)?.name || 'otro mánager'));
+  const statusOf = (o) => {
+    if (o.owner && (marketStarted(c) || ph !== 'market')) return ownerName(o.owner);
+    if (ph !== 'market') return 'Sin dueño';
+    if (!marketStarted(c)) return 'Sale cuando estéis todos listos';
+    if (o.opens_at && new Date(o.opens_at).getTime() > now) return `Tanda ${o.wave} · ${new Date(o.opens_at).toLocaleString('es-ES', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).replace(',', '')}`;
+    return 'En puja ahora';
+  };
   const closeOf = (o) => new Date(o.closes_at || c.ev.market_closes_at).getTime();
   const others = rows.filter((o) => o.owner && o.owner !== c.me);
 
@@ -86,7 +94,7 @@ export default function Mercado(c) {
       </section>
 
       <div className="seg">
-        {[['libres', `Libres (${free.length})`], ['otros', 'De otros mánagers'], ['mov', 'Movimientos']].map(([k, n]) =>
+        {[['libres', `Libres (${free.length})`], ['cartas', `Todas las cartas (${rows.length})`], ['otros', 'De otros mánagers'], ['mov', 'Movimientos']].map(([k, n]) =>
           <button key={k} className={`chip ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{n}</button>)}
       </div>
 
@@ -127,14 +135,43 @@ export default function Mercado(c) {
         </>
       ))}
 
+      {tab === 'cartas' && (
+        <>
+          <p className="xs muted">Todos los luchadores de la cartelera del evento {c.ev.id}. Toca una carta para ver sus récords.</p>
+          {[['oro', 'Oro · peleas por el título'], ['plata', 'Plata · cartelera principal'], ['bronce', 'Bronce · preliminares']].map(([t, label]) => {
+            const list = rows.filter((o) => tierOf(fightOf(o.fighter_id)) === t).sort((a, b) => b.value - a.value);
+            if (!list.length) return null;
+            return (
+              <section key={t} className="stack" style={{ gap: 10 }}>
+                <h2 className={`h-display tier-h ${t}`}>{label}</h2>
+                <div className="cards-grid">
+                  {list.map((o) => {
+                    const st = statusOf(o); const on = st === 'En puja ahora';
+                    return (
+                      <FighterCard key={o.fighter_id} f={c.F[o.fighter_id]} fight={fightOf(o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]}
+                        mine={o.owner === c.me && marketStarted(c)} onClick={() => { setSel(o.fighter_id); setErr({}); }}
+                        extra={<div className={`fc-btn ${on ? 'on' : ''}`} style={{ textAlign: 'center' }}>{st}</div>} />
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })}
+        </>
+      )}
+
       {sel && c.own[sel] && (() => {
         const o = c.own[sel]; const f = c.F[sel]; const myBid = c.bids[sel];
+        const canBid = ph === 'market' && marketStarted(c) && !o.owner && isOpen(o);
         return (
           <div className="sheet-back" onClick={() => setSel(null)}>
-            <div className="sheet" role="dialog" aria-label={'Pujar por ' + f.name} onClick={(e) => e.stopPropagation()}>
+            <div className="sheet" role="dialog" aria-label={f.name} onClick={(e) => e.stopPropagation()}>
               <FighterCard f={f} fight={fightOf(sel)} opp={oppOf(c, sel)} value={o.value} exp={c.exp[sel]} size="lg"
-                bids={c.bidCounts ? (c.bidCounts[sel] || 0) : null} closesIn={fmtLeft(closeOf(o) - now)} />
+                bids={canBid && c.bidCounts ? (c.bidCounts[sel] || 0) : null} closesIn={canBid ? fmtLeft(closeOf(o) - now) : null} />
               <Records f={f} />
+              {!canBid && <p className="small muted" style={{ textAlign: 'center' }}>{statusOf(o)}</p>}
+              {!canBid && <button className="btn block" onClick={() => setSel(null)}>Cerrar</button>}
+              {canBid && <>
               <div className="row between"><b>{myBid != null ? 'Cambiar tu puja' : 'Tu puja secreta'}</b><span className="xs muted">mínimo {fmtM(o.value)}</span></div>
               <div className="row">
                 <label className="sr-only" htmlFor="bid-amount">Puja en millones</label>
@@ -148,6 +185,7 @@ export default function Mercado(c) {
                 {myBid != null ? 'Cambiar puja' : 'Pujar ' + fmtM(Number(String(amounts[sel] ?? o.value).replace(',', '.')) || o.value)}</button>
               {myBid != null && <button className="btn block" disabled={busy === sel} onClick={async () => { await unbid(o); setSel(null); }}>Retirar puja</button>}
               <p className="xs muted">Nadie ve cuánto pujas. Al cerrar la tanda gana la puja más alta y se te cobra lo que pujaste; si nadie lo ficha, vuelve al mercado hasta el viernes. Tienes {fmtM(avail)} disponibles.</p>
+              </>}
             </div>
           </div>
         );
