@@ -135,7 +135,8 @@ async function syncBonuses(ev, fights, F, espnEv, extrasRows) {
   if (!lines.length) lines = await fetchBonusLines(espnEv.name || '').catch(() => []);
   const onCard = fights.filter((f) => f.status !== 'cancelled').flatMap((f) => [F[f.a], F[f.b]]);
   const found = parseBonuses(lines, onCard);
-  if (found.length < 3) return;   // aún no están todos publicados
+  const done = (re) => lines.some((l) => re.test(l) && l.replace(/^.*of the night\s*:?/i, '').trim().length > 2);
+  if (!done(/fight of the night/i) || !done(/performance of the night/i) || !found.length) return;   // aún no están publicados
   log(`Bonos de la noche: ${found.map((b) => `${F[b.fighter_id].name} (${b.label})`).join(', ')}`);
   if (!DRY) await q(db.from('event_extras').insert(found.map((b) => ({ event_id: ev.id, ...b }))));
   found.forEach((b) => extrasRows.push(b));

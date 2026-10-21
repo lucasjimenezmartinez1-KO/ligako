@@ -18,7 +18,7 @@ export function parseBonuses(lines, fighters) {
   for (const line of lines) {
     const fotn = /fight of the night/i.test(line);
     const text = ' ' + norm(line.replace(/^.*of the night\s*:?/i, '')) + ' ';
-    if (text.trim().length < 3 || /\bn a\b|none|tba/.test(text)) continue;
+    if (text.trim().length < 3 || /\bn a\b|none|tba|no bonus/.test(text)) continue;
     for (const f of fighters) {
       const n = norm(f.name), last = n.split(' ').pop();
       const lastUnique = fighters.filter((g) => norm(g.name).split(' ').pop() === last).length === 1;
