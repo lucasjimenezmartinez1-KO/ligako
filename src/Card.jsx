@@ -10,6 +10,7 @@ export function tierOf(fight) {
 }
 
 const abbr = (d) => (DIVS[d]?.n || d).normalize('NFD').replace(/[̀-ͯ]/g, '').slice(0, 3).toUpperCase();
+const nameSize = (n, size) => { const L = n.length; if (size === 'sm') return L > 9 ? { fontSize: 19 } : L > 8 ? { fontSize: 22 } : undefined; return L > 9 ? { fontSize: 30 } : L > 7 ? { fontSize: 34 } : undefined; };
 const badge = (f) => (f.nr ? 'NR' : f.rank === 0 ? 'C' : '#' + f.rank);
 
 function Photo({ f }) {
@@ -44,10 +45,11 @@ export function FighterCard({ f, fight, opp, value, exp, bids, closesIn, size = 
           <span className="fc-div">{abbr(f.division)}</span>
           <span className="fc-badge">{badge(f)}</span>
         </div>
-        {size === 'lg' && <span className="fc-tag">{tier === 'oro' ? 'TÍTULO' : tier === 'plata' ? 'PRINCIPAL' : 'PRELIMS'}</span>}
+        {size === 'lg' && <span className="fc-tag">{tier === 'oro' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><rect x="2" y="8" width="20" height="8" rx="2" /><circle cx="12" cy="12" r="2.5" /></svg>}{tier === 'oro' ? 'TÍTULO' : tier === 'plata' ? 'PRINCIPAL' : 'PRELIMS'}</span>}
+        {size === 'lg' && <span className="fc-mark" aria-hidden="true">LIGA KO · {tier.toUpperCase()}</span>}
         <div className="fc-bottom">
           {size === 'lg' && first && <div className="fc-first">{first}</div>}
-          <div className="fc-name" style={surname(f.name).length > 9 ? { fontSize: size === 'sm' ? 20 : 32 } : undefined}>{surname(f.name)}</div>
+          <div className="fc-name" style={nameSize(surname(f.name), size)}>{surname(f.name)}</div>
           {size === 'lg' ? (
             <div className="fc-stats">
               <div><b>{fmtM(value)}</b><span>PRECIO</span></div>
@@ -58,7 +60,7 @@ export function FighterCard({ f, fight, opp, value, exp, bids, closesIn, size = 
             <div className="fc-line"><b>{fmtM(value)}</b><span>{bids == null ? (opp ? 'vs ' + surname(opp.name) : '') : bids === 0 ? 'Sin pujas' : bids === 1 ? '1 puja' : `${bids} pujas`}</span></div>
           )}
           {size === 'lg' && (closesIn || bids != null) && (
-            <div className="fc-foot"><span className="fc-timer">{closesIn}</span><span>{bids == null ? '' : bids === 0 ? 'Sin pujas' : bids === 1 ? '1 puja' : `${bids} pujas`}</span></div>
+            <div className="fc-foot" style={{ marginBottom: 10 }}><span className="fc-timer">{closesIn}</span><span>{bids == null ? '' : bids === 0 ? 'Sin pujas' : bids === 1 ? '1 puja' : `${bids} pujas`}</span></div>
           )}
           {extra}
         </div>

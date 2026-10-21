@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { supabase, errText } from '../supabase.js';
-import { DIVS, fmt, fmtM, rankLabel, surname } from '../format.js';
-import { Avatar, useToast } from '../ui.jsx';
+import { fmt, fmtM } from '../format.js';
+import { useToast } from '../ui.jsx';
+import { FighterCard } from '../Card.jsx';
+import { marketStarted } from '../Ready.jsx';
 import { phase, myTeam, maxTeam, oppOf, fightOf } from '../helpers.js';
 
 export default function Equipo(c) {
@@ -12,6 +14,7 @@ export default function Equipo(c) {
   const captain = cap === undefined ? c.mySquad?.captain : cap;
   const team = myTeam(c).sort((a, b) => b.value - a.value);
   const s = c.mySquad;
+  const waiting = ph === 'market' && !marketStarted(c);
 
   async function setCaptain(id) {
     const next = captain === id ? null : id;
@@ -32,28 +35,29 @@ export default function Equipo(c) {
         {started && <div className="row between small"><span className="muted">Puntos en este evento</span><b>{fmt(s?.pts)}</b></div>}
       </section>
 
-      {team.length === 0 && <section className="card"><p className="muted">No tienes luchadores en este evento.</p>{ph === 'market' && <button className="btn primary" onClick={() => c.go('mercado')}>Ir al mercado</button>}</section>}
+      {waiting && <section className="card"><p className="muted small">Tu equipo aparecerá cuando todos estéis listos y se haga el sorteo.</p><button className="btn primary" onClick={() => c.go('mercado')}>Ir a la sala de espera</button></section>}
 
-      {team.map((o) => {
-        const f = c.F[o.fighter_id]; const opp = oppOf(c, o.fighter_id); const fight = fightOf(c, o.fighter_id);
-        const isCap = captain === o.fighter_id; const p = c.points[o.fighter_id];
-        return (
-          <article key={o.fighter_id} className="card tight" style={isCap ? { borderColor: 'var(--gold)' } : undefined}>
-            <div className="row">
-              <Avatar f={f} size="lg" ring={isCap ? '' : o.assigned ? 'blue' : ''} />
-              <div className="grow">
-                <div className="bold">{f.name} {o.assigned && <span className="pill blue">Sorteo</span>} {isCap && <span className="pill gold">Capitán ×2</span>}</div>
-                <div className="xs muted">{DIVS[f.division].n} · {rankLabel(f)} · vs. {opp ? surname(opp.name) : '—'} · {fight?.title ? 'título' : fight?.slot.toLowerCase()}</div>
-                <div className="xs">Valor <b>{fmtM(o.value)}</b> · {fmt(c.exp[o.fighter_id])} pts esp.{o.paid > 0 ? ` · pagaste ${fmtM(o.paid)}` : ''}</div>
+      {!waiting && team.length === 0 && <section className="card"><p className="muted">No tienes luchadores en este evento.</p>{ph === 'market' && <button className="btn primary" onClick={() => c.go('mercado')}>Ir al mercado</button>}</section>}
+
+      {!waiting && team.length > 0 && (
+        <section className="cards-grid">
+          {team.map((o) => {
+            const f = c.F[o.fighter_id]; const isCap = captain === o.fighter_id; const p = c.points[o.fighter_id];
+            return (
+              <div key={o.fighter_id} className="stack" style={{ gap: 6 }}>
+                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap}
+                  extra={started
+                    ? <div className="fc-btn on" style={{ textAlign: 'center' }}>{p ? fmt(p.total * (isCap ? 2 : 1)) + ' pts' : 'Sin empezar'}</div>
+                    : <button type="button" className={`fc-btn ${isCap ? 'on' : ''}`} aria-pressed={isCap} onClick={(e) => { e.stopPropagation(); setCaptain(o.fighter_id); }}>{isCap ? 'Capitán ×2' : 'Hacer capitán'}</button>} />
+                <div className="xs muted" style={{ textAlign: 'center' }}>
+                  {o.assigned ? 'Sorteo' : o.paid > 0 ? `Pagaste ${fmtM(o.paid)}` : ''}{o.sold_for != null ? ` · vendido por ${fmtM(o.sold_for)}` : ''}
+                </div>
               </div>
-              {started ? <b className="h-display" style={{ fontSize: 26 }}>{p ? fmt(p.total * (isCap ? 2 : 1)) : '–'}</b>
-                : <button className={`btn sm ${isCap ? 'gold' : ''}`} onClick={() => setCaptain(o.fighter_id)} aria-pressed={isCap}>Capitán</button>}
-            </div>
-            {o.sold_for != null && <p className="xs gold">Vendido por {fmtM(o.sold_for)}</p>}
-          </article>
-        );
-      })}
-      {!started && team.length > 0 && !captain && <p className="note">Elige un capitán: sus puntos cuentan doble. Puedes cambiarlo hasta que empiece el evento.</p>}
+            );
+          })}
+        </section>
+      )}
+      {!started && !waiting && team.length > 0 && !captain && <p className="note">Elige un capitán: sus puntos cuentan doble. Puedes cambiarlo hasta que empiece el evento.</p>}
     </>
   );
 }
