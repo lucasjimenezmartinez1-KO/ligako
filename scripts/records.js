@@ -11,26 +11,22 @@ async function wikitext(title) {
 }
 
 const clean = (c) => c.replace(/<ref[^>]*\/>/g, '').replace(/<ref[\s\S]*?<\/ref>/g, '').replace(/\{\{[^{}]*\}\}/g, ' ')
-  .replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2').replace(/'''?/g, '').replace(/^[^|]*\|(?=[^|]*$)/, '').trim();
+  .replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2').replace(/'''?/g, '').replace(/^\s*(align|style|rowspan|colspan)\s*=[^|]*\|/i, '').trim();
 
-// Filas de la tabla de récord: [{ res: 'Win'|'Loss'|'Draw'|'NC', event }]
+// Filas de la tabla de récord ({{MMA record start}} ... {{end}}), de la más reciente a la más antigua
 export function parseRecordTable(w) {
-  const i = w.search(/(mixed martial arts|mma) record/i);
+  const i = w.search(/\{\{\s*MMA record start/i);
   if (i < 0) return [];
-  const tables = w.slice(i).split(/\n\{\|/).slice(1);
-  const tbl = tables.find((t) => /\n\|-?\s*\n?\|\s*(\{\{[^}]*\}\}\s*)?(Win|Loss)/i.test(t) || /\|\s*(Win|Loss)\s*\n/i.test(t));
-  if (!tbl) return [];
-  const body = tbl.split(/\n\|\}/)[0];
-  const rows = body.split(/\n\|-[^\n]*/).slice(1);
+  const rest = w.slice(i);
+  const end = rest.search(/\{\{\s*end\s*\}\}|\n\|\}/i);
+  const body = end > 0 ? rest.slice(0, end) : rest;
   const out = [];
-  for (const row of rows) {
-    const cells = row.split(/\n\||\|\|/).map((c) => clean(c)).filter((c) => c !== '');
-    if (!cells.length) continue;
-    const first = cells[0].toLowerCase();
+  for (const row of body.split(/\n\|-[^\n]*/).slice(1)) {
+    const cells = row.split(/\n\||\|\|/).map((c) => clean(c)).filter((c, k) => k > 0 || c !== '');
+    const first = (cells[0] || '').toLowerCase();
     const res = /^win/.test(first) ? 'Win' : /^loss/.test(first) ? 'Loss' : /^draw/.test(first) ? 'Draw' : /^(nc|no contest)/.test(first) ? 'NC' : null;
     if (!res) continue;
-    const event = cells.find((c) => /ufc|ultimate fighter|dana white|contender series|bellator|pfl|one |rizin|cage warriors|ksw|lfa|acb|aca|m-1|fight nights|brave|invicta|eagle/i.test(c)) || cells[4] || '';
-    out.push({ res, event });
+    out.push({ res, event: cells[4] || '' });
   }
   return out;
 }
