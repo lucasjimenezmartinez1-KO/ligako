@@ -67,6 +67,7 @@ export default function Liga(c) {
             return <div key={f.id}>{f.name} · {author} · <a href={url} target="_blank" rel="noreferrer">{lic}</a></div>;
           })}
           <div>Merab Dvalishvili (carta) · The White House · <a href="https://commons.wikimedia.org/wiki/File:Merab_Dvalishvili_at_UFC_316_(cropped).jpg" target="_blank" rel="noreferrer">Dominio público</a></div>
+          <div>Lone'er Kavanagh (carta) · fotograma de vídeo de Grassroots BOXIN · <a href="https://www.youtube.com/watch?v=905yGGwuFCE" target="_blank" rel="noreferrer">CC BY</a></div>
           <div>Cara a cara de Dvalishvili · Wikimedia Commons · CC BY 3.0</div>
         </div>
       </details>
