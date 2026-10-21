@@ -6,6 +6,7 @@ const db = createClient(process.env.SUPABASE_URL || 'https://vizqrxhulaqzehtlnvp
 const log = (m) => console.log(process.env.GITHUB_ACTIONS ? '::notice::' + m : m);
 const q = async (p) => { const { data, error } = await p; if (error) throw new Error(error.message); return data; };
 
+const PENALTY = 0.25;
 const code = (process.env.LEAGUE || '').trim().toUpperCase();
 const leagues = await q(code ? db.from('leagues').select('*').eq('code', code) : db.from('leagues').select('*'));
 if (!leagues.length) { console.log('::error::No hay ninguna liga con el código ' + code); process.exit(1); }
@@ -26,9 +27,16 @@ for (const L of leagues) {
     const fid = free[i];
     if (!fid) break;
     await q(db.from('ownership').update({ owner: m.user_id, assigned: true }).eq('league_id', L.id).eq('event_id', ev.id).eq('fighter_id', fid));
+    // Si te toca uno bueno, tu presupuesto baja un 25 % de su valor (pequeña desventaja)
+    const o = (await q(db.from('ownership').select('value').eq('league_id', L.id).eq('event_id', ev.id).eq('fighter_id', fid)))[0];
+    const lm = (await q(db.from('league_members').select('carry').eq('league_id', L.id).eq('user_id', m.user_id)))[0];
+    const sq = (await q(db.from('squads').select('start_money, money').eq('league_id', L.id).eq('event_id', ev.id).eq('user_id', m.user_id)))[0];
+    const base = Math.min(200, Math.max(50, 100 + Number(lm?.carry || 0)));
+    const start = Math.round((base - PENALTY * Number(o.value)) * 2) / 2;
+    if (sq) await q(db.from('squads').update({ start_money: start, money: Number(sq.money) + (start - Number(sq.start_money)) }).eq('league_id', L.id).eq('event_id', ev.id).eq('user_id', m.user_id));
     await q(db.from('squads').update({ captain: null }).eq('league_id', L.id).eq('event_id', ev.id).eq('user_id', m.user_id).eq('captain', fid));
     await q(db.from('moves').insert({ league_id: L.id, event_id: ev.id, text: `Sorteo: a ${profiles[m.user_id] || 'Alguien'} le toca ${F[fid]}`, user_ids: [m.user_id] }));
-    out.push(`${profiles[m.user_id]} → ${F[fid]}`);
+    out.push(`${profiles[m.user_id]} → ${F[fid]} (presupuesto ${start} M)`);
   }
   // Pujas que alguien tuviera por un luchador que ahora es de otro: se anulan
   const taken = (await q(db.from('ownership').select('fighter_id').eq('league_id', L.id).eq('event_id', ev.id).not('owner', 'is', null))).map((o) => o.fighter_id);
