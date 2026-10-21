@@ -3,6 +3,7 @@ import { DIVS, countdown, fmtDate, fmt, fmtM, rankLabel } from '../format.js';
 import { Avatar, FaceOff, useToast } from '../ui.jsx';
 import { phase, myTeam, maxTeam, oppOf, activeFights, share } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
+import { WaitingRoom, marketStarted } from '../Ready.jsx';
 
 function useNow(ms = 30000) {
   const [n, setN] = useState(Date.now());
@@ -61,7 +62,7 @@ export default function Inicio(c) {
                   </div>
                 </div>
                 {ph === 'market'
-                  ? <button className="btn primary block" onClick={() => c.go('mercado')}>Ir al mercado <span style={{ fontWeight: 500, opacity: .85, fontSize: 13 }}>· cierra {fmtDate(ev.market_closes_at)}</span></button>
+                  ? <button className="btn primary block" onClick={() => c.go('mercado')}>{marketStarted(c) ? 'Ir al mercado' : 'Sala de espera'} <span style={{ fontWeight: 500, opacity: .85, fontSize: 13 }}>· cierra {fmtDate(ev.market_closes_at)}</span></button>
                   : <button className="btn primary block" onClick={() => c.go('evento')}>Mercado cerrado · haz tus predicciones</button>}
               </>
             )}
@@ -69,7 +70,9 @@ export default function Inicio(c) {
         </FaceOff>
       )}
 
-      {assigned && ph !== 'finished' && (
+      {ph === 'market' && !marketStarted(c) && <WaitingRoom c={c} compact />}
+
+      {assigned && ph !== 'finished' && (ph !== 'market' || marketStarted(c)) && (
         <section className="card tight" style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Avatar f={F[assigned.fighter_id]} size="lg" ring="blue" />
           <div className="grow">

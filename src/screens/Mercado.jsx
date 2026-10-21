@@ -3,6 +3,7 @@ import { supabase, errText } from '../supabase.js';
 import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
 import { FighterCard, fmtLeft, tierOf, Records } from '../Card.jsx';
+import { WaitingRoom, marketStarted } from '../Ready.jsx';
 import { phase, myTeam, maxTeam, committed, oppOf, activeFights } from '../helpers.js';
 
 export default function Mercado(c) {
@@ -63,6 +64,8 @@ export default function Mercado(c) {
   }
 
   const started = ph === 'live' || ph === 'finished';
+  const st = c.le?.started_at ? new Date(c.le.started_at).getTime() : null;
+  const moves = c.moves.filter((mv) => !/^Sorteo:/.test(mv.text) || (st && new Date(mv.created_at).getTime() >= st - 5000));
   return (
     <>
       <section className="card">
@@ -87,7 +90,7 @@ export default function Mercado(c) {
           <button key={k} className={`chip ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{n}</button>)}
       </div>
 
-      {tab === 'libres' && (ph !== 'market' ? (
+      {tab === 'libres' && ph === 'market' && !marketStarted(c) ? <WaitingRoom c={c} /> : tab === 'libres' && (ph !== 'market' ? (
         <section className="card"><p className="muted small">Con el mercado cerrado, los luchadores que han quedado libres no puntúan para nadie.</p></section>
       ) : free.length === 0 && upcoming.length === 0 ? (
         <section className="card"><p className="muted small">No quedan luchadores libres.</p></section>
@@ -176,8 +179,8 @@ export default function Mercado(c) {
       {tab === 'mov' && (
         <section className="card" style={{ padding: '4px 14px' }}>
           <div className="list">
-            {c.moves.length === 0 ? <p className="muted small" style={{ padding: '12px 0' }}>Aún no hay movimientos.</p>
-              : c.moves.map((mv) => (
+            {moves.length === 0 ? <p className="muted small" style={{ padding: '12px 0' }}>Aún no hay movimientos.</p>
+              : moves.map((mv) => (
                 <div key={mv.id} className="item small" style={mv.user_ids?.includes(c.me) ? undefined : { color: 'var(--muted)' }}>
                   <span className="grow">{mv.text}</span><span className="xs muted" style={{ whiteSpace: 'nowrap' }}>{fmtDate(mv.created_at)}</span>
                 </div>

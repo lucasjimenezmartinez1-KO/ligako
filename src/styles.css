@@ -233,3 +233,15 @@ table.stand tr.me td { font-weight: 800; }
 .streak i { font-style: normal; font-size: 11px; font-weight: 800; width: 18px; height: 18px; border-radius: 4px; display: grid; place-items: center; background: var(--line-2); color: var(--ink); }
 .streak i.V { background: var(--green); color: var(--bg); }
 .streak i.D { background: var(--red); color: #fff; }
+.wait { border-color: #5A4A22; background: linear-gradient(180deg, #1C180E, var(--card) 60%); gap: 12px; }
+.wait-mini { border-color: #5A4A22; cursor: pointer; gap: 10px; }
+.ready-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ready-list li { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; background: var(--card-2); border: 1px solid var(--line); font-weight: 600; color: var(--muted); }
+.ready-list li.ok { color: var(--ink); border-color: #1F5A3D; }
+.ready-list li .xs { font-weight: 700; }
+.ready-list li.ok .xs { color: var(--green); }
+.ready-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-2); display: grid; place-items: center; font-size: 12px; font-weight: 900; color: var(--bg); }
+.ready-list li.ok .ready-dot { background: var(--green); border-color: var(--green); }
+.ready-bar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.ready-bar span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), #F3D27C); border-radius: 999px; transition: width .4s ease; }
+.eyebrow.gold { color: var(--gold); }
