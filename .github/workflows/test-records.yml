@@ -1,0 +1,20 @@
+name: Prueba récords
+
+on:
+  workflow_dispatch:
+    inputs:
+      names:
+        description: 'Nombres separados por comas'
+        required: false
+        default: ''
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-records.js "${{ github.event.inputs.names }}"

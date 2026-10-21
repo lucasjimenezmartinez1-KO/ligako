@@ -1,0 +1,34 @@
+name: Aplicar cambios en la base de datos
+
+on:
+  push:
+    branches: [main]
+    paths: ['supabase/migrations/**']
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Aplicar migraciones pendientes
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$DB" ]; then echo "::error::Falta el secreto SUPABASE_DB_URL"; exit 1; fi
+          command -v psql >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client)
+          psql "$DB" -v ON_ERROR_STOP=1 -qc "create table if not exists schema_migrations (name text primary key, applied_at timestamptz default now())" \
+            || { echo "::error::No se puede conectar a la base de datos: revisa SUPABASE_DB_URL (Session pooler y contraseña)"; exit 1; }
+          for f in supabase/migrations/*.sql; do
+            n=$(basename "$f")
+            done=$(psql "$DB" -tAc "select 1 from schema_migrations where name = '$n'")
+            if [ "$done" = "1" ]; then continue; fi
+            if psql "$DB" -v ON_ERROR_STOP=1 -1 -q -f "$f"; then
+              psql "$DB" -qc "insert into schema_migrations (name) values ('$n')"
+              echo "::notice::Aplicado $n"
+            else
+              echo "::error::Error al aplicar $n"; exit 1
+            fi
+          done
+          echo "::notice::Base de datos al día"
