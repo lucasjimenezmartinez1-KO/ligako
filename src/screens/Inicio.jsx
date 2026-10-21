@@ -3,6 +3,7 @@ import { DIVS, countdown, fmtDate, fmt, fmtM, rankLabel } from '../format.js';
 import { Avatar, FaceOff, useToast } from '../ui.jsx';
 import { phase, myTeam, maxTeam, oppOf, activeFights, share } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
+import { InstallHint } from '../InstallHint.jsx';
 import { WaitingRoom, marketStarted } from '../Ready.jsx';
 
 function useNow(ms = 30000) {
@@ -29,6 +30,7 @@ export default function Inicio(c) {
 
   return (
     <>
+      <InstallHint />
       {main && (
         <FaceOff A={F[main.a]} B={F[main.b]} tag={`EVENTO ${ev.id} · ${ev.place.split(',').pop().trim().toUpperCase()}`}
           belt={main.title ? 'TÍTULO ' + DIVS[main.division].n.toUpperCase() : null}

@@ -295,3 +295,4 @@ table.stand tr.me td { font-weight: 800; }
 .seg { overflow-x: auto; scrollbar-width: none; }
 .seg::-webkit-scrollbar { display: none; }
 .seg .chip { flex: none; white-space: nowrap; }
+.install-hint { border-color: #5A4A22; gap: 8px; }
