@@ -17,6 +17,13 @@ export default function Mercado(c) {
   const [sel, setSel] = useState(null);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  useEffect(() => {
+    if (!sel) return;
+    history.pushState({ sheet: true }, '');
+    const onPop = () => setSel(null);
+    window.addEventListener('popstate', onPop);
+    return () => { window.removeEventListener('popstate', onPop); if (history.state?.sheet) history.back(); };
+  }, [sel]);
   const fightOf = (id) => activeFights(c).find((f) => f.a === id || f.b === id);
   const s = c.mySquad;
   const team = myTeam(c);
@@ -167,6 +174,9 @@ export default function Mercado(c) {
         return (
           <div className="sheet-back" onClick={() => setSel(null)}>
             <div className="sheet" role="dialog" aria-label={f.name} onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="sheet-x" onClick={() => setSel(null)} aria-label="Cerrar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>Volver
+              </button>
               <FighterCard f={f} fight={fightOf(sel)} opp={oppOf(c, sel)} value={o.value} exp={c.exp[sel]} size="lg"
                 bids={canBid && c.bidCounts ? (c.bidCounts[sel] || 0) : null} closesIn={canBid ? fmtLeft(closeOf(o) - now) : null} />
               <Records f={f} />

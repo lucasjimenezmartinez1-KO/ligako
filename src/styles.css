@@ -296,3 +296,6 @@ table.stand tr.me td { font-weight: 800; }
 .seg::-webkit-scrollbar { display: none; }
 .seg .chip { flex: none; white-space: nowrap; }
 .install-hint { border-color: #5A4A22; gap: 8px; }
+.sheet-x { position: sticky; top: 0; z-index: 5; align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font: inherit; font-weight: 700; font-size: 15px;
+  color: var(--ink); background: rgba(14,17,23,.85); border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 14px 8px 10px; margin-bottom: -4px; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.sheet { max-height: 88vh; }
