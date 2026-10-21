@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
 import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
+import { FighterCard, fmtLeft } from '../Card.jsx';
 import { phase, myTeam, maxTeam, committed, oppOf, activeFights } from '../helpers.js';
 
 export default function Mercado(c) {
@@ -12,6 +13,10 @@ export default function Mercado(c) {
   const [busy, setBusy] = useState(null);
   const [amounts, setAmounts] = useState({});
   const [err, setErr] = useState({});
+  const [sel, setSel] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const fightOf = (id) => activeFights(c).find((f) => f.a === id || f.b === id);
   const s = c.mySquad;
   const team = myTeam(c);
   const max = maxTeam(c);
@@ -25,14 +30,15 @@ export default function Mercado(c) {
   async function bid(o) {
     const raw = amounts[o.fighter_id] ?? String(c.bids[o.fighter_id] ?? o.value);
     const amt = Number(String(raw).replace(',', '.'));
-    if (!(amt >= Number(o.value))) { setErr({ [o.fighter_id]: `La puja mínima es ${fmtM(o.value)}` }); return; }
-    if (amt > avail + (c.bids[o.fighter_id] || 0)) { setErr({ [o.fighter_id]: `Solo tienes ${fmtM(avail + (c.bids[o.fighter_id] || 0))} disponibles` }); return; }
+    if (!(amt >= Number(o.value))) { setErr({ [o.fighter_id]: `La puja mínima es ${fmtM(o.value)}` }); return false; }
+    if (amt > avail + (c.bids[o.fighter_id] || 0)) { setErr({ [o.fighter_id]: `Solo tienes ${fmtM(avail + (c.bids[o.fighter_id] || 0))} disponibles` }); return false; }
     setBusy(o.fighter_id);
     const { error } = await supabase.rpc('place_bid', { p_league: c.leagueId, p_fighter: o.fighter_id, p_amount: amt });
     setBusy(null);
-    if (error) { setErr({ [o.fighter_id]: errText(error) }); return; }
+    if (error) { setErr({ [o.fighter_id]: errText(error) }); return false; }
     toast(`Puja de ${fmtM(amt)} por ${c.F[o.fighter_id].name}`);
     c.reload();
+    return true;
   }
   async function unbid(o) {
     setBusy(o.fighter_id);
@@ -54,7 +60,7 @@ export default function Mercado(c) {
   return (
     <>
       <section className="card">
-        <div className="row between">
+        <div className="row between" style={{ flexWrap: 'wrap', gap: 6 }}>
           <h1 className="h-display" style={{ fontSize: 30 }}>Mercado</h1>
           <span className={`pill ${ph === 'market' ? 'green' : 'dim'}`}>{ph === 'market' ? 'Abierto · cierra ' + fmtDate(c.ev.market_closes_at) : started ? 'Cerrado · evento en marcha' : 'Cerrado'}</span>
         </div>
@@ -75,40 +81,51 @@ export default function Mercado(c) {
           <button key={k} className={`chip ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{n}</button>)}
       </div>
 
-      {tab === 'libres' && (
-        <section className="card" style={{ padding: '4px 14px' }}>
-          <div className="list">
-            {ph !== 'market' ? <p className="muted small" style={{ padding: '12px 0' }}>Con el mercado cerrado, los luchadores que han quedado libres no puntúan para nadie.</p>
-              : free.length === 0 ? <p className="muted small" style={{ padding: '12px 0' }}>No quedan luchadores libres.</p>
-              : free.map((o) => {
-                const f = c.F[o.fighter_id]; const myBid = c.bids[o.fighter_id]; const opp = oppOf(c, o.fighter_id);
-                return (
-                  <div key={o.fighter_id} className="item" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
-                    <div className="row">
-                      <Avatar f={f} />
-                      <div className="grow">
-                        <div className="bold ellipsis">{f.name} {f.rank === 0 && <span className="pill gold">C</span>}{f.nr && <span className="pill dim">NR</span>}</div>
-                        <div className="xs muted ellipsis">{DIVS[f.division].n} · {f.nr ? 'sin clasificar' : rankLabel(f)} · vs. {opp ? surname(opp.name) : '—'}</div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}><div className="bold" style={{ fontSize: 16 }}>{fmtM(o.value)}</div><div className="xs muted">{fmt(c.exp[o.fighter_id])} pts esp.</div></div>
-                    </div>
-                    <div className="row">
-                      {myBid != null && <span className="small gold bold">Tu puja: {fmtM(myBid)}</span>}
-                      <span className="grow" />
-                      <label className="xs muted" htmlFor={'bid-' + o.fighter_id}>Puja (M)</label>
-                      <input id={'bid-' + o.fighter_id} className="input sm" inputMode="decimal" value={amounts[o.fighter_id] ?? String(myBid ?? o.value).replace('.', ',')}
-                        onChange={(e) => { setAmounts((a) => ({ ...a, [o.fighter_id]: e.target.value })); setErr({}); }} />
-                      <button className="btn primary sm" disabled={busy === o.fighter_id || (slots <= 0 && myBid == null)} onClick={() => bid(o)}>{myBid != null ? 'Cambiar' : 'Pujar'}</button>
-                      {myBid != null && <button className="btn sm" disabled={busy === o.fighter_id} onClick={() => unbid(o)}>Retirar</button>}
-                    </div>
-                    {err[o.fighter_id] && <p className="error">{err[o.fighter_id]}</p>}
-                  </div>
-                );
-              })}
+      {tab === 'libres' && (ph !== 'market' ? (
+        <section className="card"><p className="muted small">Con el mercado cerrado, los luchadores que han quedado libres no puntúan para nadie.</p></section>
+      ) : free.length === 0 ? (
+        <section className="card"><p className="muted small">No quedan luchadores libres.</p></section>
+      ) : (
+        <>
+          <div className="row between"><span className="xs muted">Pujas secretas: solo se ve cuántos han pujado.</span><span className="xs red bold">{fmtLeft(new Date(c.ev.market_closes_at).getTime() - now)}</span></div>
+          <section className="cards-grid">
+            {free.map((o) => {
+              const f = c.F[o.fighter_id]; const myBid = c.bids[o.fighter_id];
+              return (
+                <FighterCard key={o.fighter_id} f={f} fight={fightOf(o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]}
+                  bids={c.bidCounts ? (c.bidCounts[o.fighter_id] || 0) : null} mine={myBid != null} onClick={() => { setSel(o.fighter_id); setErr({}); }}
+                  extra={<button type="button" className={`fc-btn ${myBid != null ? 'on' : ''}`}>{myBid != null ? 'Tu puja: ' + fmtM(myBid) : 'Pujar'}</button>} />
+              );
+            })}
+          </section>
+          {slots <= 0 && <p className="xs gold">Con tus luchadores y tus pujas ya llenas el equipo ({max}). Retira una puja para pujar por otro.</p>}
+        </>
+      ))}
+
+      {sel && c.own[sel] && (() => {
+        const o = c.own[sel]; const f = c.F[sel]; const myBid = c.bids[sel];
+        return (
+          <div className="sheet-back" onClick={() => setSel(null)}>
+            <div className="sheet" role="dialog" aria-label={'Pujar por ' + f.name} onClick={(e) => e.stopPropagation()}>
+              <FighterCard f={f} fight={fightOf(sel)} opp={oppOf(c, sel)} value={o.value} exp={c.exp[sel]} size="lg"
+                bids={c.bidCounts ? (c.bidCounts[sel] || 0) : null} closesIn={fmtLeft(new Date(c.ev.market_closes_at).getTime() - now)} />
+              <div className="row between"><b>{myBid != null ? 'Cambiar tu puja' : 'Tu puja secreta'}</b><span className="xs muted">mínimo {fmtM(o.value)}</span></div>
+              <div className="row">
+                <label className="sr-only" htmlFor="bid-amount">Puja en millones</label>
+                <input id="bid-amount" className="input grow" inputMode="decimal" style={{ fontSize: 18, fontWeight: 700 }}
+                  value={amounts[sel] ?? String(myBid ?? o.value).replace('.', ',')}
+                  onChange={(e) => { setAmounts((a) => ({ ...a, [sel]: e.target.value })); setErr({}); }} />
+                {[1, 5].map((n) => <button key={n} type="button" className="btn sm" onClick={() => setAmounts((a) => ({ ...a, [sel]: String(Math.round((Number(String(a[sel] ?? myBid ?? o.value).replace(',', '.')) + n) * 10) / 10).replace('.', ',') }))}>+{n}</button>)}
+              </div>
+              {err[sel] && <p className="error">{err[sel]}</p>}
+              <button className="btn primary block" disabled={busy === sel || (slots <= 0 && myBid == null)} onClick={async () => { if (await bid(o)) setSel(null); }}>
+                {myBid != null ? 'Cambiar puja' : 'Pujar ' + fmtM(Number(String(amounts[sel] ?? o.value).replace(',', '.')) || o.value)}</button>
+              {myBid != null && <button className="btn block" disabled={busy === sel} onClick={async () => { await unbid(o); setSel(null); }}>Retirar puja</button>}
+              <p className="xs muted">Nadie ve cuánto pujas. Al cerrar el mercado gana la puja más alta y se te cobra lo que pujaste. Tienes {fmtM(avail)} disponibles.</p>
+            </div>
           </div>
-          {ph === 'market' && slots <= 0 && <p className="xs gold" style={{ padding: '0 0 10px' }}>Con tus luchadores y tus pujas ya llenas el equipo ({max}). Retira una puja para pujar por otro.</p>}
-        </section>
-      )}
+        );
+      })()}
 
       {tab === 'otros' && c.members.filter((m) => m.user_id !== c.me).map((m) => {
         const theirs = others.filter((o) => o.owner === m.user_id);

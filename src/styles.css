@@ -170,3 +170,48 @@ table.stand tr.me td { font-weight: 800; }
 .split-bar { height: 6px; border-radius: 3px; display: flex; overflow: hidden; width: 72px; }
 .split-bar span { flex: 1; } .split-bar span:first-child { background: var(--red); } .split-bar span:last-child { background: var(--blue); }
 .skeleton { background: var(--card); border-radius: 14px; height: 120px; }
+
+/* ───────── Cartas de luchador ───────── */
+.fcard { --tc: #C98A5B; --tbg: #1A130F; --tsoft: #C9A68C; --tline: #3E2C20; --tnum: #E7B48D;
+  border-radius: 16px; padding: 2px; background: var(--tc); position: relative; cursor: pointer; }
+.fcard.oro { --tc: #E2B04C; --tbg: #19140A; --tsoft: #CDBB92; --tline: #4A3B1A; --tnum: #E2B04C; box-shadow: 0 10px 28px rgba(226,176,76,.16); }
+.fcard.plata { --tc: #C9D1DC; --tbg: #141820; --tsoft: #AEB7C5; --tline: #2E3542; --tnum: #E4E9F0; }
+.fcard.mine { outline: 2px solid var(--red); outline-offset: 2px; }
+.fcard.sm { height: 262px; }
+.fcard.lg { width: 270px; height: 420px; border-radius: 20px; margin: 0 auto; cursor: default; }
+.fc-in { position: relative; height: 100%; border-radius: 14px; overflow: hidden; background: var(--tbg); }
+.fcard.lg .fc-in { border-radius: 18px; }
+.fc-img { position: absolute; left: 22px; top: 0; width: calc(100% - 22px); height: 68%; object-fit: cover; object-position: 50% 15%; }
+.fcard.lg .fc-img { left: 30px; width: calc(100% - 30px); height: 72%; }
+.fc-sil { position: absolute; left: 30%; top: 14px; width: 60%; height: 55%; color: color-mix(in srgb, var(--tc) 22%, var(--tbg)); }
+.fc-shade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--tbg) 0%, transparent 36%), linear-gradient(180deg, transparent 40%, var(--tbg) 68%); }
+.fc-stripes { position: absolute; inset: 0; background: repeating-linear-gradient(125deg, color-mix(in srgb, var(--tc) 8%, transparent) 0 2px, transparent 2px 12px); }
+.fc-top { position: absolute; left: 10px; top: 8px; display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.fcard.lg .fc-top { left: 16px; top: 14px; }
+.fc-num { font-family: var(--display); font-weight: 900; font-size: 34px; line-height: .9; color: var(--tnum); }
+.fcard.lg .fc-num { font-size: 56px; }
+.fc-pts { font-size: 8px; font-weight: 800; letter-spacing: 1px; color: var(--tc); }
+.fc-rule { width: 20px; height: 1px; background: var(--tline); margin: 4px 0; }
+.fc-div { font-family: var(--display); font-weight: 800; font-size: 14px; color: var(--tsoft); }
+.fcard.lg .fc-div { font-size: 18px; }
+.fc-badge { font-size: 10px; font-weight: 800; color: var(--tbg); background: var(--tc); border-radius: 4px; padding: 0 5px; margin-top: 3px; }
+.fc-tag { position: absolute; right: 12px; top: 12px; font-size: 10px; font-weight: 800; letter-spacing: 1.2px; color: var(--tbg); background: var(--tc); padding: 4px 7px; border-radius: 4px; }
+.fc-bottom { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 10px 10px; }
+.fcard.lg .fc-bottom { padding: 0 16px 14px; }
+.fc-first { font-size: 13px; font-weight: 600; color: var(--tsoft); }
+.fc-name { font-family: var(--display); font-weight: 900; font-size: 24px; line-height: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fcard.lg .fc-name { font-size: 38px; line-height: .95; }
+.fc-line { display: flex; justify-content: space-between; font-size: 12px; margin-top: 4px; }
+.fc-line span { color: var(--tsoft); }
+.fc-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--tline); margin-top: 10px; padding-top: 8px; text-align: center; }
+.fc-stats b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-stats span { font-size: 10px; color: var(--tsoft); letter-spacing: .8px; }
+.fc-foot { display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; font-weight: 700; color: var(--tsoft); }
+.fc-timer { color: var(--red); }
+.fc-btn { width: 100%; margin-top: 6px; font: inherit; font-size: 12px; font-weight: 800; border-radius: 8px; padding: 6px 0; color: var(--tnum); background: transparent; border: 1px solid var(--tline); }
+.fc-btn.on { color: var(--tbg); background: var(--tc); border-color: var(--tc); }
+.cards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sheet-back { position: fixed; inset: 0; background: rgba(5,6,9,.72); z-index: 40; display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 480px; background: var(--card); border: 1px solid var(--line); border-radius: 20px 20px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; max-height: 92vh; overflow-y: auto; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.red { color: var(--red); }
