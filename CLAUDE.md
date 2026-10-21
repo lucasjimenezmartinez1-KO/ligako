@@ -21,7 +21,8 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 ## Ciclo de cada evento (solo eventos numerados)
 
 1. **Sorteo:** al abrirse la cartelera de un evento numerado se asigna al azar **un luchador de la cartelera a cada jugador**, gratis.
-2. **Mercado:** el resto de luchadores de la cartelera sale al mercado. Pujas cerradas: gana la puja más alta al cerrar el mercado (mínimo, el valor del luchador).
+2. **Mercado por tandas:** tras el sorteo, el resto de luchadores sale al mercado en 3 tandas (mezcla de oro, plata y bronce) repartidas hasta el viernes 23:59. Pujas secretas (solo se ve cuántos han pujado): gana la más alta al cerrar su tanda (mínimo, el valor). Los que nadie ficha vuelven al mercado hasta el cierre. El sábado solo cláusulas.
+   - El sorteo lo lanza el workflow "Sorteo de luchadores" cuando el usuario avisa; resta del presupuesto el 25 % del valor del luchador que toca.
 3. **Fichar a un luchador de otro jugador:** solo de dos formas:
    - Oferta que el dueño acepta.
    - Pago de la **cláusula** (por defecto, 2 veces su valor). El dinero va al dueño.
@@ -112,4 +113,7 @@ App real en construcción para el evento 333 (24 oct 2026). El prototipo antiguo
 - **Bonos:** automáticos desde Wikipedia (`event_extras`). Sanciones (no dar el peso) a mano en `event_extras`.
 - **Cambios de cartelera:** automáticos en `scripts/live.js` (peleas caídas → `cancel_fight`, sustitutos → nueva pelea + `add_fight_to_markets`).
 - **Precios:** `scripts/update-prices.js` (workflow "Recalcular precios") recalcula `event_fighters` y reescala las ligas.
+- **Base de datos:** cambios nuevos en `supabase/migrations/NNN_*.sql`; el workflow "Aplicar cambios en la base de datos" los aplica solo al hacer push (secreto `SUPABASE_DB_URL`).
+- **Cartas y récords:** `src/Card.jsx` (oro/plata/bronce), fotos grandes en `public/cards/<id>.jpg`. Récords desde Wikipedia (`scripts/records.js`); en la app se muestra "En la élite" (sin la marca).
+- **Venta:** el lunes siguiente al evento a las 08:00 UTC.
 - **Variables de Vercel:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
