@@ -55,19 +55,19 @@ export default function Liga(c) {
 
       <HowTo budget={c.league.budget} />
 
-      <details className="card">
-        <summary className="bold" style={{ cursor: 'pointer' }}>Créditos de las fotos</summary>
-        <p className="xs muted" style={{ marginTop: 6 }}>Fotos de Wikimedia Commons con licencia libre. Los luchadores sin foto libre aparecen con su silueta.</p>
-        <div className="stack xs" style={{ marginTop: 8, maxHeight: 320, overflowY: 'auto' }}>
-          {Object.values(c.F).filter((f) => f.photo_credit).map((f) => {
-            const [author, lic, url] = f.photo_credit.split(' · ');
-            return <div key={f.id}><b>{f.name}</b> · {author} · <a href={url} target="_blank" rel="noreferrer">{lic}</a></div>;
-          })}
-          <div><b>Cara a cara de Dvalishvili</b> · Wikimedia Commons · CC BY 3.0</div>
-        </div>
-      </details>
+
 
       <button className="btn" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+
+      <details className="xs muted" style={{ textAlign: 'center' }}>
+        <summary style={{ cursor: 'pointer', listStyle: 'none' }}>Créditos</summary>
+        <div className="stack" style={{ marginTop: 8, textAlign: 'left', maxHeight: 240, overflowY: 'auto' }}>
+          {Object.values(c.F).filter((f) => f.photo_credit).map((f) => {
+            const [author, lic, url] = f.photo_credit.split(' · ');
+            return <div key={f.id}>{f.name} · {author} · <a href={url} target="_blank" rel="noreferrer">{lic}</a></div>;
+          })}
+        </div>
+      </details>
     </>
   );
 }

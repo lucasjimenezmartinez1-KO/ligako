@@ -33,7 +33,12 @@ export default function Inicio(c) {
           belt={main.title ? 'TÍTULO ' + DIVS[main.division].n.toUpperCase() : null}
           subA={F[main.a].rank === 0 ? 'Campeón' : rankLabel(F[main.a])} subB={F[main.b].rank === 0 ? 'Campeón' : F[main.b].rank === 1 ? 'Nº 1 aspirante' : rankLabel(F[main.b])}>
           <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {ph === 'live' ? (
+            {ph === 'live' && total > 0 && activeFights(c).every((f) => f.status === 'finished') ? (
+              <>
+                <p>¡Evento terminado! Has sumado <b>{fmt(mySquad?.pts)}</b> puntos{pos ? <> y vas <b>{pos}º</b></> : null}. El lunes por la mañana tus luchadores se venden solos y se abre la siguiente cartelera.</p>
+                <button className="btn primary block" onClick={() => c.go('evento')}>Ver resultados</button>
+              </>
+            ) : ph === 'live' ? (
               <>
                 <div className="row"><span className="live-dot" /><b className="red">EN DIRECTO</b><span className="muted small">· tus puntos: <b className="bold" style={{ color: 'var(--ink)' }}>{fmt(mySquad?.pts)}</b></span></div>
                 <button className="btn primary block" onClick={() => c.go('evento')}>Seguir el evento</button>

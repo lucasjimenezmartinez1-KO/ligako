@@ -1,7 +1,7 @@
 // Actualizador automático de Liga KO. Lo ejecuta GitHub Actions; no hace falta tocar nada a mano.
 // - Antes del evento: cierra mercados vencidos y sigue los cambios de cartelera (peleas caídas y sustitutos).
 // - Durante el evento: lee resultados y estadísticas de ESPN y calcula los puntos.
-// - Al terminar: lee los bonos de la noche de Wikipedia y liquida el evento (venta automática y dinero).
+// - Al terminar: lee los bonos de la noche de Wikipedia; el lunes siguiente liquida el evento (venta automática y dinero).
 // Variables: SUPABASE_SERVICE_KEY (obligatoria), SUPABASE_URL. Opcional: EVENT_ID, FORCE=1, DRY=1.
 import { createClient } from '@supabase/supabase-js';
 import { scoreFighter } from '../shared/scoring.js';
@@ -223,15 +223,22 @@ async function main() {
 
   log(`Evento ${ev.id} (${espnEv.name}): ${fights.filter((x) => x.status !== 'cancelled').length} peleas, ${fights.filter((x) => x.status === 'finished').length} terminadas, ${fights.filter((x) => x.status === 'cancelled').length} caídas`);
 
-  // Cierre del evento: todas las peleas terminadas y ya están los bonos (o han pasado 12 horas sin publicarse)
+  // Cierre del evento: se deja el domingo y el lunes por la mañana para ver los resultados.
+  // El lunes siguiente al evento a las 10:00 (hora de España) se venden los luchadores y se reparte el dinero.
   const now = fights.filter((x) => x.status !== 'cancelled');
   const allDone = now.length > 0 && now.every((x) => x.status === 'finished');
-  const lastEnd = Math.max(...now.map((x) => new Date(x.updated_at).getTime()));
-  const hasBonus = extrasRows.some((x) => /noche/i.test(x.label));
-  if (allDone && (hasBonus || Date.now() - lastEnd > 12 * 3600e3)) {
-    log(`Evento ${ev.id} terminado${hasBonus ? ' con bonos' : ' (sin bonos publicados)'}: liquidando`);
+  const settleAt = mondayAfter(start);
+  if (allDone && Date.now() >= settleAt) {
+    log(`Evento ${ev.id} terminado: venta automática y reparto del dinero`);
     await rpc('settle_event', { p_event: ev.id });
-  } else if (allDone) log(`Evento ${ev.id}: peleas terminadas, esperando los bonos de la noche`);
+  } else if (allDone) log(`Evento ${ev.id}: peleas terminadas; la venta será el ${new Date(settleAt).toISOString().slice(0, 16)} UTC`);
+}
+
+// Lunes siguiente al evento, 08:00 UTC (10:00 en España en horario de verano, 9:00 en invierno)
+function mondayAfter(t) {
+  const d = new Date(t);
+  const add = ((8 - d.getUTCDay()) % 7) || 7;
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + add, 8, 0);
 }
 
 main().catch((e) => {
