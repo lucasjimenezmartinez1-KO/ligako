@@ -62,7 +62,7 @@ export default function Inicio(c) {
                   </div>
                 </div>
                 {ph === 'market'
-                  ? <button className="btn primary block" onClick={() => c.go('mercado')}>{marketStarted(c) ? 'Ir al mercado' : 'Sala de espera'} <span style={{ fontWeight: 500, opacity: .85, fontSize: 13 }}>· cierra {fmtDate(ev.market_closes_at)}</span></button>
+                  ? <button className="btn primary block" onClick={() => c.go('mercado')}>{marketStarted(c) ? <>Ir al mercado <span style={{ fontWeight: 500, opacity: .85, fontSize: 13 }}>· cierra {fmtDate(ev.market_closes_at)}</span></> : 'Ir a la sala de espera'}</button>
                   : <button className="btn primary block" onClick={() => c.go('evento')}>Mercado cerrado · haz tus predicciones</button>}
               </>
             )}
