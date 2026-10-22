@@ -215,15 +215,16 @@ table.stand tr.me td { font-weight: 800; }
 .fcard.sm:nth-child(3n) .fc-in::after { animation-delay: 2.6s; }
 @keyframes sweep { 0%, 55% { transform: translateX(-60%); } 85%, 100% { transform: translateX(60%); } }
 @media (prefers-reduced-motion: reduce) { .fc-in::after, .fcard.lg { animation: none; } }
-.fc-top { position: absolute; z-index: 2; left: 9px; top: 8px; display: flex; flex-direction: column; align-items: center; gap: 1px; min-width: 34px; }
-.fcard.lg .fc-top { left: 14px; top: 14px; min-width: 52px; }
-.fc-num { font-family: var(--display); font-weight: 900; font-size: 36px; line-height: .86; letter-spacing: -.5px;
-  background: linear-gradient(180deg, var(--tc2), var(--tc) 70%, var(--tc3)); -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
-.fcard.lg .fc-num { font-size: 60px; }
-.fc-pts { font-size: 8px; font-weight: 800; letter-spacing: 1.2px; color: var(--tc); text-shadow: 0 1px 4px rgba(0,0,0,.8); }
-.fcard.lg .fc-pts { font-size: 10px; }
-.fc-rule { width: 22px; height: 1px; background: linear-gradient(90deg, transparent, var(--tc), transparent); margin: 5px 0 4px; }
+.fc-top { position: absolute; z-index: 2; left: 8px; top: 8px; display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 44px; }
+.fcard.lg .fc-top { left: 14px; top: 14px; min-width: 64px; }
+/* Puntos esperados en una placa sólida del color de la carta (colores sólidos: se ve igual en todos los móviles) */
+.fc-num { font-family: var(--display); font-weight: 900; font-size: 34px; line-height: 1; letter-spacing: -.3px; color: var(--tbg);
+  background: linear-gradient(180deg, var(--tc2), var(--tc)); padding: 4px 8px 0; min-width: 44px; text-align: center;
+  border-radius: 9px 9px 0 0; box-shadow: 0 4px 14px rgba(0,0,0,.5); }
+.fcard.lg .fc-num { font-size: 54px; min-width: 64px; padding: 6px 10px 0; border-radius: 12px 12px 0 0; }
+.fc-pts { width: 100%; text-align: center; font-size: 8.5px; font-weight: 800; letter-spacing: 1.4px; color: var(--tc2); background: var(--tc3); padding: 2px 0 3px; border-radius: 0 0 9px 9px; }
+.fcard.lg .fc-pts { font-size: 11px; padding: 3px 0 4px; border-radius: 0 0 12px 12px; }
+.fc-rule { width: 22px; height: 1px; background: linear-gradient(90deg, transparent, var(--tc), transparent); margin: 7px 0 3px; }
 .fc-div { font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .5px; color: var(--tsoft); text-shadow: 0 1px 4px rgba(0,0,0,.8); }
 .fcard.lg .fc-div { font-size: 20px; }
 .fc-badge { font-size: 10px; font-weight: 800; color: var(--tbg); background: linear-gradient(180deg, var(--tc2), var(--tc)); border-radius: 4px; padding: 1px 5px; margin-top: 4px; }
