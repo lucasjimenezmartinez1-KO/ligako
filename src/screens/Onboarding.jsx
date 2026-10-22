@@ -2,8 +2,23 @@ import { useState } from 'react';
 import { supabase, errText } from '../supabase.js';
 
 export default function Onboarding({ onJoined }) {
-  const invite = new URLSearchParams(location.search).get('liga') || '';
-  const [mode, setMode] = useState(invite ? 'join' : 'create');
+  return (
+    <div className="center-screen">
+      <div className="stack">
+        <div className="split-bar"><span /><span /></div>
+        <h1 className="h-display h1">Tu liga</h1>
+        <p className="muted">Crea una liga e invita a tus amigos con el código, o únete a la de alguien.</p>
+      </div>
+      <LeagueForm onJoined={onJoined} />
+      <button className="btn" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
+    </div>
+  );
+}
+
+// Crear una liga o unirse con código (también desde el selector de ligas)
+export function LeagueForm({ onJoined, initialMode, initialCode }) {
+  const invite = initialCode ?? (new URLSearchParams(location.search).get('liga') || '');
+  const [mode, setMode] = useState(initialMode || (invite ? 'join' : 'create'));
   const [name, setName] = useState('');
   const [code, setCode] = useState(invite.toUpperCase());
   const [busy, setBusy] = useState(false);
@@ -23,12 +38,7 @@ export default function Onboarding({ onJoined }) {
   }
 
   return (
-    <div className="center-screen">
-      <div className="stack">
-        <div className="split-bar"><span /><span /></div>
-        <h1 className="h-display h1">Tu liga</h1>
-        <p className="muted">Crea una liga e invita a tus amigos con el código, o únete a la de alguien.</p>
-      </div>
+    <>
       <div className="seg">
         <button className={`chip ${mode === 'create' ? 'on' : ''}`} onClick={() => setMode('create')}>Crear liga</button>
         <button className={`chip ${mode === 'join' ? 'on' : ''}`} onClick={() => setMode('join')}>Tengo un código</button>
@@ -46,7 +56,6 @@ export default function Onboarding({ onJoined }) {
         {err && <p className="error" role="alert">{err}</p>}
         <button className="btn primary block" disabled={busy}>{busy ? 'Un momento…' : mode === 'create' ? 'Crear liga' : 'Unirme'}</button>
       </form>
-      <button className="btn" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
-    </div>
+    </>
   );
 }
