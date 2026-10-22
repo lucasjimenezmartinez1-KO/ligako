@@ -290,7 +290,7 @@ export default function Mercado(c) {
           </section>
         );
       })}
-      {tab === 'otros' && <p className="note">La cláusula cuesta un 25 % más de lo que pagó su dueño (o de su valor, si le tocó en el sorteo) y el dinero se lo lleva él. Solo puedes pagarla si tienes hueco en el equipo, y hasta que empiece el evento. Su dueño puede subirla (cada 1 M invertido la sube 1,5 M, hasta el doble). Después de cada fichaje el luchador queda protegido 2 horas (escudo). Si te quitan uno, tienes 30 minutos para recuperarlo pagando lo que pagó el otro más un 10 %.</p>}
+      {tab === 'otros' && <p className="note">La cláusula cuesta un 25 % más de lo que pagó su dueño (o de su valor, si le tocó en el sorteo) y el dinero se lo lleva él. Solo puedes pagarla si tienes hueco en el equipo, y hasta que empiece el evento. Su dueño puede subirla (cada 1 M que paga la sube 1,5 M). Después de cada fichaje el luchador queda protegido 2 horas (escudo). Si te quitan uno, tienes 30 minutos para recuperarlo pagando lo que pagó el otro más un 10 %.</p>}
 
       {tab === 'mov' && (
         <section className="card" style={{ padding: '4px 14px' }}>
