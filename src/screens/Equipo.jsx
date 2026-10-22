@@ -15,7 +15,6 @@ export default function Equipo(c) {
   const [sel, setSel] = useState(null);
   const [inv, setInv] = useState('');
   const [busyInv, setBusyInv] = useState(false);
-  const [offer, setOffer] = useState(null);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { if (!sel) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [sel]);
   const captain = cap === undefined ? c.mySquad?.captain : cap;
@@ -68,7 +67,7 @@ export default function Equipo(c) {
             const f = c.F[o.fighter_id]; const isCap = captain === o.fighter_id; const p = c.points[o.fighter_id];
             return (
               <div key={o.fighter_id} className="stack" style={{ gap: 6 }}>
-                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} onClick={() => { setSel(o.fighter_id); setInv(''); setOffer(null); }}
+                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} onClick={() => { setSel(o.fighter_id); setInv(''); }}
                   extra={started
                     ? <div className="fc-btn on" style={{ textAlign: 'center' }}>{p ? fmt(p.total * (isCap ? 2 : 1)) + ' pts' : 'Sin empezar'}</div>
                     : <button type="button" className={`fc-btn ${isCap ? 'on' : ''}`} aria-pressed={isCap} onClick={(e) => { e.stopPropagation(); setCaptain(o.fighter_id); }}>{isCap ? 'Capitán ×2' : 'Hacer capitán'}</button>} />
@@ -101,19 +100,19 @@ export default function Equipo(c) {
         const clause = clausePrice(o); const extra = Number(o.clause_extra) || 0;
         const free = Math.round(((Number(s?.money) || 0) - committed(c)) * 10) / 10;
         const amount = Math.round((Number(String(inv).replace(',', '.')) || 0) * 10) / 10;
-        async function askOffer() {
+        async function setSale(on) {
           setBusyInv(true);
-          const { data, error } = await supabase.rpc('sale_offer', { p_league: c.leagueId, p_fighter: sel });
+          const { error } = await supabase.rpc('list_for_sale', { p_league: c.leagueId, p_fighter: sel, p_on: on });
           setBusyInv(false);
           if (error) { toast(errText(error)); return; }
-          setOffer(Number(data));
+          toast(on ? 'Puesto a la venta: al cerrar la etapa tendrás la oferta del mercado' : 'Quitado de la venta'); c.reload();
         }
         async function release() {
           setBusyInv(true);
           const { error } = await supabase.rpc('release_drawn', { p_league: c.leagueId, p_fighter: sel });
           setBusyInv(false);
-          if (error) { toast(errText(error)); return; }
-          toast(`Has vendido a ${c.F[sel].name} por ${fmtM(offer ?? o.sale_offer)}`); setOffer(null); setSel(null); c.reload();
+          if (error) { toast(errText(error)); c.reload(); return; }
+          toast(`Has vendido a ${c.F[sel].name} por ${fmtM(o.sale_offer)}`); setSel(null); c.reload();
         }
         async function raise() {
           setBusyInv(true);
@@ -153,18 +152,20 @@ export default function Equipo(c) {
                 <button className="btn gold block" disabled={busyInv || !(amount > 0) || amount > free} onClick={raise}>{amount > free ? `Solo tienes ${fmtM(free)}` : `Pagar${amount > 0 ? ' ' + fmtM(amount) : ''}`}</button>
               </section>
             )}
-            {o.assigned && ph === 'market' && marketStarted(c) && (offer == null && o.sale_offer == null
-              ? <button className="btn block" disabled={busyInv} onClick={askOffer}>Poner a la venta</button>
-              : (
+            {o.assigned && !started && marketStarted(c) && (() => {
+              const hasOffer = o.for_sale && o.sale_offer != null && o.offer_until && new Date(o.offer_until).getTime() > now;
+              if (!o.for_sale) return <button className="btn block" disabled={busyInv} onClick={() => setSale(true)}>Poner a la venta</button>;
+              return (
                 <section className="fs-bid sale">
-                  <h3>Oferta del mercado</h3>
-                  <div className="row between"><span className="muted small">Te ofrecen</span><b className="gold" style={{ fontSize: 24 }}>{fmtM(offer ?? o.sale_offer)}</b></div>
-                  <div className="row" style={{ gap: 8 }}>
-                    <button className="btn grow" onClick={() => setSel(null)}>Ahora no</button>
-                    <button className="btn gold grow" disabled={busyInv} onClick={release}>Aceptar</button>
-                  </div>
+                  <h3>{hasOffer ? 'Oferta del mercado' : 'En venta'}</h3>
+                  {hasOffer ? <>
+                    <div className="row between"><span className="muted small">Te ofrecen · hasta las {hhmm(o.offer_until)}</span><b className="gold" style={{ fontSize: 24 }}>{fmtM(o.sale_offer)}</b></div>
+                    <button className="btn gold block" disabled={busyInv} onClick={release}>Aceptar {fmtM(o.sale_offer)}</button>
+                  </> : <p className="small muted" style={{ margin: 0 }}>El mercado te hará una oferta a las {hhmm(o.offer_at)}.</p>}
+                  <button className="fs-link" disabled={busyInv} onClick={() => setSale(false)}>Quitar de la venta</button>
                 </section>
-              ))}
+              );
+            })()}
             {!started && <button className={`btn block ${isCap ? '' : 'primary'}`} onClick={() => setCaptain(sel)}>{isCap ? 'Quitar capitán' : 'Hacer capitán (puntúa doble)'}</button>}
           </FighterSheet>
         );

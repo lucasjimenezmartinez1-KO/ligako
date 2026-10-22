@@ -4,7 +4,7 @@ import { Avatar, FaceOff, useToast } from '../ui.jsx';
 import { phase, myTeam, maxTeam, oppOf, activeFights, share, mainFights, needTeam } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
 import { InstallHint } from '../InstallHint.jsx';
-import { WaitingRoom, WaveResults, Revenge, ClauseAlerts, marketStarted } from '../Ready.jsx';
+import { WaitingRoom, WaveResults, Revenge, ClauseAlerts, SaleOffers, marketStarted } from '../Ready.jsx';
 
 function useNow(ms = 30000) {
   const [n, setN] = useState(Date.now());
@@ -75,6 +75,7 @@ export default function Inicio(c) {
 
       <Revenge c={c} />
       <ClauseAlerts c={c} />
+      <SaleOffers c={c} />
       {ph === 'market' && !marketStarted(c) && <WaitingRoom c={c} compact />}
       {ph === 'market' && marketStarted(c) && <WaveResults c={c} limit={1} />}
 
