@@ -4,7 +4,7 @@ import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
 import { FighterCard, Streak, fmtLeft, tierOf } from '../Card.jsx';
 import { WaitingRoom, WaveResults, Revenge, marketStarted } from '../Ready.jsx';
-import { phase, myTeam, maxTeam, committed, oppOf, activeFights } from '../helpers.js';
+import { phase, myTeam, maxTeam, committed, oppOf, activeFights, clausePrice } from '../helpers.js';
 
 export default function Mercado(c) {
   const toast = useToast();
@@ -274,7 +274,7 @@ export default function Mercado(c) {
             <div className="row between"><h3 style={{ fontSize: 16 }}>{m.name}</h3><span className="xs muted">{theirs.length} luchadores</span></div>
             <div className="list">
               {theirs.length === 0 ? <p className="small muted">Sin luchadores.</p> : theirs.map((o) => {
-                const f = c.F[o.fighter_id]; const price = Math.round(Math.max(Number(o.paid) || 0, Number(o.value)) * 1.25 * 10) / 10;
+                const f = c.F[o.fighter_id]; const price = clausePrice(o);
                 return (
                   <div key={o.fighter_id} className="item">
                     <Avatar f={f} />
@@ -290,7 +290,7 @@ export default function Mercado(c) {
           </section>
         );
       })}
-      {tab === 'otros' && <p className="note">La cláusula cuesta un 25 % más de lo que pagó su dueño (o de su valor, si le tocó en el sorteo) y el dinero se lo lleva él. Solo puedes pagarla si tienes hueco en el equipo, y hasta que empiece el evento. Después de cada fichaje el luchador queda protegido 2 horas (escudo). Si te quitan uno, tienes 30 minutos para recuperarlo pagando lo que pagó el otro más un 10 %.</p>}
+      {tab === 'otros' && <p className="note">La cláusula cuesta un 25 % más de lo que pagó su dueño (o de su valor, si le tocó en el sorteo) y el dinero se lo lleva él. Solo puedes pagarla si tienes hueco en el equipo, y hasta que empiece el evento. Su dueño puede subirla (cada 1 M invertido la sube 1,5 M, hasta el doble). Después de cada fichaje el luchador queda protegido 2 horas (escudo). Si te quitan uno, tienes 30 minutos para recuperarlo pagando lo que pagó el otro más un 10 %.</p>}
 
       {tab === 'mov' && (
         <section className="card" style={{ padding: '4px 14px' }}>

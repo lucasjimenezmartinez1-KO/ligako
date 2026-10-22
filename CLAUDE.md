@@ -31,6 +31,7 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
    - **Escudo:** 2 h sin poder clausular a un luchador tras cualquier cambio de dueño (trigger `ownership_shield`, columna `shield_until`).
    - **Venganza:** si te clausulan, 30 min para recuperarlo pagando lo que pagó el otro +10 % (`pay_revenge`; ignora el escudo). Columnas `rev_user`, `rev_until`, `rev_price`.
    - **Libres del sábado:** con el mercado cerrado y antes del evento, los luchadores sin dueño se fichan a su valor, por orden de llegada (`sign_free`).
+   - **Subir la cláusula:** el dueño invierte millones enteros desde la ficha en Equipo; cada 1 M la sube 1,5 M, como mucho hasta el doble de la base (`raise_clause`, columna `clause_extra`; se pone a 0 al cambiar de dueño). El dinero invertido se pierde; si le clausulan, cobra la cláusula entera. Cláusula = `clause_base` (25 % sobre lo pagado o el valor) + `clause_extra`.
    Las cadenas de cláusulas son parte del juego (decisión del usuario).
 4. **Equipo:** hay que fichar **al menos 5** (sorteo incluido; `MIN_TEAM` en `src/helpers.js`). En Equipo los huecos que faltan salen como cartas con borde rojo "Te falta fichar" y las pujas en curso como huecos dorados. Máximo **luchadores de la cartelera ÷ jugadores** (redondeando hacia arriba; p. ej. 30 luchadores y 3 jugadores → 10). Todos puntúan. Un **capitán** puntúa doble.
 5. **Evento:** solo puntúan y dan dinero los luchadores de esa cartelera.

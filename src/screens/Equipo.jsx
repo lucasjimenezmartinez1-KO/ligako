@@ -5,7 +5,7 @@ import { useToast } from '../ui.jsx';
 import { FighterCard } from '../Card.jsx';
 import { FighterSheet } from '../FighterSheet.jsx';
 import { marketStarted } from '../Ready.jsx';
-import { phase, myTeam, maxTeam, needTeam, oppOf, fightOf } from '../helpers.js';
+import { phase, myTeam, maxTeam, needTeam, oppOf, fightOf, committed, clauseBase, clausePrice, clauseMaxInvest } from '../helpers.js';
 
 export default function Equipo(c) {
   const toast = useToast();
@@ -13,6 +13,8 @@ export default function Equipo(c) {
   const started = ph === 'live' || ph === 'finished';
   const [cap, setCap] = useState(undefined);
   const [sel, setSel] = useState(null);
+  const [inv, setInv] = useState(1);
+  const [busyInv, setBusyInv] = useState(false);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { if (!sel) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [sel]);
   const captain = cap === undefined ? c.mySquad?.captain : cap;
@@ -65,7 +67,7 @@ export default function Equipo(c) {
             const f = c.F[o.fighter_id]; const isCap = captain === o.fighter_id; const p = c.points[o.fighter_id];
             return (
               <div key={o.fighter_id} className="stack" style={{ gap: 6 }}>
-                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} onClick={() => setSel(o.fighter_id)}
+                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} onClick={() => { setSel(o.fighter_id); setInv(1); }}
                   extra={started
                     ? <div className="fc-btn on" style={{ textAlign: 'center' }}>{p ? fmt(p.total * (isCap ? 2 : 1)) + ' pts' : 'Sin empezar'}</div>
                     : <button type="button" className={`fc-btn ${isCap ? 'on' : ''}`} aria-pressed={isCap} onClick={(e) => { e.stopPropagation(); setCaptain(o.fighter_id); }}>{isCap ? 'Capitán ×2' : 'Hacer capitán'}</button>} />
@@ -95,7 +97,17 @@ export default function Equipo(c) {
       )}
       {sel && c.own[sel] && (() => {
         const o = c.own[sel]; const isCap = captain === sel; const p = c.points[sel];
-        const clause = Math.round(Math.max(Number(o.paid) || 0, Number(o.value)) * 1.25 * 10) / 10;
+        const clause = clausePrice(o); const extra = Number(o.clause_extra) || 0;
+        const free = Math.floor((Number(s?.money) || 0) - committed(c));
+        const maxInv = Math.max(0, Math.min(clauseMaxInvest(o), free));
+        const amount = Math.max(1, Math.min(inv, maxInv || 1));
+        async function raise() {
+          setBusyInv(true);
+          const { error } = await supabase.rpc('raise_clause', { p_league: c.leagueId, p_fighter: sel, p_amount: amount });
+          setBusyInv(false);
+          if (error) { toast(errText(error)); return; }
+          toast(`Cláusula subida a ${fmtM(clause + amount * 1.5)}`); setInv(1); c.reload();
+        }
         const shielded = o.shield_until && new Date(o.shield_until).getTime() > now;
         const hhmm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
         return (
@@ -109,12 +121,30 @@ export default function Equipo(c) {
             <section className="fs-sec">
               <h3>Tu luchador</h3>
               <dl className="fs-rows">
-                <div><dt>Su cláusula</dt><dd>{fmtM(clause)} <small>25 % más de {Number(o.paid) > Number(o.value) ? 'lo que pagaste' : 'su valor'}; si te lo quitan, el dinero es para ti</small></dd></div>
+                <div><dt>Su cláusula</dt><dd>{fmtM(clause)} <small>{extra > 0 ? `${fmtM(clauseBase(o))} + ${fmtM(extra)} que has añadido` : `25 % más de ${Number(o.paid) > Number(o.value) ? 'lo que pagaste' : 'su valor'}`}; si te lo quitan, el dinero es para ti</small></dd></div>
                 {!started && <div><dt>Protección</dt><dd>{shielded ? <>Con escudo <small>hasta las {hhmm(o.shield_until)}</small></> : <>Sin escudo <small>se lo pueden clausular</small></>}</dd></div>}
                 <div><dt>Puntos esperados</dt><dd>{fmt(c.exp[sel])}</dd></div>
                 {o.sold_for != null && <div><dt>Vendido por</dt><dd>{fmtM(o.sold_for)}</dd></div>}
               </dl>
             </section>
+            {!started && (
+              <section className="fs-bid raise">
+                <div className="row between"><h3>Subir la cláusula</h3><span className="xs muted">1 M invertido = +1,5 M</span></div>
+                {clauseMaxInvest(o) < 1 ? <p className="small muted" style={{ margin: 0 }}>Ya está al máximo: la cláusula solo puede llegar al doble ({fmtM(clauseBase(o) * 2)}).</p>
+                  : maxInv < 1 ? <p className="small muted" style={{ margin: 0 }}>No tienes dinero libre para subirla.</p> : <>
+                  <div className="fs-input">
+                    <button type="button" onClick={() => setInv(Math.max(1, amount - 1))} aria-label="Menos">−</button>
+                    <input inputMode="numeric" aria-label="Millones a invertir" value={amount} onChange={(e) => setInv(Math.max(1, Math.floor(Number(e.target.value.replace(',', '.')) || 1)))} />
+                    <span aria-hidden="true">M</span>
+                    <button type="button" onClick={() => setInv(Math.min(maxInv, amount + 1))}>+1</button>
+                    <button type="button" onClick={() => setInv(Math.min(maxInv, amount + 5))}>+5</button>
+                  </div>
+                  <div className="row between small"><span className="muted">Nueva cláusula</span><b className="gold">{fmtM(clause + amount * 1.5)}</b></div>
+                  <button className="btn gold block" disabled={busyInv} onClick={raise}>Invertir {fmtM(amount)}</button>
+                  <p className="xs muted" style={{ margin: 0, lineHeight: 1.45 }}>Ese dinero no se recupera. Si aun así te lo quitan, cobras la cláusula entera. Puedes invertir hasta {fmtM(maxInv)} más (la cláusula solo puede llegar al doble).</p>
+                </>}
+              </section>
+            )}
             {!started && <button className={`btn block ${isCap ? '' : 'primary'}`} onClick={() => setCaptain(sel)}>{isCap ? 'Quitar capitán' : 'Hacer capitán (puntúa doble)'}</button>}
           </FighterSheet>
         );

@@ -41,3 +41,8 @@ export async function share(text, url) {
 // Peleas de la cartelera principal (las únicas con predicciones)
 export const MAIN_SLOTS = ['Estelar', 'Coestelar', 'Cartelera principal'];
 export const mainFights = (c) => activeFights(c).filter((f) => MAIN_SLOTS.includes(f.slot));
+
+// Cláusula: 25 % más de lo pagado (o del valor, si es mayor) + lo que el dueño haya invertido en subirla (1 M → +1,5 M, hasta el doble)
+export const clauseBase = (o) => Math.round(Math.max(Number(o.paid) || 0, Number(o.value)) * 1.25 * 10) / 10;
+export const clausePrice = (o) => Math.round((clauseBase(o) + (Number(o.clause_extra) || 0)) * 10) / 10;
+export const clauseMaxInvest = (o) => Math.max(0, Math.floor((clauseBase(o) - (Number(o.clause_extra) || 0)) / 1.5 + 1e-9));
