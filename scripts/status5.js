@@ -8,5 +8,5 @@ log('Cierre del mercado: ' + t(ev.market_closes_at));
 for (const L of (await db.from('leagues').select('id,name')).data) {
   const own = (await db.from('ownership').select('wave,opens_at,closes_at,owner').eq('league_id', L.id).eq('event_id', 333)).data.filter((o) => !o.owner);
   const g = {}; for (const o of own) { const k = o.wave ?? '-'; (g[k] = g[k] || { n: 0, o: o.opens_at, c: o.closes_at }).n++; }
-  log(`${L.name}: ` + Object.entries(g).map(([w, x]) => `etapa ${w}: ${x.n} (${t(x.o)} → ${t(x.c)})`).join(' · '));
+  log(`${L.name}: ` + Object.entries(g).map(([w, x]) => `etapa ${w}: ${x.n} (${t(x.o)}-${t(x.c)})`).join(' · '));
 }
