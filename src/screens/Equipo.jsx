@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
 import { fmt, fmtM } from '../format.js';
 import { useToast } from '../ui.jsx';
 import { FighterCard } from '../Card.jsx';
+import { FighterSheet } from '../FighterSheet.jsx';
 import { marketStarted } from '../Ready.jsx';
 import { phase, myTeam, maxTeam, needTeam, oppOf, fightOf } from '../helpers.js';
 
@@ -11,6 +12,9 @@ export default function Equipo(c) {
   const ph = phase(c.ev, c.le);
   const started = ph === 'live' || ph === 'finished';
   const [cap, setCap] = useState(undefined);
+  const [sel, setSel] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { if (!sel) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [sel]);
   const captain = cap === undefined ? c.mySquad?.captain : cap;
   const team = myTeam(c).sort((a, b) => b.value - a.value);
   const s = c.mySquad;
@@ -61,7 +65,7 @@ export default function Equipo(c) {
             const f = c.F[o.fighter_id]; const isCap = captain === o.fighter_id; const p = c.points[o.fighter_id];
             return (
               <div key={o.fighter_id} className="stack" style={{ gap: 6 }}>
-                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap}
+                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} onClick={() => setSel(o.fighter_id)}
                   extra={started
                     ? <div className="fc-btn on" style={{ textAlign: 'center' }}>{p ? fmt(p.total * (isCap ? 2 : 1)) + ' pts' : 'Sin empezar'}</div>
                     : <button type="button" className={`fc-btn ${isCap ? 'on' : ''}`} aria-pressed={isCap} onClick={(e) => { e.stopPropagation(); setCaptain(o.fighter_id); }}>{isCap ? 'Capitán ×2' : 'Hacer capitán'}</button>} />
@@ -89,6 +93,32 @@ export default function Equipo(c) {
           ))}
         </section>
       )}
+      {sel && c.own[sel] && (() => {
+        const o = c.own[sel]; const isCap = captain === sel; const p = c.points[sel];
+        const clause = Math.round(Math.max(Number(o.paid) || 0, Number(o.value)) * 1.25 * 10) / 10;
+        const shielded = o.shield_until && new Date(o.shield_until).getTime() > now;
+        const hhmm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+        return (
+          <FighterSheet c={c} id={sel} onClose={() => setSel(null)}
+            pill={isCap ? 'Capitán ×2' : o.assigned ? 'Del sorteo' : 'Tuyo'}
+            kpis={[
+              [o.assigned ? 'Gratis' : fmtM(o.paid), o.assigned ? 'Sorteo' : 'Te costó'],
+              [fmtM(clause), 'Cláusula', 'mine'],
+              started && p ? [fmt(p.total * (isCap ? 2 : 1)), 'Puntos'] : [fmtM(o.value), 'Valor hoy'],
+            ]}>
+            <section className="fs-sec">
+              <h3>Tu luchador</h3>
+              <dl className="fs-rows">
+                <div><dt>Su cláusula</dt><dd>{fmtM(clause)} <small>25 % más de {Number(o.paid) > Number(o.value) ? 'lo que pagaste' : 'su valor'}; si te lo quitan, el dinero es para ti</small></dd></div>
+                {!started && <div><dt>Protección</dt><dd>{shielded ? <>Con escudo <small>hasta las {hhmm(o.shield_until)}</small></> : <>Sin escudo <small>se lo pueden clausular</small></>}</dd></div>}
+                <div><dt>Puntos esperados</dt><dd>{fmt(c.exp[sel])}</dd></div>
+                {o.sold_for != null && <div><dt>Vendido por</dt><dd>{fmtM(o.sold_for)}</dd></div>}
+              </dl>
+            </section>
+            {!started && <button className={`btn block ${isCap ? '' : 'primary'}`} onClick={() => setCaptain(sel)}>{isCap ? 'Quitar capitán' : 'Hacer capitán (puntúa doble)'}</button>}
+          </FighterSheet>
+        );
+      })()}
       {!started && !waiting && team.length > 0 && !captain && <p className="note">Elige un capitán: sus puntos cuentan doble. Puedes cambiarlo hasta que empiece el evento.</p>}
     </>
   );
