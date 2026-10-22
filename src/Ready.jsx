@@ -116,3 +116,32 @@ export function Revenge({ c }) {
     </section>
   ));
 }
+
+// Aviso en rojo en Inicio cuando te hacen un clausulazo (o te recuperan uno por venganza). Se quita con "Entendido".
+export function ClauseAlerts({ c }) {
+  const KEY = 'ligako-clausulazos-vistos';
+  const [seen, setSeen] = useState(() => { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } });
+  const revActive = new Set(Object.values(c.own).filter((o) => o.rev_user === c.me && o.rev_until && new Date(o.rev_until).getTime() > Date.now()).map((o) => o.fighter_id));
+  const list = (c.moves || []).filter((m) => m.event_id === c.ev?.id && Array.isArray(m.user_ids) && m.user_ids[1] === c.me && m.user_ids[0] !== c.me
+    && /paga la cláusula de|^¡Venganza!/.test(m.text) && !seen.includes(m.id))
+    .filter((m) => ![...revActive].some((id) => m.text.includes(c.F[id]?.name)));   // si aún puedes vengarte, ya sale el aviso de venganza
+  if (!list.length) return null;
+  const hide = (id) => { const next = [...seen, id].slice(-200); setSeen(next); try { localStorage.setItem(KEY, JSON.stringify(next)); } catch { /* sin almacenamiento */ } };
+  const when = (t) => new Date(t).toLocaleString('es-ES', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+  return list.map((m) => {
+    const rev = /^¡Venganza!/.test(m.text);
+    const name = c.names?.[m.user_ids[0]] || 'Alguien';
+    const fighter = (m.text.match(rev ? /recupera a (.+?) pagando/ : /cláusula de (.+?) \(/) || [])[1] || 'un luchador';
+    const price = (m.text.match(rev ? /pagando ([\d.,]+ M)/ : /\(([\d.,]+ M)\)/) || [])[1];
+    return (
+      <section key={m.id} className="clause-alert">
+        <div className="grow">
+          <div className="eyebrow">{rev ? 'Venganza' : 'Clausulazo'} · {when(m.created_at)}</div>
+          <b>{name} {rev ? 'ha recuperado' : 'te ha quitado'} a {fighter}</b>
+          {price && <span>Ha pagado {price.replace('.', ',')}. El dinero ya está en tu cuenta.</span>}
+        </div>
+        <button className="btn sm" onClick={() => hide(m.id)}>Entendido</button>
+      </section>
+    );
+  });
+}
