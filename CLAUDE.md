@@ -42,7 +42,9 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 - **Venta tras el evento:** precio × (puntos obtenidos / puntos esperados), limitado entre 0,3× y 2,5×.
 - **Carteleras:** se usan las carteleras oficiales de los eventos numerados en cuanto se anuncian (el 333 del 24 oct 2026 ya está cargado). Los luchadores de la cartelera que no están en el top 15 entran como "sin clasificar". En la app se muestran como "Evento 333", sin la marca.
 
-## Puntuación (v3, implementada en `shared/scoring.js`)
+## Puntuación (implementada en `shared/scoring.js`)
+
+**v3 hasta el evento 333; v4 desde el siguiente** (`isV3(fight)` según `event_id`). Objetivo de v4: una finalización en la cartelera principal puntúa más que una victoria gris por decisión en una pelea por el título o que perder rápido en ella. Cambios de v4: victoria por finalización +35, decisión unánime +10, dividida/mayoritaria +5, título +10; título y "mejor clasificado" se suman después del multiplicador; título ×1,2, estelar ×1,1. La tabla siguiente es la v3.
 
 | Acción | Puntos |
 |---|---|
@@ -69,8 +71,8 @@ Se aplica al total de puntos del luchador en esa pelea (también a los negativos
 
 | Pelea | Multiplicador | Máximo |
 |---|---|---|
-| Por el título | ×1,5 | — |
-| Estelar sin título | ×1,25 | — |
+| Por el título | ×1,5 (v4: ×1,2) | — |
+| Estelar sin título | ×1,25 (v4: ×1,1) | — |
 | Cartelera principal (incluye coestelar sin título) | ×1 | — |
 | Preliminares | ×0,5 hasta el evento 333 → **×0,75 desde el siguiente** | 25 → **50** |
 | Primeras preliminares | ×0,3 hasta el evento 333 → **×0,6 desde el siguiente** | 15 → **40** |

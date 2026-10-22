@@ -1,18 +1,22 @@
 import { Fragment, useState } from 'react';
 import { fmtM } from './format.js';
 
-export const RULES = [
-  ['Victoria por KO/TKO o sumisión', '+25'], ['Victoria por decisión unánime', '+15'], ['Victoria por decisión dividida o mayoritaria', '+8'],
-  ['Derrota por decisión', '0'], ['Derrota por finalización', '−5'], ['Finalizar en el asalto 1 / 2 / 3+', '+15 / +10 / +5'],
-  ['Golpe significativo', '+0,5'], ['Knockdown', '+10'], ['Takedown', '+4'], ['Intento de sumisión', '+3'], ['Minuto de control', '+0,5'],
-  ['Ganar un combate por el título', '+20'], ['Ganar a un rival mejor clasificado', '+10'],
-  ['No dar el peso', '−10'], ['Punto restado', '−5'],
-];
+export const rulesFor = (eventId) => {
+  const v3 = eventId != null && Number(eventId) <= 333;
+  return [
+    ['Victoria por KO/TKO o sumisión', v3 ? '+25' : '+35'], ['Victoria por decisión unánime', v3 ? '+15' : '+10'], ['Victoria por decisión dividida o mayoritaria', v3 ? '+8' : '+5'],
+    ['Derrota por decisión', '0'], ['Derrota por finalización', '−5'], ['Finalizar en el asalto 1 / 2 / 3+', '+15 / +10 / +5'],
+    ['Golpe significativo', '+0,5'], ['Knockdown', '+10'], ['Takedown', '+4'], ['Intento de sumisión', '+3'], ['Minuto de control', '+0,5'],
+    ['Ganar un combate por el título', v3 ? '+20' : '+10 (sin multiplicar)'], ['Ganar a un rival mejor clasificado', v3 ? '+10' : '+10 (sin multiplicar)'],
+    ['No dar el peso', '−10'], ['Punto restado', '−5'],
+  ];
+};
+export const RULES = rulesFor(null);
 // Hasta el evento 333: preliminares ×0,5 (máx. 25) y primeras ×0,3 (máx. 15). Desde el siguiente: ×0,75 (máx. 50) y ×0,6 (máx. 40)
 export const multsFor = (eventId) => {
   const v3 = eventId != null && Number(eventId) <= 333;
   return [
-    ['Pelea por el título', '×1,5'], ['Estelar sin título', '×1,25'], ['Cartelera principal', '×1'],
+    ['Pelea por el título', v3 ? '×1,5' : '×1,2'], ['Estelar sin título', v3 ? '×1,25' : '×1,1'], ['Cartelera principal', '×1'],
     ['Preliminares', v3 ? '×0,5 · máx. 25' : '×0,75 · máx. 50'], ['Primeras preliminares', v3 ? '×0,3 · máx. 15' : '×0,6 · máx. 40'], ['Capitán', '×2'],
   ];
 };
@@ -48,8 +52,8 @@ export function HowTo({ budget = 100, open = false, eventId }) {
       <button className="btn sm" style={{ marginTop: 10 }} onClick={() => setAll(!all)}>{all ? 'Ocultar la tabla de puntos' : 'Ver todos los puntos'}</button>
       {all && (
         <div className="stack" style={{ marginTop: 10, gap: 12 }}>
-          <Table rows={RULES} />
-          <div><div className="eyebrow" style={{ marginBottom: 4 }}>Según la pelea</div><Table rows={multsFor(eventId)} />{v3 && <p className="xs muted" style={{ margin: '6px 0 0' }}>Desde el próximo evento las preliminares darán más: ×0,75 (máx. 50) y las primeras preliminares ×0,6 (máx. 40).</p>}</div>
+          <Table rows={rulesFor(eventId)} />
+          <div><div className="eyebrow" style={{ marginBottom: 4 }}>Según la pelea</div><Table rows={multsFor(eventId)} />{v3 && <p className="xs muted" style={{ margin: '6px 0 0' }}>Desde el próximo evento cambia: finalizar da +35 (decisión unánime +10), las peleas por el título ×1,2 (estelar ×1,1) y el título y ganar a uno mejor clasificado se suman sin multiplicar (título +10). Las preliminares darán más: ×0,75 (máx. 50) y las primeras ×0,6 (máx. 40).</p>}</div>
           <div><div className="eyebrow" style={{ marginBottom: 4 }}>Bonos oficiales (se suman enteros, en cualquier pelea)</div><Table rows={BONUS} /></div>
         </div>
       )}

@@ -1,4 +1,4 @@
-// Sistema de puntos de Liga KO (v3). Lo usan la app, el cálculo de precios y el actualizador en directo.
+// Sistema de puntos de Liga KO (v3 hasta el evento 333, v4 desde el siguiente). Lo usan la app, el cálculo de precios y el actualizador en directo.
 
 export const SLOT_MULT = {
   'Pelea por el título': 1.5,
@@ -11,11 +11,14 @@ export const SLOT_MULT = {
 
 // Multiplicador y tope según la parte de la cartelera. Las preliminares dan pocos puntos:
 // solo un bono oficial de la noche (que va aparte, sin multiplicar ni tope) puede hacer que una de ellas puntúe mucho.
+// v3: hasta el evento 333. v4: desde el siguiente (finalizar vale más, las peleas por el título pesan menos por estar)
+export const isV3 = (fight) => fight.event_id != null && Number(fight.event_id) <= 333;
+
 export function slotMult(fight) {
-  if (fight.title) return { x: 1.5, cap: null, label: 'Pelea por el título' };
-  if (fight.slot === 'Estelar') return { x: 1.25, cap: null, label: 'Pelea estelar' };
-  // v3 (hasta el evento 333): preliminares ×0,5 máx. 25 y primeras ×0,3 máx. 15. v4 (desde el siguiente): ×0,75 máx. 50 y ×0,6 máx. 40
-  const v3 = fight.event_id != null && Number(fight.event_id) <= 333;
+  const v3 = isV3(fight);
+  if (fight.title) return { x: v3 ? 1.5 : 1.2, cap: null, label: 'Pelea por el título' };
+  if (fight.slot === 'Estelar') return { x: v3 ? 1.25 : 1.1, cap: null, label: 'Pelea estelar' };
+  // Preliminares: v3 ×0,5 máx. 25 y primeras ×0,3 máx. 15. v4 ×0,75 máx. 50 y ×0,6 máx. 40
   if (fight.slot === 'Preliminares') return v3 ? { x: 0.5, cap: 25, label: 'Preliminares' } : { x: 0.75, cap: 50, label: 'Preliminares' };
   if (fight.slot === 'Primeras preliminares') return v3 ? { x: 0.3, cap: 15, label: 'Primeras preliminares' } : { x: 0.6, cap: 40, label: 'Primeras preliminares' };
   return { x: 1, cap: null, label: '' };
@@ -45,15 +48,18 @@ export function scoreFighter(fid, fight, result, stats, preRank, extras = {}) {
   const lines = [];
   const won = result.winner === fid;
   const finish = result.method === 'KO' || result.method === 'SUB';
+  const v3 = isV3(fight);
+  const P = v3 ? { fin: 25, ud: 15, sd: 8, title: 20 } : { fin: 35, ud: 10, sd: 5, title: 10 };
+  const after = []; // v4: título y mejor clasificado se suman sin multiplicar
 
   if (won) {
-    if (result.method === 'KO') lines.push(['Victoria por KO/TKO', 25]);
-    else if (result.method === 'SUB') lines.push(['Victoria por sumisión', 25]);
-    else if (result.decision === 'UD') lines.push(['Victoria por decisión unánime', 15]);
-    else lines.push([result.decision === 'MD' ? 'Victoria por decisión mayoritaria' : 'Victoria por decisión dividida', 8]);
+    if (result.method === 'KO') lines.push(['Victoria por KO/TKO', P.fin]);
+    else if (result.method === 'SUB') lines.push(['Victoria por sumisión', P.fin]);
+    else if (result.decision === 'UD') lines.push(['Victoria por decisión unánime', P.ud]);
+    else lines.push([result.decision === 'MD' ? 'Victoria por decisión mayoritaria' : 'Victoria por decisión dividida', P.sd]);
     if (finish) lines.push(['Finalización en el asalto ' + result.round, result.round === 1 ? 15 : result.round === 2 ? 10 : 5]);
-    if (fight.title) lines.push(['Gana un combate por el título', 20]);
-    if ((preRank[opp] ?? 16) < (preRank[fid] ?? 16)) lines.push(['Gana a un rival mejor clasificado', 10]);
+    if (fight.title) (v3 ? lines : after).push(['Gana un combate por el título', P.title]);
+    if ((preRank[opp] ?? 16) < (preRank[fid] ?? 16)) (v3 ? lines : after).push(['Gana a un rival mejor clasificado', 10]);
   } else if (result.winner && finish) {
     lines.push(['Derrota por finalización', -5]);
   } else if (result.winner) {
@@ -77,6 +83,7 @@ export function scoreFighter(fid, fight, result, stats, preRank, extras = {}) {
   if (m.x !== 1 && sub !== 0) lines.push([m.label + ' ×' + String(m.x).replace('.', ','), r1(sub * (m.x - 1))]);
   if (m.cap != null && total > m.cap) { lines.push(['Máximo en ' + m.label.toLowerCase() + ': ' + m.cap, r1(m.cap - total)]); total = m.cap; }
 
+  after.forEach(([t, v]) => { lines.push([t, v]); total += v; });
   all.filter(([t]) => isNightBonus(t)).forEach(([t, v]) => { lines.push([t, Number(v)]); total += Number(v); });
   return { total: r1(total), lines: lines.map(([t, v]) => [t, r1(v)]) };
 }
