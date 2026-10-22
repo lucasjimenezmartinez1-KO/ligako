@@ -26,7 +26,7 @@ export function parseRecordTable(w) {
     const first = (cells[0] || '').toLowerCase();
     const res = /^win/.test(first) ? 'Win' : /^loss/.test(first) ? 'Loss' : /^draw/.test(first) ? 'Draw' : /^(nc|no contest)/.test(first) ? 'NC' : null;
     if (!res) continue;
-    out.push({ res, event: cells[4] || '' });
+    out.push({ res, method: cells[3] || '', event: cells[4] || '' });
   }
   return out;
 }
@@ -45,7 +45,9 @@ export async function recordsFor(name) {
     const rows = parseRecordTable(w);
     if (rows.length < 2) continue;
     const elite = rows.filter((r) => isElite(r.event));
-    const streak = rows.slice(0, 5).map((r) => (r.res === 'Win' ? 'V' : r.res === 'Loss' ? 'D' : r.res === 'Draw' ? 'E' : 'N')).join('');
+    // V victoria, F victoria por finalización (KO/TKO o sumisión), D derrota, E empate, N sin resultado
+    const fin = (m) => /\b(t?ko|submission|sumisi)/i.test(m) && !/decision/i.test(m);
+    const streak = rows.slice(0, 5).map((r) => (r.res === 'Win' ? (fin(r.method) ? 'F' : 'V') : r.res === 'Loss' ? 'D' : r.res === 'Draw' ? 'E' : 'N')).join('');
     return { record: fmtRec(rows), elite_record: elite.length ? fmtRec(elite) : '0-0-0', streak };
   }
   return null;

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
 import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
-import { FighterCard, fmtLeft, tierOf } from '../Card.jsx';
+import { FighterCard, Streak, fmtLeft, tierOf } from '../Card.jsx';
 import { WaitingRoom, WaveResults, Revenge, marketStarted } from '../Ready.jsx';
 import { phase, myTeam, maxTeam, committed, oppOf, activeFights } from '../helpers.js';
 
@@ -237,7 +237,7 @@ export default function Mercado(c) {
                   <dl className="fs-rows">
                     {f.record && <div><dt>Récord profesional</dt><dd className="num">{f.record}</dd></div>}
                     {f.elite_record && <div><dt>En la élite</dt><dd className="num">{f.elite_record}</dd></div>}
-                    {f.streak && <div><dt>Últimas peleas</dt><dd><span className="streak">{[...f.streak].map((r, i) => <i key={i} className={r} title={{ V: 'Victoria', D: 'Derrota', E: 'Empate', N: 'Sin resultado' }[r]}>{r}</i>)}</span></dd></div>}
+                    {f.streak && <div><dt>Últimas peleas{/F/.test(f.streak) && <small className="streak-key"><i className="F" aria-hidden="true" /> por KO o sumisión</small>}</dt><dd><Streak s={f.streak} /></dd></div>}
                   </dl>
                 </section>
               )}

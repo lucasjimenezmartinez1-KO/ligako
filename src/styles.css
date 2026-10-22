@@ -370,3 +370,13 @@ table.stand tr.me td { font-weight: 800; }
 .revenge b { display: block; color: #fff; font-size: 16px; line-height: 1.25; margin: 2px 0; }
 .revenge span { display: block; color: var(--red-soft); font-size: 13px; line-height: 1.35; }
 .shield-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; color: var(--blue-soft); background: #18233F; border: 1px solid #2F4777; border-radius: 999px; padding: 6px 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Últimas peleas: victoria por finalización en verde intenso con brillo */
+.streak i.V { background: #2E7D59; color: #E8FFF3; }
+.streak i.F { background: linear-gradient(160deg, #7DFFC2 0%, #2BE38A 45%, #0FA862 100%); color: #04140C;
+  box-shadow: 0 0 0 1px rgba(125,255,194,.55), 0 0 10px rgba(43,227,138,.55); position: relative; overflow: hidden; }
+.streak i.F::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.45), transparent 55%); }
+.fs-rows .streak { gap: 5px; }
+.fs-rows .streak i { width: 24px; height: 24px; border-radius: 6px; font-size: 13px; }
+.streak-key { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.streak-key i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; background: linear-gradient(160deg, #7DFFC2, #0FA862); box-shadow: 0 0 6px rgba(43,227,138,.6); }

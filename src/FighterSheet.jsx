@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { rankLabel } from './format.js';
-import { FighterCard } from './Card.jsx';
+import { FighterCard, Streak } from './Card.jsx';
 import { fightOf, oppOf } from './helpers.js';
 
 /**
@@ -55,7 +55,7 @@ export function FighterSheet({ c, id, onClose, kpis = [], pill, children }) {
             <dl className="fs-rows">
               {f.record && <div><dt>Récord profesional</dt><dd className="num">{f.record}</dd></div>}
               {f.elite_record && <div><dt>En la élite</dt><dd className="num">{f.elite_record}</dd></div>}
-              {f.streak && <div><dt>Últimas peleas</dt><dd><span className="streak">{[...f.streak].map((r, i) => <i key={i} className={r} title={{ V: 'Victoria', D: 'Derrota', E: 'Empate', N: 'Sin resultado' }[r]}>{r}</i>)}</span></dd></div>}
+              {f.streak && <div><dt>Últimas peleas{/F/.test(f.streak) && <small className="streak-key"><i className="F" aria-hidden="true" /> por KO o sumisión</small>}</dt><dd><Streak s={f.streak} /></dd></div>}
             </dl>
           </section>
         )}

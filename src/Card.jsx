@@ -87,6 +87,16 @@ export const fmtLeft = (ms) => {
   return d > 0 ? `${d}d ${p(h)}:${p(m)}:${p(x)}` : `${p(h)}:${p(m)}:${p(x)}`;
 };
 
+// Últimas peleas: V victoria, F victoria por finalización (se ve como V destacada), D derrota, E empate, N sin resultado
+const STREAK = { V: ['V', 'Victoria por decisión'], F: ['V', 'Victoria por KO o sumisión'], D: ['D', 'Derrota'], E: ['E', 'Empate'], N: ['N', 'Sin resultado'] };
+export function Streak({ s }) {
+  return (
+    <span className="streak">
+      {[...s].map((r, i) => <i key={i} className={r} title={STREAK[r]?.[1]} aria-label={STREAK[r]?.[1]}>{STREAK[r]?.[0] || r}</i>)}
+    </span>
+  );
+}
+
 // Récord profesional, en la élite y últimos resultados
 export function Records({ f }) {
   if (!f.record && !f.streak) return null;
@@ -96,7 +106,7 @@ export function Records({ f }) {
       {f.elite_record && <div><span>En la élite</span><b>{f.elite_record}</b></div>}
       {f.streak && (
         <div><span>Últimas peleas</span>
-          <b className="streak">{[...f.streak].map((r, i) => <i key={i} className={r} title={{ V: 'Victoria', D: 'Derrota', E: 'Empate', N: 'Sin resultado' }[r]}>{r}</i>)}</b>
+          <b><Streak s={f.streak} /></b>
         </div>
       )}
     </div>
