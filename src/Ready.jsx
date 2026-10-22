@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase, errText } from './supabase.js';
 import { useToast } from './ui.jsx';
+import { fmtDate } from './format.js';
 
 // ¿Ha empezado ya el mercado en esta liga? (todos listos → sorteo y tandas)
 export const marketStarted = (c) => !!c.le?.started_at;
@@ -38,7 +39,7 @@ export function WaitingRoom({ c, compact = false }) {
       <div className="eyebrow gold">Sala de espera</div>
       <h2 className="h-display" style={{ fontSize: 28, lineHeight: 1 }}>El mercado empieza cuando estéis todos</h2>
       <p className="small muted" style={{ lineHeight: 1.45 }}>
-        Cuando todos pulséis <b style={{ color: 'var(--ink)' }}>Estoy listo</b> se hace el sorteo (un luchador para cada uno) y salen las primeras cartas a puja. El mercado irá por tandas hasta el viernes a las 23:59.
+        Cuando todos pulséis <b style={{ color: 'var(--ink)' }}>Estoy listo</b> se hace el sorteo (un luchador para cada uno) y salen las primeras cartas a puja. El mercado irá por etapas (de 21:00 a 12:00 y de 12:00 a 21:00) hasta el {fmtDate(c.ev.market_closes_at)}.
       </p>
       <ul className="ready-list">
         {c.members.map((m) => (
@@ -70,7 +71,7 @@ export function WaveResults({ c, limit }) {
         const list = won.filter((o) => o.wave === w).sort((a, b) => b.paid - a.paid);
         return (
           <div key={w} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div className="row between"><div className="eyebrow gold">Resultado de la tanda {w}</div><span className="xs muted">{list.length} {list.length === 1 ? 'fichaje' : 'fichajes'}</span></div>
+            <div className="row between"><div className="eyebrow gold">Resultado de la etapa {w}</div><span className="xs muted">{list.length} {list.length === 1 ? 'fichaje' : 'fichajes'}</span></div>
             {list.map((o) => (
               <div key={o.fighter_id} className="row between" style={{ gap: 10 }}>
                 <div style={{ minWidth: 0 }}>
@@ -83,7 +84,7 @@ export function WaveResults({ c, limit }) {
           </div>
         );
       })}
-      <p className="xs muted" style={{ margin: 0 }}>Los que nadie fichó vuelven al mercado hasta el viernes a las 23:59. Los fichajes ya están en el equipo de cada uno.</p>
+      <p className="xs muted" style={{ margin: 0 }}>Los que nadie fichó se reparten entre las etapas que quedan. Los fichajes ya están en el equipo de cada uno.</p>
     </section>
   );
 }

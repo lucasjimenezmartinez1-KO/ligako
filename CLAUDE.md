@@ -22,7 +22,7 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 ## Ciclo de cada evento (solo eventos numerados)
 
 1. **Sorteo:** cuando todos pulsan "Estoy listo" se asigna al azar **un luchador de las preliminares a cada jugador**, gratis (el presupuesto baja un 25 % de su valor).
-2. **Mercado por tandas:** tras el sorteo, el resto de luchadores sale al mercado en 3 tandas (mezcla de oro, plata y bronce) repartidas hasta el viernes 23:59. Pujas secretas (solo se ve cuántos han pujado): gana la más alta al cerrar su tanda (mínimo, el valor). Los que nadie ficha vuelven al mercado hasta el cierre. El sábado solo cláusulas.
+2. **Mercado por etapas** (antes "tandas"): horario fijo de Madrid, de 21:00 a 12:00 del día siguiente y de 12:00 a 21:00 (`stage_bounds`, migración 011; se salta un corte si la etapa dura menos de 3 h). El mercado cierra el **viernes a las 21:00**. Los luchadores se reparten entre las etapas (mezcla de oro, plata y bronce). Pujas secretas (solo se ve cuántos han pujado): gana la más alta al cerrar su etapa (mínimo, el valor). Los que nadie ficha **se reparten entre las etapas que quedan** (`spread_leftovers`). Después del cierre, solo cláusulas y libres del sábado.
    - El sorteo lo lanza el workflow "Sorteo de luchadores" cuando el usuario avisa; resta del presupuesto el 25 % del valor del luchador que toca.
 3. **Fichar a un luchador de otro jugador:** solo de dos formas:
    - Oferta que el dueño acepta.

@@ -43,8 +43,8 @@ export default function Mercado(c) {
     if (o.owner && (marketStarted(c) || ph !== 'market')) return ownerName(o.owner);
     if (ph !== 'market') return 'Sin dueño';
     if (!marketStarted(c)) return 'Sale cuando estéis todos listos';
-    if (o.opens_at && new Date(o.opens_at).getTime() > now) return `Tanda ${o.wave} · ${new Date(o.opens_at).toLocaleString('es-ES', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).replace(',', '')}`;
-    if (o.closes_at && new Date(o.closes_at).getTime() <= now) return 'Tanda cerrada · repartiendo';
+    if (o.opens_at && new Date(o.opens_at).getTime() > now) return `Etapa ${o.wave} · ${new Date(o.opens_at).toLocaleString('es-ES', { weekday: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).replace(',', '')}`;
+    if (o.closes_at && new Date(o.closes_at).getTime() <= now) return 'Etapa cerrada · repartiendo';
     return 'En puja ahora';
   };
   const closeOf = (o) => new Date(o.closes_at || c.ev.market_closes_at).getTime();
@@ -105,7 +105,7 @@ export default function Mercado(c) {
           <Stat label="Tu equipo" value={`${team.length} de ${max}`} />
         </div>
         <p className="xs muted">
-          {ph === 'market' ? 'Pujas secretas: nadie ve cuánto pujan los demás, solo cuántos han pujado. Al cerrar cada tanda gana la puja más alta.'
+          {ph === 'market' ? 'Pujas secretas: nadie ve cuánto pujan los demás, solo cuántos han pujado. Al cerrar cada etapa gana la puja más alta.'
             : started ? 'El evento ya ha empezado. El mercado vuelve a abrirse con la cartelera del siguiente evento numerado.'
             : 'Las pujas ya se han resuelto. Hasta que empiece el evento aún puedes pagar la cláusula de un luchador de otro mánager.'}
         </p>
@@ -139,7 +139,7 @@ export default function Mercado(c) {
           {waves.length > 0 && (
             <ol className="waves">
               {waves.map((w) => { const i = wInfo(w); const on = w === curWave; const past = new Date(i.closes).getTime() <= now;
-                return <li key={w} className={on ? 'on' : past ? 'past' : ''}><b>Tanda {w}{on ? ' · ahora' : ''}</b><span>{past ? 'cerrada' : on ? 'cierra ' + fmtDate(i.closes) : 'sale ' + fmtDate(i.opens)}</span></li>; })}
+                return <li key={w} className={on ? 'on' : past ? 'past' : ''}><b>Etapa {w}{on ? ' · ahora' : ''}</b><span>{past ? 'cerrada' : on ? 'cierra ' + fmtDate(i.closes) : 'sale ' + fmtDate(i.opens)}</span></li>; })}
             </ol>
           )}
           <div className="row between"><span className="xs muted">Pujas secretas: solo se ve cuántos han pujado.</span><span className="xs red bold">{fmtLeft((free[0] ? Math.min(...free.map(closeOf)) : new Date(c.ev.market_closes_at).getTime()) - now)}</span></div>
@@ -157,7 +157,7 @@ export default function Mercado(c) {
             const list = upcoming.filter((o) => o.wave === w);
             return (
               <section key={w} className="stack" style={{ gap: 8 }}>
-                <div className="row between"><h2 className="h-display" style={{ fontSize: 20 }}>Tanda {w}</h2><span className="xs muted">se descubre {fmtDate(wInfo(w).opens)}</span></div>
+                <div className="row between"><h2 className="h-display" style={{ fontSize: 20 }}>Etapa {w}</h2><span className="xs muted">se descubre {fmtDate(wInfo(w).opens)}</span></div>
                 <div className="locked-row">{list.map((o) => <span key={o.fighter_id} className={`locked ${tierOf(fightOf(o.fighter_id))}`} aria-hidden="true">?</span>)}</div>
                 <span className="xs muted">{list.length} luchadores: {['oro', 'plata', 'bronce'].map((t) => [t, list.filter((o) => tierOf(fightOf(o.fighter_id)) === t).length]).filter(([, n]) => n).map(([t, n]) => `${n} ${t}`).join(', ')}</span>
               </section>
@@ -257,7 +257,7 @@ export default function Mercado(c) {
                   <button className="btn primary block" disabled={busy === sel || (slots <= 0 && myBid == null)} onClick={async () => { if (await bid(o)) setSel(null); }}>
                     {myBid != null ? 'Guardar puja' : 'Pujar ' + fmtM(Number(String(amounts[sel] ?? o.value).replace(',', '.')) || o.value)}</button>
                   {myBid != null && <button className="fs-link" disabled={busy === sel} onClick={async () => { await unbid(o); setSel(null); }}>Retirar mi puja</button>}
-                  <p className="xs muted" style={{ margin: 0, lineHeight: 1.45 }}>Nadie ve cuánto pujas, solo cuántos han pujado. Al cerrar la tanda gana la puja más alta y se te cobra lo que pujaste.</p>
+                  <p className="xs muted" style={{ margin: 0, lineHeight: 1.45 }}>Nadie ve cuánto pujas, solo cuántos han pujado. Al cerrar la etapa gana la puja más alta y se te cobra lo que pujaste.</p>
                 </section>
               ) : (
                 <button className="btn block" onClick={() => setSel(null)}>Cerrar</button>

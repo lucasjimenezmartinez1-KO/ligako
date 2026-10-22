@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
-import { fmt, fmtM } from '../format.js';
+import { fmt, fmtM, fmtDate } from '../format.js';
 import { useToast } from '../ui.jsx';
 import { FighterCard } from '../Card.jsx';
 import { FighterSheet } from '../FighterSheet.jsx';
@@ -48,7 +48,7 @@ export default function Equipo(c) {
         {!waiting && open && missing > 0 && (
           <div className="must-sign">
             <b>Tienes que fichar {need} luchadores</b>
-            <span>Te {missing === 1 ? 'falta 1' : `faltan ${missing}`}{pending.length ? ` · ${pending.length === 1 ? 'tienes 1 puja' : `tienes ${pending.length} pujas`} en marcha` : ''}. El mercado cierra el viernes a las 23:59.</span>
+            <span>Te {missing === 1 ? 'falta 1' : `faltan ${missing}`}{pending.length ? ` · ${pending.length === 1 ? 'tienes 1 puja' : `tienes ${pending.length} pujas`} en marcha` : ''}. El mercado cierra el {fmtDate(c.ev.market_closes_at)}.</span>
           </div>
         )}
         <p className="small muted">Para el evento {c.ev.id}. Todos tus luchadores puntúan y el capitán puntúa doble. Al terminar el evento se venden solos según los puntos que hagan frente a los esperados.</p>
