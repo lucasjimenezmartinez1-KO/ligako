@@ -17,6 +17,7 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 
 - Ligas privadas de hasta **12 usuarios**.
 - Los luchadores son **exclusivos dentro de cada liga**: un luchador solo puede pertenecer a un usuario de la liga.
+- Un usuario puede jugar en **varias ligas** (cada una con su presupuesto, sorteo y fichajes). Se cambia tocando el nombre de la liga arriba (flecha solo si tiene más de una) o con "Jugar en otra liga" en la pestaña Liga; la app abre la última usada. Un enlace `?liga=CÓDIGO` abre el selector para unirse.
 
 ## Ciclo de cada evento (solo eventos numerados)
 
