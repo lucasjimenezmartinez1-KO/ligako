@@ -136,3 +136,18 @@ export function fightTiers(f0, stats = {}) {
   out.r = Object.fromEntries(w.map((v, i) => [i + 1, tierOf(v / t, 0.35, 0.15)]));
   return out;
 }
+
+// Premios de las predicciones (M) a partir de las cuotas: cuanto menos probable, más premio.
+// Ganador 1/p (1–5 M) · método 1/p del método si gana (1–4 M) · asalto exacto 1/p del asalto (1–3 M). Máx. 12 M por pelea.
+const prize = (p, lo, hi) => Math.round(Math.min(hi, Math.max(lo, 1 / Math.max(p, 0.01))) * 10) / 10;
+export function fightPrizes(f0, stats = {}) {
+  const f = { ...f0, prof: { [f0.a]: profile(stats[f0.a]), [f0.b]: profile(stats[f0.b]) } };
+  const out = {};
+  for (const [side, id, p] of [['a', f.a, f.pA], ['b', f.b, 1 - f.pA]]) {
+    const md = methodDist(f, id);
+    out[side] = { win: prize(p, 1, 5), KO: prize(md.KO, 1, 4), SUB: prize(md.SUB, 1, 4), DEC: prize(md.DEC, 1, 4) };
+  }
+  const w = [0.42, 0.28, 0.17, 0.08, 0.05].slice(0, f.rounds); const t = w.reduce((s, v) => s + v, 0);
+  out.r = Object.fromEntries(w.map((v, i) => [i + 1, prize(v / t, 1, 3)]));
+  return out;
+}
