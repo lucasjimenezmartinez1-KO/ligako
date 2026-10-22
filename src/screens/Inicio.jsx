@@ -4,7 +4,7 @@ import { Avatar, FaceOff, useToast } from '../ui.jsx';
 import { phase, myTeam, maxTeam, oppOf, activeFights, share, mainFights } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
 import { InstallHint } from '../InstallHint.jsx';
-import { WaitingRoom, marketStarted } from '../Ready.jsx';
+import { WaitingRoom, WaveResults, marketStarted } from '../Ready.jsx';
 
 function useNow(ms = 30000) {
   const [n, setN] = useState(Date.now());
@@ -74,6 +74,7 @@ export default function Inicio(c) {
       )}
 
       {ph === 'market' && !marketStarted(c) && <WaitingRoom c={c} compact />}
+      {ph === 'market' && marketStarted(c) && <WaveResults c={c} limit={1} />}
 
       {assigned && ph !== 'finished' && (ph !== 'market' || marketStarted(c)) && (
         <section className="card tight" style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>

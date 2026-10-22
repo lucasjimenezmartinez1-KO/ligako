@@ -57,3 +57,33 @@ export function WaitingRoom({ c, compact = false }) {
     </section>
   );
 }
+
+// Resultado de las tandas ya cerradas: quién ha ganado cada puja y por cuánto
+export function WaveResults({ c, limit }) {
+  const now = Date.now();
+  const won = Object.values(c.own).filter((o) => o.owner && !o.assigned && o.wave && o.closes_at && new Date(o.closes_at).getTime() <= now && Number(o.paid) > 0);
+  if (!won.length) return null;
+  const waves = [...new Set(won.map((o) => o.wave))].sort((a, b) => b - a).slice(0, limit || 9);
+  return (
+    <section className="card tight">
+      {waves.map((w) => {
+        const list = won.filter((o) => o.wave === w).sort((a, b) => b.paid - a.paid);
+        return (
+          <div key={w} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="row between"><div className="eyebrow gold">Resultado de la tanda {w}</div><span className="xs muted">{list.length} {list.length === 1 ? 'fichaje' : 'fichajes'}</span></div>
+            {list.map((o) => (
+              <div key={o.fighter_id} className="row between" style={{ gap: 10 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div className="bold">{c.F[o.fighter_id]?.name}</div>
+                  <div className="xs muted">{o.owner === c.me ? 'Lo has ganado tú' : 'Lo gana ' + (c.names?.[o.owner] || 'otro mánager')}</div>
+                </div>
+                <b className={o.owner === c.me ? 'gold' : ''} style={{ whiteSpace: 'nowrap' }}>{String(o.paid).replace('.', ',')} M</b>
+              </div>
+            ))}
+          </div>
+        );
+      })}
+      <p className="xs muted" style={{ margin: 0 }}>Los que nadie fichó vuelven al mercado hasta el viernes a las 23:59. Los fichajes ya están en el equipo de cada uno.</p>
+    </section>
+  );
+}
