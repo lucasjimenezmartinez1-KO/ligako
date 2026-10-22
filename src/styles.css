@@ -371,12 +371,10 @@ table.stand tr.me td { font-weight: 800; }
 .revenge span { display: block; color: var(--red-soft); font-size: 13px; line-height: 1.35; }
 .shield-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; color: var(--blue-soft); background: #18233F; border: 1px solid #2F4777; border-radius: 999px; padding: 6px 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* Últimas peleas: decisión en el verde de siempre; finalización en verde neón con borde claro, brillo y chispa */
+/* Últimas peleas: decisión en verde claro; finalización en verde oscuro con borde y brillo verde */
 .streak i.V { background: var(--green); color: #062014; }
-.streak i.F { background: #6BFFB8; color: #03130B; box-shadow: inset 0 0 0 2px #F0FFF7, 0 0 0 1px #2BE38A, 0 0 12px rgba(107,255,184,.75); position: relative; }
-.streak i.F::after { content: ""; position: absolute; top: -4px; right: -4px; width: 9px; height: 9px; background: #FFF6C2;
-  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); filter: drop-shadow(0 0 2px #FFE36B); }
+.streak i.F { background: #0F3B22; color: #8DFFC8; box-shadow: inset 0 0 0 1.5px #2BE38A, 0 0 10px rgba(43,227,138,.45); }
 .fs-rows .streak { gap: 5px; }
 .fs-rows .streak i { width: 24px; height: 24px; border-radius: 6px; font-size: 13px; }
 .streak-key { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); margin-top: 3px; }
-.streak-key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; background: #6BFFB8; box-shadow: inset 0 0 0 1.5px #F0FFF7, 0 0 6px rgba(107,255,184,.7); }
+.streak-key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; background: #0F3B22; box-shadow: inset 0 0 0 1.5px #2BE38A, 0 0 6px rgba(43,227,138,.5); }
