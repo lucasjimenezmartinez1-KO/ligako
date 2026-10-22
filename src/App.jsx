@@ -17,18 +17,21 @@ export default function App() {
   const [session, setSession] = useState(undefined);
   const [leagueId, setLeagueId] = useState(undefined);
   const [leagues, setLeagues] = useState([]);
+  const [bootErr, setBootErr] = useState(false);
   const [recovery, setRecovery] = useState(() => /type=recovery/.test(location.hash));
 
   useEffect(() => {
     if (!configured) return;
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    supabase.auth.getSession().then(({ data }) => setSession(data.session)).catch(() => setBootErr(true));
     const { data } = supabase.auth.onAuthStateChange((e, s) => { setSession(s); if (e === 'PASSWORD_RECOVERY') setRecovery(true); });
     return () => data.subscription.unsubscribe();
   }, []);
 
   // Ligas del usuario. Se abre la última que usó (o la primera a la que se unió)
   async function loadLeagues(pick) {
-    const { data } = await supabase.from('league_members').select('league_id, joined_at, leagues(name)').eq('user_id', session.user.id).order('joined_at');
+    const { data, error } = await supabase.from('league_members').select('league_id, joined_at, leagues(name)').eq('user_id', session.user.id).order('joined_at');
+    if (error) { setBootErr(true); return; }
+    setBootErr(false);
     const list = (data || []).map((r) => ({ id: r.league_id, name: r.leagues?.name || 'Liga' }));
     setLeagues(list);
     let last = null; try { last = localStorage.getItem('ligako-league'); } catch { /* sin almacenamiento */ }
@@ -37,7 +40,7 @@ export default function App() {
   }
   useEffect(() => {
     if (!session) { setLeagueId(undefined); setLeagues([]); return; }
-    loadLeagues();
+    loadLeagues().catch(() => setBootErr(true));
   }, [session]);
   function switchLeague(id) {
     try { localStorage.setItem('ligako-league', id); localStorage.setItem('ligako-tab', 'inicio'); } catch { /* sin almacenamiento */ }
@@ -45,18 +48,25 @@ export default function App() {
   }
 
   if (!configured) return <div className="center-screen"><p>Falta configurar la conexión con la base de datos.</p></div>;
-  if (session === undefined || (session && leagueId === undefined)) return <Splash />;
+  if (session === undefined || (session && leagueId === undefined)) return <Splash failed={bootErr} />;
   if (!session) return <Auth />;
   if (recovery) return <NewPassword onDone={() => { setRecovery(false); history.replaceState(null, '', location.pathname + location.search); }} />;
   if (!leagueId) return <Onboarding onJoined={switchLeague} />;
   return <Shell key={leagueId} leagueId={leagueId} userId={session.user.id} leagues={leagues} onSwitch={switchLeague} />;
 }
 
-function Splash() {
+// Pantalla de carga: si tarda más de 8 s o falla, ofrece reintentar (nunca se queda en negro sin salida)
+function Splash({ failed }) {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setSlow(true), 8000); return () => clearTimeout(t); }, []);
   return (
-    <div className="center-screen" style={{ alignItems: 'center' }}>
+    <div className="center-screen" style={{ alignItems: 'center', textAlign: 'center' }}>
       <div className="hero-word">Liga <b>KO</b></div>
       <div className="split-bar"><span /><span /></div>
+      {(slow || failed) && <>
+        <p className="small muted" style={{ margin: 0 }}>{failed ? 'No se ha podido conectar.' : 'Está tardando más de lo normal.'} Revisa tu conexión.</p>
+        <button className="btn primary" onClick={() => location.reload()}>Reintentar</button>
+      </>}
     </div>
   );
 }

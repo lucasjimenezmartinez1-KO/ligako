@@ -11,6 +11,8 @@
     "live": "node scripts/live.js"
   },
   "dependencies": {
+    "@fontsource/barlow": "^5.3.0",
+    "@fontsource/big-shoulders-display": "^5.3.0",
     "@supabase/supabase-js": "2.75.0",
     "react": "19.1.1",
     "react-dom": "19.1.1"

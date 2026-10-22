@@ -21,14 +21,22 @@ export async function loadFighters() {
 export function useLeague(leagueId, userId) {
   const [state, setState] = useState({ loading: true });
   const synced = useRef(false);
+  const busy = useRef(false);
 
   const load = useCallback(async () => {
+    if (busy.current) return;   // no lanzar otra carga mientras hay una en marcha
+    busy.current = true;
     try {
+      // La primera vez se sincroniza la liga; las tandas vencidas se cierran a la vez que se leen los datos básicos
       if (!synced.current) { await supabase.rpc('sync_league', { p_league: leagueId }); synced.current = true; }
-      await supabase.rpc('close_due_waves');
-      const F = await loadFighters();
-      let ev = (await q(supabase.from('events').select('*').neq('status', 'finished').order('starts_at').limit(1)))[0];
-      const last = (await q(supabase.from('events').select('*').eq('status', 'finished').order('starts_at', { ascending: false }).limit(1)))[0];
+      const [, F, evs, lasts] = await Promise.all([
+        supabase.rpc('close_due_waves'),
+        loadFighters(),
+        q(supabase.from('events').select('*').neq('status', 'finished').order('starts_at').limit(1)),
+        q(supabase.from('events').select('*').eq('status', 'finished').order('starts_at', { ascending: false }).limit(1)),
+      ]);
+      let ev = evs[0];
+      const last = lasts[0];
       if (!ev) ev = last;
       if (!ev) { setState({ loading: false, empty: true, F }); return; }
       const E = ev.id;
@@ -51,6 +59,7 @@ export function useLeague(leagueId, userId) {
         synced.closing = true;
         await supabase.rpc('sync_league', { p_league: leagueId });
         synced.closing = false;
+        busy.current = false;
         return load();
       }
       const bc = await supabase.rpc('bid_counts', { p_league: leagueId });
@@ -72,7 +81,10 @@ export function useLeague(leagueId, userId) {
         loadedAt: Date.now(),
       });
     } catch (e) {
-      setState((s) => ({ ...s, loading: false, error: e }));
+      // Si ya había datos en pantalla, se mantienen (el siguiente refresco lo volverá a intentar)
+      setState((s) => (s.ev ? { ...s, loading: false } : { ...s, loading: false, error: e }));
+    } finally {
+      busy.current = false;
     }
   }, [leagueId, userId]);
 

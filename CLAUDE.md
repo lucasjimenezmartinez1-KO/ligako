@@ -130,4 +130,5 @@ App real en construcción para el evento 333 (24 oct 2026). El prototipo antiguo
 - **Base de datos:** cambios nuevos en `supabase/migrations/NNN_*.sql`; el workflow "Aplicar cambios en la base de datos" los aplica solo al hacer push (secreto `SUPABASE_DB_URL`).
 - **Cartas y récords:** `src/Card.jsx` (oro/plata/bronce), fotos grandes en `public/cards/<id>.jpg`. Récords desde Wikipedia (`scripts/records.js`); en la app se muestra "En la élite" (sin la marca).
 - **Venta:** el lunes siguiente al evento a las 08:00 UTC.
+- **Arranque robusto:** fuentes incluidas en la app (`@fontsource`, nada de Google Fonts), pantalla de carga en `index.html`, `ErrorBoundary` con "Recargar", Splash con "Reintentar" a los 8 s, peticiones a Supabase cortadas a los 15 s y cerrojo de sesión propio (`pageLock` en `src/supabase.js`) para que no se cuelgue al volver a la app. `vercel.json` evita que el móvil guarde una versión vieja de la página. La versión publicada se ve al final de la pestaña Liga.
 - **Variables de Vercel:** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
