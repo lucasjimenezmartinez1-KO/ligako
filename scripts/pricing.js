@@ -37,7 +37,7 @@ export function profile(s = {}) {
 const vs = (a, b, ea = 0.5) => Math.pow(Math.max(a, 0.01), ea) * Math.pow(Math.max(b, 0.01), 1 - ea);
 
 // Reparto del método si gana W: { KO, SUB, DEC } (suma 1)
-function methodDist(fight, W) {
+export function methodDist(fight, W) {
   const P = fight.props?.[W === fight.a ? 'a' : 'b'];
   if (P) { const t = P.KO + P.SUB + P.DEC; return { KO: P.KO / t, SUB: P.SUB / t, DEC: P.DEC / t }; }
   const pw = fight.prof[W], pl = fight.prof[W === fight.a ? fight.b : fight.a];
@@ -119,5 +119,20 @@ const imp3 = (o) => ({ KO: imp(o.KO), SUB: imp(o.SUB), DEC: imp(o.DEC) });
 export function statsById(raw, byName) {
   const out = {};
   for (const [name, s] of Object.entries(raw || {})) if (byName[name]) out[byName[name].id] = s;
+  return out;
+}
+
+// Dificultad de cada predicción (f = fácil, n = normal, d = difícil), sin guardar probabilidades.
+// win: probabilidad de ganar; método: probabilidad del método si gana; asalto: reparto de finalizaciones por asalto.
+const tierOf = (p, easy, hard) => (p >= easy ? 'f' : p < hard ? 'd' : 'n');
+export function fightTiers(f0, stats = {}) {
+  const f = { ...f0, prof: { [f0.a]: profile(stats[f0.a]), [f0.b]: profile(stats[f0.b]) } };
+  const out = {};
+  for (const [side, id, p] of [['a', f.a, f.pA], ['b', f.b, 1 - f.pA]]) {
+    const md = methodDist(f, id);
+    out[side] = { win: tierOf(p, 0.6, 0.4), KO: tierOf(md.KO, 0.5, 0.25), SUB: tierOf(md.SUB, 0.5, 0.25), DEC: tierOf(md.DEC, 0.5, 0.25) };
+  }
+  const w = [0.42, 0.28, 0.17, 0.08, 0.05].slice(0, f.rounds); const t = w.reduce((s, v) => s + v, 0);
+  out.r = Object.fromEntries(w.map((v, i) => [i + 1, tierOf(v / t, 0.35, 0.15)]));
   return out;
 }

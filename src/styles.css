@@ -385,3 +385,7 @@ table.stand tr.me td { font-weight: 800; }
 .clause-alert b { display: block; color: #fff; font-size: 16px; line-height: 1.25; margin: 2px 0; }
 .clause-alert span { display: block; color: var(--red-soft); font-size: 13px; line-height: 1.35; }
 .fs-bid.sale { background: linear-gradient(180deg, #14201A, var(--card-2)); border-color: #1F5A3D; }
+.tier-tag { margin-left: 6px; font-size: 10px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; vertical-align: 1px; }
+.tier-tag.f { background: #1B2A22; color: #8FD9B1; }
+.tier-tag.n { background: #2A2512; color: #E2C26B; }
+.tier-tag.d { background: #3A1417; color: #F7A2A5; }

@@ -109,7 +109,7 @@ function Predicciones(c) {
 
   return (
     <>
-      <p className="small muted">Ganador +2 M, método +3 M y asalto +5 M (si va a decisión y lo aciertas, también cuenta): hasta 10 M por pelea y 50 M en total. Se suman a tus 200 M del siguiente evento. Se cierran cuando empieza la primera pelea.</p>
+      <p className="small muted">Cuanto más difícil lo que aciertas, más dinero: hasta 12 M por pelea y 50 M en total, que se suman a tus 200 M del siguiente evento. Solo cuenta si aciertas el ganador. Se cierran cuando empieza la primera pelea.</p>
       {mainFights(c).map((f) => {
         const p = P[f.id] || null;
         const rounds = Array.from({ length: f.rounds }, (_, i) => i + 1);
@@ -119,20 +119,20 @@ function Predicciones(c) {
             <div className="row wrap" style={{ gap: 6 }}>
               {[f.a, f.b].map((id, i) => (
                 <button key={id} disabled={locked} className={`chip ${p?.winner === id ? 'on ' + (i ? 'blue' : 'red') : ''}`}
-                  onClick={() => save(f, p?.winner === id ? null : { winner: id, method: null, round: null })}>{surname(c.F[id].name)}</button>
+                  onClick={() => save(f, p?.winner === id ? null : { winner: id, method: null, round: null })}>{surname(c.F[id].name)}<Tier t={f.tiers?.[i ? 'b' : 'a']?.win} /></button>
               ))}
             </div>
             {p?.winner && (
               <div className="row wrap" style={{ gap: 6 }}>
                 {Object.entries(METHODS).map(([k, n]) => (
-                  <button key={k} disabled={locked} className={`chip ${p.method === k ? 'on' : ''}`} onClick={() => save(f, { ...p, method: p.method === k ? null : k, round: null })}>{n}</button>
+                  <button key={k} disabled={locked} className={`chip ${p.method === k ? 'on' : ''}`} onClick={() => save(f, { ...p, method: p.method === k ? null : k, round: null })}>{n}<Tier t={f.tiers?.[p.winner === f.a ? 'a' : 'b']?.[k]} /></button>
                 ))}
               </div>
             )}
             {p?.winner && p.method && p.method !== 'DEC' && (
               <div className="row wrap" style={{ gap: 6 }}>
                 <span className="xs muted bold">ASALTO</span>
-                {rounds.map((r) => <button key={r} disabled={locked} className={`chip ${p.round === r ? 'on' : ''}`} onClick={() => save(f, { ...p, round: p.round === r ? null : r })}>{r}</button>)}
+                {rounds.map((r) => <button key={r} disabled={locked} className={`chip ${p.round === r ? 'on' : ''}`} onClick={() => save(f, { ...p, round: p.round === r ? null : r })}>{r}<Tier t={f.tiers?.r?.[r]} /></button>)}
               </div>
             )}
           </article>
@@ -140,6 +140,12 @@ function Predicciones(c) {
       })}
     </>
   );
+}
+
+// Etiqueta de dificultad de una predicción (sin cuotas ni importes)
+function Tier({ t }) {
+  if (!t) return null;
+  return <span className={`tier-tag ${t}`}>{{ f: 'Fácil', n: 'Normal', d: 'Difícil' }[t]}</span>;
 }
 
 function statusText(f) {

@@ -95,13 +95,15 @@ El capitán multiplica por 2 su puntuación total del evento.
 
 Por cada pelea del evento el usuario puede predecir el resultado. **No dan puntos**, solo dinero para el mercado (acumulativo):
 
-Solo las 5 peleas de la cartelera principal, hasta 10 M por pelea y **50 M en total**:
+Solo las 5 peleas de la cartelera principal; solo cuenta si aciertas el ganador. Según la dificultad (`fights.tiers`: f/n/d, calculada con `scripts/pred-tiers.js` con el mismo modelo de los precios; la app muestra «Fácil/Normal/Difícil», nunca probabilidades ni importes). Máx. 12 M por pelea y **50 M en total** (`pred_value`, migración 014):
 
-| Acierto | Dinero |
-|---|---|
-| Ganador | +2 M |
-| Método (además del ganador) | +3 M extra |
-| Asalto (además del método; si va a decisión y la predijiste, también cuenta) | +5 M extra |
+| Acierto | Fácil | Normal | Difícil |
+|---|---|---|---|
+| Ganador | +1 M | +2 M | +4 M |
+| Método | +1 M | +2 M | +4 M |
+| Asalto exacto (o decisión acertada: +2 M) | +2 M | +3 M | +4 M |
+
+Tras cargar una cartelera nueva hay que ejecutar `node scripts/pred-tiers.js data/event-<n>.json`.
 
 ## Navegación
 
