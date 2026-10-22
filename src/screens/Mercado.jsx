@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
 import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
-import { FighterCard, fmtLeft, tierOf, Records } from '../Card.jsx';
+import { FighterCard, fmtLeft, tierOf } from '../Card.jsx';
 import { WaitingRoom, WaveResults, marketStarted } from '../Ready.jsx';
 import { phase, myTeam, maxTeam, committed, oppOf, activeFights } from '../helpers.js';
 
@@ -170,34 +170,75 @@ export default function Mercado(c) {
       )}
 
       {sel && c.own[sel] && (() => {
-        const o = c.own[sel]; const f = c.F[sel]; const myBid = c.bids[sel];
+        const o = c.own[sel]; const f = c.F[sel]; const myBid = c.bids[sel]; const fight = fightOf(sel); const opp = oppOf(c, sel);
         const canBid = ph === 'market' && marketStarted(c) && !o.owner && isOpen(o);
         return (
           <div className="sheet-back" onClick={() => setSel(null)}>
-            <div className="sheet" role="dialog" aria-label={f.name} onClick={(e) => e.stopPropagation()}>
-              <button type="button" className="sheet-x" onClick={() => setSel(null)} aria-label="Cerrar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>Volver
-              </button>
-              <FighterCard f={f} fight={fightOf(sel)} opp={oppOf(c, sel)} value={o.value} exp={c.exp[sel]} size="lg"
-                bids={canBid && c.bidCounts ? (c.bidCounts[sel] || 0) : null} closesIn={canBid ? fmtLeft(closeOf(o) - now) : null} />
-              <Records f={f} />
-              {!canBid && <p className="small muted" style={{ textAlign: 'center' }}>{statusOf(o)}</p>}
-              {!canBid && <button className="btn block" onClick={() => setSel(null)}>Cerrar</button>}
-              {canBid && <>
-              <div className="row between"><b>{myBid != null ? 'Cambiar tu puja' : 'Tu puja secreta'}</b><span className="xs muted">mínimo {fmtM(o.value)}</span></div>
-              <div className="row">
-                <label className="sr-only" htmlFor="bid-amount">Puja en millones</label>
-                <input id="bid-amount" className="input grow" inputMode="decimal" style={{ fontSize: 18, fontWeight: 700 }}
-                  value={amounts[sel] ?? String(myBid ?? o.value).replace('.', ',')}
-                  onChange={(e) => { setAmounts((a) => ({ ...a, [sel]: e.target.value })); setErr({}); }} />
-                {[1, 5].map((n) => <button key={n} type="button" className="btn sm" onClick={() => setAmounts((a) => ({ ...a, [sel]: String(Math.round((Number(String(a[sel] ?? myBid ?? o.value).replace(',', '.')) + n) * 10) / 10).replace('.', ',') }))}>+{n}</button>)}
+            <div className="sheet fsheet" role="dialog" aria-label={f.name} onClick={(e) => e.stopPropagation()}>
+              <div className="fs-bar">
+                <button type="button" className="sheet-x" onClick={() => setSel(null)} aria-label="Cerrar">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>Volver
+                </button>
+                {canBid ? <span className="fs-pill live"><i aria-hidden="true" />{fmtLeft(closeOf(o) - now)}</span> : <span className="fs-pill">{statusOf(o)}</span>}
               </div>
-              {err[sel] && <p className="error">{err[sel]}</p>}
-              <button className="btn primary block" disabled={busy === sel || (slots <= 0 && myBid == null)} onClick={async () => { if (await bid(o)) setSel(null); }}>
-                {myBid != null ? 'Cambiar puja' : 'Pujar ' + fmtM(Number(String(amounts[sel] ?? o.value).replace(',', '.')) || o.value)}</button>
-              {myBid != null && <button className="btn block" disabled={busy === sel} onClick={async () => { await unbid(o); setSel(null); }}>Retirar puja</button>}
-              <p className="xs muted">Nadie ve cuánto pujas. Al cerrar la tanda gana la puja más alta y se te cobra lo que pujaste; si nadie lo ficha, vuelve al mercado hasta el viernes. Tienes {fmtM(avail)} disponibles.</p>
-              </>}
+
+              <div className="fs-hero">
+                <FighterCard f={f} fight={fight} opp={opp} value={o.value} exp={c.exp[sel]} size="lg" />
+              </div>
+
+              <div className="fs-kpis">
+                {canBid ? <>
+                  <div><b>{fmtM(o.value)}</b><span>Puja mínima</span></div>
+                  <div><b>{c.bidCounts ? (c.bidCounts[sel] || 0) : '—'}</b><span>{c.bidCounts && (c.bidCounts[sel] || 0) === 1 ? 'Puja' : 'Pujas'}</span></div>
+                  <div className={myBid != null ? 'mine' : ''}><b>{myBid != null ? fmtM(myBid) : '—'}</b><span>Tu puja</span></div>
+                </> : <>
+                  <div><b>{fmtM(o.value)}</b><span>Valor</span></div>
+                  <div><b>{Math.round(c.exp[sel] || 0)}</b><span>Pts. esperados</span></div>
+                  <div><b>{f.nr ? 'NR' : f.rank === 0 ? 'C' : '#' + f.rank}</b><span>Ranking</span></div>
+                </>}
+              </div>
+
+              <section className="fs-sec">
+                <h3>La pelea</h3>
+                <dl className="fs-rows">
+                  <div><dt>Rival</dt><dd>{opp ? <>{opp.name} <small>{rankLabel(opp)}</small></> : '—'}</dd></div>
+                  <div><dt>Dónde</dt><dd>{fight?.title ? 'Por el título' : fight?.slot || '—'}</dd></div>
+                  <div><dt>Asaltos</dt><dd>{fight?.rounds || 3}</dd></div>
+                  <div><dt>Ranking</dt><dd>{rankLabel(f)}</dd></div>
+                </dl>
+              </section>
+
+              {(f.record || f.elite_record || f.streak) && (
+                <section className="fs-sec">
+                  <h3>Trayectoria</h3>
+                  <dl className="fs-rows">
+                    {f.record && <div><dt>Récord profesional</dt><dd className="num">{f.record}</dd></div>}
+                    {f.elite_record && <div><dt>En la élite</dt><dd className="num">{f.elite_record}</dd></div>}
+                    {f.streak && <div><dt>Últimas peleas</dt><dd><span className="streak">{[...f.streak].map((r, i) => <i key={i} className={r} title={{ V: 'Victoria', D: 'Derrota', E: 'Empate', N: 'Sin resultado' }[r]}>{r}</i>)}</span></dd></div>}
+                  </dl>
+                </section>
+              )}
+
+              {canBid ? (
+                <section className="fs-bid">
+                  <div className="row between"><h3>{myBid != null ? 'Cambiar tu puja' : 'Tu puja secreta'}</h3><span className="xs muted">Tienes {fmtM(avail + (myBid || 0))}</span></div>
+                  <div className="fs-input">
+                    <label className="sr-only" htmlFor="bid-amount">Puja en millones</label>
+                    <input id="bid-amount" inputMode="decimal"
+                      value={amounts[sel] ?? String(myBid ?? o.value).replace('.', ',')}
+                      onChange={(e) => { setAmounts((a) => ({ ...a, [sel]: e.target.value })); setErr({}); }} />
+                    <span aria-hidden="true">M</span>
+                    {[1, 5].map((n) => <button key={n} type="button" onClick={() => setAmounts((a) => ({ ...a, [sel]: String(Math.round((Number(String(a[sel] ?? myBid ?? o.value).replace(',', '.')) + n) * 10) / 10).replace('.', ',') }))}>+{n}</button>)}
+                  </div>
+                  {err[sel] && <p className="error" style={{ margin: 0 }}>{err[sel]}</p>}
+                  <button className="btn primary block" disabled={busy === sel || (slots <= 0 && myBid == null)} onClick={async () => { if (await bid(o)) setSel(null); }}>
+                    {myBid != null ? 'Guardar puja' : 'Pujar ' + fmtM(Number(String(amounts[sel] ?? o.value).replace(',', '.')) || o.value)}</button>
+                  {myBid != null && <button className="fs-link" disabled={busy === sel} onClick={async () => { await unbid(o); setSel(null); }}>Retirar mi puja</button>}
+                  <p className="xs muted" style={{ margin: 0, lineHeight: 1.45 }}>Nadie ve cuánto pujas, solo cuántos han pujado. Al cerrar la tanda gana la puja más alta y se te cobra lo que pujaste.</p>
+                </section>
+              ) : (
+                <button className="btn block" onClick={() => setSel(null)}>Cerrar</button>
+              )}
             </div>
           </div>
         );

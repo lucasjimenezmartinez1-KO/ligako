@@ -247,7 +247,7 @@ table.stand tr.me td { font-weight: 800; }
 .fc-timer { color: var(--red); font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 5px; }
 .fc-timer::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 3px rgba(242,85,90,.25); animation: pulse 1.6s ease-in-out infinite; }
 @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(242,85,90,0); } }
-.fc-mark { position: absolute; z-index: 2; right: 13px; top: 42px; writing-mode: vertical-rl; font-family: var(--display); font-weight: 800; font-size: 9px; letter-spacing: 1.5px; color: color-mix(in srgb, var(--tc) 55%, transparent); }
+.fc-mark { position: absolute; z-index: 2; right: 13px; top: 52px; writing-mode: vertical-rl; font-family: var(--display); font-weight: 800; font-size: 9px; letter-spacing: 1.5px; color: color-mix(in srgb, var(--tc) 55%, transparent); }
 .fc-btn { width: 100%; margin-top: 7px; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: .4px; border-radius: 9px; padding: 7px 0; color: var(--tnum); background: rgba(0,0,0,.25); border: 1px solid color-mix(in srgb, var(--tc) 45%, transparent); }
 .fc-btn.on { color: var(--tbg); background: linear-gradient(180deg, var(--tc2), var(--tc)); border-color: transparent; }
 .cards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -305,3 +305,36 @@ table.stand tr.me td { font-weight: 800; }
 .league-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .league-list button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--card-2, rgba(255,255,255,.03)); color: var(--ink); font: inherit; font-weight: 700; font-size: 16px; text-align: left; cursor: pointer; }
 .league-list button.on { border-color: var(--gold); background: var(--gold-bg); }
+
+/* Ficha del luchador (hoja al tocar una carta) */
+.sheet > * { flex-shrink: 0; }
+.fsheet { gap: 14px; padding-top: 8px; background: linear-gradient(180deg, #1B202B 0, var(--card) 520px); }
+.fs-bar { position: sticky; top: -8px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: -8px -16px 0; padding: 10px 16px; background: #1B202B; box-shadow: 0 10px 14px -6px #1B202B; }
+.fs-bar .sheet-x { position: static; margin: 0; }
+.fs-pill { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; color: var(--muted); background: var(--card-2); border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; max-width: 60%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fs-pill.live { color: var(--red-soft); font-variant-numeric: tabular-nums; border-color: #4A2326; background: #1E1214; }
+.fs-pill.live i { width: 7px; height: 7px; border-radius: 50%; background: var(--red); box-shadow: 0 0 0 3px rgba(242,85,90,.25); animation: pulse 1.6s ease-in-out infinite; }
+.fs-hero { display: flex; justify-content: center; padding: 4px 0 2px; }
+.fs-hero .fcard.lg { width: min(272px, 74vw); height: auto; aspect-ratio: 272 / 424; }
+.fs-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); background: var(--card-2); border: 1px solid var(--line); border-radius: 16px; }
+.fs-kpis > div { padding: 12px 8px; text-align: center; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.fs-kpis > div + div { border-left: 1px solid var(--line); }
+  .fs-kpis > div.mine b { color: var(--gold); }
+.fs-kpis b { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; letter-spacing: .3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fs-kpis span { font-size: 11px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+.fs-sec h3, .fs-bid h3 { font-size: 12px; font-weight: 800; letter-spacing: 1.4px; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.fs-rows { margin: 0; background: var(--card-2); border: 1px solid var(--line); border-radius: 16px; padding: 0 14px; }
+.fs-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; min-height: 22px; }
+.fs-rows > div + div { border-top: 1px solid var(--line); }
+.fs-rows dt { color: var(--muted); font-size: 15px; }
+.fs-rows dd { margin: 0; font-weight: 700; font-size: 15px; text-align: right; min-width: 0; }
+.fs-rows dd small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+.fs-rows dd.num { font-family: var(--display); font-size: 20px; font-weight: 800; letter-spacing: .5px; }
+.fs-bid { display: flex; flex-direction: column; gap: 10px; background: linear-gradient(180deg, #1F1517, var(--card-2)); border: 1px solid #4A2326; border-radius: 18px; padding: 14px; }
+.fs-bid h3 { margin: 0; color: var(--ink); }
+.fs-input { display: flex; align-items: center; gap: 6px; background: var(--bg-deep); border: 1px solid var(--line-2); border-radius: 14px; padding: 6px 6px 6px 14px; }
+.fs-input:focus-within { border-color: var(--red); }
+.fs-input input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--ink); font: inherit; font-family: var(--display); font-size: 30px; font-weight: 800; padding: 4px 0; }
+.fs-input span { font-family: var(--display); font-size: 20px; font-weight: 800; color: var(--muted); margin-right: 4px; }
+.fs-input button { flex: none; font: inherit; font-weight: 800; font-size: 15px; color: var(--ink); background: var(--chip); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+.fs-link { align-self: center; background: none; border: 0; font: inherit; font-weight: 700; font-size: 14px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; padding: 2px 8px; cursor: pointer; }
