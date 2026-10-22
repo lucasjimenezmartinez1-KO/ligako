@@ -28,7 +28,7 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
    - Oferta que el dueño acepta.
    - Pago de la **cláusula**: un 25 % más de lo que pagó el dueño (o de su valor si le tocó en el sorteo). El dinero va al dueño.
    (Ahora aplica a todos los luchadores, no solo al del sorteo. Pendiente de confirmar.)
-4. **Equipo:** máximo **luchadores de la cartelera ÷ jugadores** (redondeando hacia arriba; p. ej. 30 luchadores y 3 jugadores → 10). Todos puntúan. Un **capitán** puntúa doble.
+4. **Equipo:** hay que fichar **al menos 5** (sorteo incluido; `MIN_TEAM` en `src/helpers.js`). En Equipo los huecos que faltan salen como cartas con borde rojo "Te falta fichar" y las pujas en curso como huecos dorados. Máximo **luchadores de la cartelera ÷ jugadores** (redondeando hacia arriba; p. ej. 30 luchadores y 3 jugadores → 10). Todos puntúan. Un **capitán** puntúa doble.
 5. **Evento:** solo puntúan y dan dinero los luchadores de esa cartelera.
 6. **Venta automática:** al terminar el evento todos los luchadores se venden solos a un precio nuevo calculado según sus puntos. Con ese dinero se ficha para el siguiente evento numerado.
 

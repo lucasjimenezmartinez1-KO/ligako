@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DIVS, countdown, fmtDate, fmt, fmtM, rankLabel } from '../format.js';
 import { Avatar, FaceOff, useToast } from '../ui.jsx';
-import { phase, myTeam, maxTeam, oppOf, activeFights, share, mainFights } from '../helpers.js';
+import { phase, myTeam, maxTeam, oppOf, activeFights, share, mainFights, needTeam } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
 import { InstallHint } from '../InstallHint.jsx';
 import { WaitingRoom, WaveResults, marketStarted } from '../Ready.jsx';
@@ -90,7 +90,7 @@ export default function Inicio(c) {
 
       {ph !== 'finished' && (
         <section className="card tight" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
-          <Check ok={team.length >= 2} text={`Equipo ${team.length}/${maxTeam(c)}`} onClick={() => c.go('equipo')} />
+          <Check ok={team.length >= needTeam(c)} text={`Fichajes ${Math.min(team.length, needTeam(c))}/${needTeam(c)}`} onClick={() => c.go('equipo')} />
           <Check ok={!!mySquad?.captain} text={mySquad?.captain ? 'Capitán: ' + F[mySquad.captain].name.split(' ').pop() : 'Sin capitán'} onClick={() => c.go('equipo')} />
           <Check ok={nPred === mains.length} text={`Predicciones ${nPred}/${mains.length}`} onClick={() => c.go('evento')} />
           <Check ok text={`Presupuesto ${fmtM(mySquad?.start_money)}`} onClick={() => c.go('mercado')} />

@@ -8,6 +8,9 @@ export function phase(ev, le) {
 }
 
 export const activeFights = (c) => c.fights.filter((f) => f.status !== 'cancelled');
+// Mínimo de luchadores que hay que fichar (sorteo incluido)
+export const MIN_TEAM = 5;
+export const needTeam = (c) => Math.min(MIN_TEAM, maxTeam(c));
 export const maxTeam = (c) => Math.ceil((activeFights(c).length * 2) / Math.max(1, c.members.length));
 
 export function myTeam(c) {
