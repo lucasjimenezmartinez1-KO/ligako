@@ -14,8 +14,10 @@ export const SLOT_MULT = {
 export function slotMult(fight) {
   if (fight.title) return { x: 1.5, cap: null, label: 'Pelea por el título' };
   if (fight.slot === 'Estelar') return { x: 1.25, cap: null, label: 'Pelea estelar' };
-  if (fight.slot === 'Preliminares') return { x: 0.5, cap: 25, label: 'Preliminares' };
-  if (fight.slot === 'Primeras preliminares') return { x: 0.3, cap: 15, label: 'Primeras preliminares' };
+  // v3 (hasta el evento 333): preliminares ×0,5 máx. 25 y primeras ×0,3 máx. 15. v4 (desde el siguiente): ×0,75 máx. 50 y ×0,6 máx. 40
+  const v3 = fight.event_id != null && Number(fight.event_id) <= 333;
+  if (fight.slot === 'Preliminares') return v3 ? { x: 0.5, cap: 25, label: 'Preliminares' } : { x: 0.75, cap: 50, label: 'Preliminares' };
+  if (fight.slot === 'Primeras preliminares') return v3 ? { x: 0.3, cap: 15, label: 'Primeras preliminares' } : { x: 0.6, cap: 40, label: 'Primeras preliminares' };
   return { x: 1, cap: null, label: '' };
 }
 

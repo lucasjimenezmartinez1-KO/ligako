@@ -53,7 +53,7 @@ export default function Liga(c) {
         </div>
       </section>
 
-      <HowTo budget={200} />
+      <HowTo budget={200} eventId={c.ev?.id} />
 
 
 

@@ -72,8 +72,10 @@ Se aplica al total de puntos del luchador en esa pelea (también a los negativos
 | Por el título | ×1,5 | — |
 | Estelar sin título | ×1,25 | — |
 | Cartelera principal (incluye coestelar sin título) | ×1 | — |
-| Preliminares | ×0,5 | 25 |
-| Primeras preliminares | ×0,3 | 15 |
+| Preliminares | ×0,5 hasta el evento 333 → **×0,75 desde el siguiente** | 25 → **50** |
+| Primeras preliminares | ×0,3 hasta el evento 333 → **×0,6 desde el siguiente** | 15 → **40** |
+
+El cambio (v4) depende del `event_id` de la pelea en `slotMult` (`shared/scoring.js`): ≤ 333 usa v3. La tabla de reglas de la app (`multsFor` en `src/HowTo.jsx`) también.
 
 ### Bonos oficiales de la noche
 

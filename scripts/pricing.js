@@ -110,7 +110,7 @@ export function loadFights(ev, byName) {
     const key = `${na} vs ${nb}`;
     const p = ev.method_props?.[key];
     const props = p && { a: imp3(p.a), b: imp3(p.b) };
-    return { a: byName[na].id, b: byName[nb].id, title, slot, rounds: title || i === 0 ? 5 : 3, pA: ev.prob?.[key] ?? oddsProb(oa, ob), props };
+    return { event_id: ev.id, a: byName[na].id, b: byName[nb].id, title, slot, rounds: title || i === 0 ? 5 : 3, pA: ev.prob?.[key] ?? oddsProb(oa, ob), props };
   });
 }
 const imp3 = (o) => ({ KO: imp(o.KO), SUB: imp(o.SUB), DEC: imp(o.DEC) });

@@ -8,10 +8,15 @@ export const RULES = [
   ['Ganar un combate por el título', '+20'], ['Ganar a un rival mejor clasificado', '+10'],
   ['No dar el peso', '−10'], ['Punto restado', '−5'],
 ];
-export const MULTS = [
-  ['Pelea por el título', '×1,5'], ['Estelar sin título', '×1,25'], ['Cartelera principal', '×1'],
-  ['Preliminares', '×0,5 · máx. 25'], ['Primeras preliminares', '×0,3 · máx. 15'], ['Capitán', '×2'],
-];
+// Hasta el evento 333: preliminares ×0,5 (máx. 25) y primeras ×0,3 (máx. 15). Desde el siguiente: ×0,75 (máx. 50) y ×0,6 (máx. 40)
+export const multsFor = (eventId) => {
+  const v3 = eventId != null && Number(eventId) <= 333;
+  return [
+    ['Pelea por el título', '×1,5'], ['Estelar sin título', '×1,25'], ['Cartelera principal', '×1'],
+    ['Preliminares', v3 ? '×0,5 · máx. 25' : '×0,75 · máx. 50'], ['Primeras preliminares', v3 ? '×0,3 · máx. 15' : '×0,6 · máx. 40'], ['Capitán', '×2'],
+  ];
+};
+export const MULTS = multsFor(null);
 export const BONUS = [['Pelea de la noche', '+25'], ['Actuación de la noche', '+20']];
 
 const STEPS = (budget) => [
@@ -22,7 +27,8 @@ const STEPS = (budget) => [
   ['Sigue el evento en directo', 'Los puntos se actualizan solos según acaba cada pelea. Al terminar, tus luchadores se venden solos: si rinden más de lo esperado, ganas dinero.'],
 ];
 
-export function HowTo({ budget = 100, open = false }) {
+export function HowTo({ budget = 100, open = false, eventId }) {
+  const v3 = eventId != null && Number(eventId) <= 333;
   const [all, setAll] = useState(false);
   return (
     <details className="card" open={open}>
@@ -43,7 +49,7 @@ export function HowTo({ budget = 100, open = false }) {
       {all && (
         <div className="stack" style={{ marginTop: 10, gap: 12 }}>
           <Table rows={RULES} />
-          <div><div className="eyebrow" style={{ marginBottom: 4 }}>Según la pelea</div><Table rows={MULTS} /></div>
+          <div><div className="eyebrow" style={{ marginBottom: 4 }}>Según la pelea</div><Table rows={multsFor(eventId)} />{v3 && <p className="xs muted" style={{ margin: '6px 0 0' }}>Desde el próximo evento las preliminares darán más: ×0,75 (máx. 50) y las primeras preliminares ×0,6 (máx. 40).</p>}</div>
           <div><div className="eyebrow" style={{ marginBottom: 4 }}>Bonos oficiales (se suman enteros, en cualquier pelea)</div><Table rows={BONUS} /></div>
         </div>
       )}
