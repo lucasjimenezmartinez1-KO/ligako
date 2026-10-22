@@ -60,6 +60,7 @@ export default function Liga(c) {
       <button className="btn" onClick={() => supabase.auth.signOut()}>Cerrar sesión</button>
 
       <button type="button" className="btn block" onClick={c.openLeagues}>Jugar en otra liga</button>
+      <p className="xs muted" style={{ textAlign: 'center', margin: 0 }}>Versión {__APP_VERSION__}</p>
       <details className="xs muted" style={{ textAlign: 'center' }}>
         <summary style={{ cursor: 'pointer', listStyle: 'none' }}>Créditos</summary>
         <div className="stack" style={{ marginTop: 8, textAlign: 'left', maxHeight: 240, overflowY: 'auto' }}>

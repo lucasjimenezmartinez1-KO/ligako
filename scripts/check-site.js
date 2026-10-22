@@ -8,3 +8,7 @@ for (const c of css) {
   const t = await (await fetch('https://ligako.vercel.app' + c)).text();
   log('streak: ' + (t.match(/\.streak i\.[VF]\{[^}]*\}/g) || []).join(' | '));
 }
+import { createClient } from '@supabase/supabase-js';
+const db = createClient('https://vizqrxhulaqzehtlnvpx.supabase.co', process.env.SUPABASE_SERVICE_KEY, { auth: { persistSession: false } });
+const { data } = await db.from('fighters').select('name,streak,records_at').not('streak', 'is', null).order('records_at', { ascending: false }).limit(40);
+log('Rachas en la base de datos: ' + (data || []).map((f) => `${f.name.split(' ').pop()} ${f.streak}`).join(' · '));
