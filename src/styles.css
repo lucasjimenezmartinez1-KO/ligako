@@ -384,3 +384,4 @@ table.stand tr.me td { font-weight: 800; }
 .clause-alert .eyebrow { color: var(--red-soft); }
 .clause-alert b { display: block; color: #fff; font-size: 16px; line-height: 1.25; margin: 2px 0; }
 .clause-alert span { display: block; color: var(--red-soft); font-size: 13px; line-height: 1.35; }
+.fs-bid.sale { background: linear-gradient(180deg, #14201A, var(--card-2)); border-color: #1F5A3D; }

@@ -49,7 +49,7 @@ export default function Inicio(c) {
               </>
             ) : ph === 'finished' ? (
               <>
-                <p>El evento ha terminado. Has sumado <b>{fmt(mySquad?.pts)}</b> puntos y tus luchadores se han vendido por <b className="gold">{fmtM(mySquad?.income)}</b>.</p>
+                <p>El evento ha terminado. Has sumado <b>{fmt(mySquad?.pts)}</b> puntos{mySquad?.pred_money != null ? <> y has ganado <b className="gold">{fmtM(mySquad.pred_money)}</b> con las predicciones: en el siguiente evento empiezas con <b className="gold">{fmtM(200 + Number(mySquad.pred_money || 0))}</b></> : null}.</p>
                 <button className="btn primary block" onClick={() => c.go('liga')}>Ver resultados</button>
               </>
             ) : (

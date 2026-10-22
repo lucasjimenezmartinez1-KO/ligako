@@ -35,9 +35,10 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
    Las cadenas de cláusulas son parte del juego (decisión del usuario).
 4. **Equipo:** hay que fichar **al menos 5** (sorteo incluido; `MIN_TEAM` en `src/helpers.js`). En Equipo los huecos que faltan salen como cartas con borde rojo "Te falta fichar" y las pujas en curso como huecos dorados. Máximo **luchadores de la cartelera ÷ jugadores** (redondeando hacia arriba; p. ej. 30 luchadores y 3 jugadores → 10). Todos puntúan. Un **capitán** puntúa doble.
 5. **Evento:** solo puntúan y dan dinero los luchadores de esa cartelera.
-6. **Venta automática:** al terminar el evento todos los luchadores se venden solos a un precio nuevo calculado según sus puntos. Con ese dinero se ficha para el siguiente evento numerado.
+6. **Venta automática:** al terminar el evento todos los luchadores se venden solos (se ve el precio en la app), pero **ese dinero ya no pasa al siguiente evento**.
+7. **Vender el luchador del sorteo** (como LaLiga Fantasy): desde su ficha en Equipo, «Poner a la venta» → el mercado ofrece entre el 90 % y el 110 % de su valor (oferta fija por evento, `sale_offer`); si la aceptas (`release_drawn`) cobras y el luchador vuelve a salir a puja en la etapa en curso. Solo el del sorteo y con el mercado abierto.
 
-- **Presupuesto por cartelera:** 200 M base (los precios siguen escalados a 100 M por mánager, así que da para más de una estrella), más lo que el jugador ganó o perdió en el evento anterior (ventas − compras + predicciones). Limitado entre 100 y 400 M. Lo no gastado no se acumula.
+- **Presupuesto por cartelera:** **200 M para todos + lo ganado con las predicciones del evento anterior (máx. 50 M)**. Es la única ventaja económica que pasa de un evento a otro (decisión del usuario; `settle_event` guarda `carry = pred_money`, migración 012). Lo no gastado no se acumula.
 - **Precios normalizados por cartelera:** la suma de los precios de todos los luchadores de la cartelera = 100 M × número de jugadores. Así el presupuesto alcanza para repartirse toda la cartelera y caben estrategias distintas (una estrella y el resto baratos, o muchos medianos). Si entran jugadores nuevos, los precios se reescalan solos.
 - **Precio = puntos esperados.** Antes de cada evento se calculan los puntos esperados de cada luchador simulando su pelea 20.000 veces (`scripts/pricing.js`):
   - **Ganador:** probabilidad de consenso sin margen de varias casas y de un mercado de intercambio (Kalshi; Betfair no es accesible desde aquí). En `data/event-<n>.json`: `prob` (por pelea) y `odds_source`.
@@ -94,11 +95,13 @@ El capitán multiplica por 2 su puntuación total del evento.
 
 Por cada pelea del evento el usuario puede predecir el resultado. **No dan puntos**, solo dinero para el mercado (acumulativo):
 
+Solo las 5 peleas de la cartelera principal, hasta 10 M por pelea y **50 M en total**:
+
 | Acierto | Dinero |
 |---|---|
-| Ganador | +1M |
-| Método (además del ganador) | +2M extra |
-| Asalto (además del método) | +3M extra |
+| Ganador | +2 M |
+| Método (además del ganador) | +3 M extra |
+| Asalto (además del método; si va a decisión y la predijiste, también cuenta) | +5 M extra |
 
 ## Navegación
 
