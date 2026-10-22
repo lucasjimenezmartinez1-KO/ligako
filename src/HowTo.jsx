@@ -48,7 +48,7 @@ export function HowTo({ budget = 100, open = false, eventId }) {
       <div className="small" style={{ marginTop: 14, lineHeight: 1.45 }}>
         <b>Cómo puntúan tus luchadores.</b> <span className="muted">Por ganar (más si es por KO o sumisión y pronto) y por lo que hacen en la pelea: golpes, knockdowns, derribos, sumisiones y control. Las peleas de la cartelera principal son las que más dan; las preliminares dan poco, salvo que el luchador se lleve un bono de la noche.</span>
       </div>
-      <p className="small muted" style={{ marginTop: 8, lineHeight: 1.45 }}>Para quitarle un luchador a otro mánager paga su cláusula (un 25 % más de lo que pagó él); el dinero se lo lleva él.</p>
+      <p className="small muted" style={{ marginTop: 8, lineHeight: 1.45 }}>Para quitarle un luchador a otro mánager paga su cláusula (un 25 % más de lo que pagó él); el dinero se lo lleva él. Tras cada fichaje el luchador tiene 2 horas de escudo. Si te quitan uno, tienes 30 minutos para recuperarlo pagando lo que pagó el otro más un 10 %. Con el mercado ya cerrado, los luchadores que nadie fichó se pueden fichar a su valor: el primero que llega se lo lleva.</p>
       <button className="btn sm" style={{ marginTop: 10 }} onClick={() => setAll(!all)}>{all ? 'Ocultar la tabla de puntos' : 'Ver todos los puntos'}</button>
       {all && (
         <div className="stack" style={{ marginTop: 10, gap: 12 }}>

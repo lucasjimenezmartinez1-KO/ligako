@@ -363,3 +363,10 @@ table.stand tr.me td { font-weight: 800; }
 .slot-cta { margin-top: 10px; font-size: 13px; font-weight: 800; color: #fff; background: var(--red-tint); border-radius: 999px; padding: 7px 14px; }
 @keyframes slot-pulse { 50% { box-shadow: 0 0 0 7px rgba(242,85,90,0); } 0%, 100% { box-shadow: 0 0 0 0 rgba(242,85,90,.35); } }
 @media (prefers-reduced-motion: reduce) { .slot.empty .slot-ic { animation: none; } }
+
+/* Venganza y escudo */
+.revenge { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 16px; border: 1px solid var(--red); background: linear-gradient(135deg, #3A1417, #1E1214); }
+.revenge .eyebrow { color: var(--red-soft); font-variant-numeric: tabular-nums; }
+.revenge b { display: block; color: #fff; font-size: 16px; line-height: 1.25; margin: 2px 0; }
+.revenge span { display: block; color: var(--red-soft); font-size: 13px; line-height: 1.35; }
+.shield-pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 800; color: var(--blue-soft); background: #18233F; border: 1px solid #2F4777; border-radius: 999px; padding: 6px 10px; font-variant-numeric: tabular-nums; white-space: nowrap; }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase, errText } from './supabase.js';
 import { useToast } from './ui.jsx';
 
@@ -86,4 +86,33 @@ export function WaveResults({ c, limit }) {
       <p className="xs muted" style={{ margin: 0 }}>Los que nadie fichó vuelven al mercado hasta el viernes a las 23:59. Los fichajes ya están en el equipo de cada uno.</p>
     </section>
   );
+}
+
+// Venganza: te han clausulado un luchador y aún puedes recuperarlo (+10 % de lo que pagó el otro)
+export function Revenge({ c }) {
+  const toast = useToast();
+  const [now, setNow] = useState(Date.now());
+  const [busy, setBusy] = useState(null);
+  const list = Object.values(c.own).filter((o) => o.rev_user === c.me && o.owner && o.owner !== c.me && o.rev_until && new Date(o.rev_until).getTime() > now);
+  useEffect(() => { if (!list.length) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [list.length]);
+  if (!list.length) return null;
+  const left = (t) => { const s = Math.max(0, Math.floor((new Date(t).getTime() - now) / 1000)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+  async function go(o) {
+    setBusy(o.fighter_id);
+    const { error } = await supabase.rpc('pay_revenge', { p_league: c.leagueId, p_fighter: o.fighter_id });
+    setBusy(null);
+    if (error) { toast(errText(error)); return; }
+    toast(`¡Has recuperado a ${c.F[o.fighter_id].name}!`);
+    c.reload();
+  }
+  return list.map((o) => (
+    <section key={o.fighter_id} className="revenge">
+      <div className="grow">
+        <div className="eyebrow">Venganza · quedan {left(o.rev_until)}</div>
+        <b>{c.names?.[o.owner] || 'Alguien'} te ha quitado a {c.F[o.fighter_id].name}</b>
+        <span>Recupéralo pagándole {String(o.rev_price).replace('.', ',')} M antes de que se acabe el tiempo.</span>
+      </div>
+      <button className="btn primary" disabled={busy === o.fighter_id} onClick={() => go(o)}>Recuperar</button>
+    </section>
+  ));
 }

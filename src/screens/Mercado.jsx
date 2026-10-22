@@ -3,7 +3,7 @@ import { supabase, errText } from '../supabase.js';
 import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
 import { FighterCard, fmtLeft, tierOf } from '../Card.jsx';
-import { WaitingRoom, WaveResults, marketStarted } from '../Ready.jsx';
+import { WaitingRoom, WaveResults, Revenge, marketStarted } from '../Ready.jsx';
 import { phase, myTeam, maxTeam, committed, oppOf, activeFights } from '../helpers.js';
 
 export default function Mercado(c) {
@@ -79,6 +79,16 @@ export default function Mercado(c) {
     c.reload();
   }
 
+  async function signFree(o) {
+    if (armed !== o.fighter_id) { setArmed(o.fighter_id); return; }
+    setArmed(null); setBusy(o.fighter_id);
+    const { error } = await supabase.rpc('sign_free', { p_league: c.leagueId, p_fighter: o.fighter_id });
+    setBusy(null);
+    if (error) { toast(errText(error)); c.reload(); return; }
+    toast(`${c.F[o.fighter_id].name} es tuyo`);
+    c.reload();
+  }
+
   const started = ph === 'live' || ph === 'finished';
   const st = c.le?.started_at ? new Date(c.le.started_at).getTime() : null;
   const moves = c.moves.filter((mv) => !/^Sorteo:/.test(mv.text) || (st && new Date(mv.created_at).getTime() >= st - 5000));
@@ -106,9 +116,22 @@ export default function Mercado(c) {
           <button key={k} className={`chip ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{n}</button>)}
       </div>
 
+      <Revenge c={c} />
       {tab === 'libres' && ph === 'market' && marketStarted(c) && <WaveResults c={c} />}
-      {tab === 'libres' && ph === 'market' && !marketStarted(c) ? <WaitingRoom c={c} /> : tab === 'libres' && (ph !== 'market' ? (
-        <section className="card"><p className="muted small">Con el mercado cerrado, los luchadores que han quedado libres no puntúan para nadie.</p></section>
+      {tab === 'libres' && ph === 'market' && !marketStarted(c) ? <WaitingRoom c={c} /> : tab === 'libres' && (ph === 'locked' ? (
+        rows.filter((o) => !o.owner).length === 0 ? <section className="card"><p className="muted small">No quedan luchadores libres.</p></section> : <>
+          <section className="card tight"><div className="eyebrow gold">Libres del sábado</div><p className="small muted" style={{ margin: 0, lineHeight: 1.45 }}>Los que nadie fichó se pueden fichar ahora a su valor, sin pujas. El primero que lo pide se lo lleva.</p></section>
+          <section className="cards-grid">
+            {rows.filter((o) => !o.owner).sort((a, b) => b.value - a.value).map((o) => (
+              <FighterCard key={o.fighter_id} f={c.F[o.fighter_id]} fight={fightOf(o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]}
+                onClick={() => { setSel(o.fighter_id); setErr({}); }}
+                extra={<button type="button" className={`fc-btn ${armed === o.fighter_id ? 'on' : ''}`} disabled={busy === o.fighter_id || team.length >= max || (s?.money || 0) < o.value}
+                  onClick={(e) => { e.stopPropagation(); signFree(o); }}>{armed === o.fighter_id ? `Confirmar ${fmtM(o.value)}` : `Fichar por ${fmtM(o.value)}`}</button>} />
+            ))}
+          </section>
+        </>
+      ) : ph !== 'market' ? (
+        <section className="card"><p className="muted small">El evento ya ha empezado: los luchadores que han quedado libres no puntúan para nadie.</p></section>
       ) : free.length === 0 && upcoming.length === 0 ? (
         <section className="card"><p className="muted small">No quedan luchadores libres.</p></section>
       ) : (
@@ -256,8 +279,10 @@ export default function Mercado(c) {
                   <div key={o.fighter_id} className="item">
                     <Avatar f={f} />
                     <div className="grow"><div className="bold ellipsis">{f.name} {o.assigned && <span className="pill blue">Sorteo</span>}</div><div className="xs muted">{fmtM(o.value)} · {fmt(c.exp[o.fighter_id])} pts esp.</div></div>
-                    {!started && <button className={`btn sm ${armed === o.fighter_id ? 'gold' : ''}`} disabled={busy === o.fighter_id || team.length >= max || avail < price} onClick={() => clause(o)}>
-                      {armed === o.fighter_id ? `Confirmar ${fmtM(price)}` : `Cláusula ${fmtM(price)}`}</button>}
+                    {!started && (o.shield_until && new Date(o.shield_until).getTime() > now
+                      ? <span className="shield-pill" title="Recién fichado: no se puede clausular todavía"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>Escudo {fmtLeft(new Date(o.shield_until).getTime() - now)}</span>
+                      : <button className={`btn sm ${armed === o.fighter_id ? 'gold' : ''}`} disabled={busy === o.fighter_id || team.length >= max || avail < price} onClick={() => clause(o)}>
+                      {armed === o.fighter_id ? `Confirmar ${fmtM(price)}` : `Cláusula ${fmtM(price)}`}</button>)}
                   </div>
                 );
               })}
@@ -265,7 +290,7 @@ export default function Mercado(c) {
           </section>
         );
       })}
-      {tab === 'otros' && <p className="note">La cláusula cuesta un 25 % más de lo que pagó su dueño (o de su valor, si le tocó en el sorteo) y el dinero se lo lleva él. Se puede pagar hasta que empiece el evento.</p>}
+      {tab === 'otros' && <p className="note">La cláusula cuesta un 25 % más de lo que pagó su dueño (o de su valor, si le tocó en el sorteo) y el dinero se lo lleva él. Solo puedes pagarla si tienes hueco en el equipo, y hasta que empiece el evento. Después de cada fichaje el luchador queda protegido 2 horas (escudo). Si te quitan uno, tienes 30 minutos para recuperarlo pagando lo que pagó el otro más un 10 %.</p>}
 
       {tab === 'mov' && (
         <section className="card" style={{ padding: '4px 14px' }}>
