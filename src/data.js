@@ -62,7 +62,8 @@ export function useLeague(leagueId, userId) {
         busy.current = false;
         return load();
       }
-      const bc = await supabase.rpc('bid_counts', { p_league: leagueId });
+      const [bc, ofr] = await Promise.all([supabase.rpc('bid_counts', { p_league: leagueId }), supabase.rpc('my_offers', { p_league: leagueId })]);
+      const offers = ofr.error ? [] : (ofr.data || []);
       const bidCounts = bc.error ? null : Object.fromEntries((bc.data || []).map((r) => [r.fighter_id, r.n]));
       const names = Object.fromEntries(profiles.map((p) => [p.id, p.username]));
       const prevSquads = last && last.id !== E
@@ -77,7 +78,7 @@ export function useLeague(leagueId, userId) {
         bids: Object.fromEntries(bids.map((b) => [b.fighter_id, Number(b.amount)])),
         preds: preds.filter((p) => p.user_id === userId).reduce((a, p) => ({ ...a, [p.fight_id]: p }), {}),
         allPreds: preds,
-        moves, le: le[0] || null, prevSquads, bidCounts,
+        moves, le: le[0] || null, prevSquads, bidCounts, offers,
         loadedAt: Date.now(),
       });
     } catch (e) {

@@ -119,6 +119,13 @@ export default function Equipo(c) {
           if (error) { toast(errText(error)); return; }
           toast(on ? 'Puesto a la venta: al cerrar la etapa tendrás la oferta del mercado' : 'Quitado de la venta'); c.reload();
         }
+        async function acceptOffer(from) {
+          setBusyInv(true);
+          const { error } = await supabase.rpc('accept_offer', { p_league: c.leagueId, p_fighter: sel, p_from: from });
+          setBusyInv(false);
+          if (error) { toast(errText(error)); c.reload(); return; }
+          toast(`Has vendido a ${c.F[sel].name}`); setSel(null); c.reload();
+        }
         async function release() {
           setBusyInv(true);
           const { error } = await supabase.rpc('release_drawn', { p_league: c.leagueId, p_fighter: sel });
@@ -137,7 +144,7 @@ export default function Equipo(c) {
         const hhmm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
         return (
           <FighterSheet c={c} id={sel} onClose={() => setSel(null)}
-            pill={isCap ? 'Capitán ×2' : o.assigned ? 'Del sorteo' : 'Tuyo'}
+            pill={o.for_sale ? 'En venta' : isCap ? 'Capitán ×2' : o.assigned ? 'Del sorteo' : 'Tuyo'}
             kpis={[
               [o.assigned ? 'Gratis' : fmtM(o.paid), o.assigned ? 'Sorteo' : 'Te costó'],
               [fmtM(clause), 'Cláusula', 'mine'],
@@ -164,16 +171,25 @@ export default function Equipo(c) {
                 <button className="btn gold block" disabled={busyInv || !(amount > 0) || amount > free} onClick={raise}>{amount > free ? `Solo tienes ${fmtM(free)}` : `Pagar${amount > 0 ? ' ' + fmtM(amount) : ''}`}</button>
               </section>
             )}
-            {o.assigned && !started && marketStarted(c) && (() => {
+            {!started && marketStarted(c) && (() => {
               const hasOffer = o.for_sale && o.sale_offer != null && o.offer_until && new Date(o.offer_until).getTime() > now;
+              const received = (c.offers || []).filter((x) => x.fighter_id === sel && x.to_user === c.me).sort((a, b) => b.amount - a.amount);
               if (!o.for_sale) return <button className="btn block" disabled={busyInv} onClick={() => setSale(true)}>Poner a la venta</button>;
               return (
                 <section className="fs-bid sale">
-                  <h3>{hasOffer ? 'Oferta del mercado' : 'En venta'}</h3>
-                  {hasOffer ? <>
-                    <div className="row between"><span className="muted small">Te ofrecen · hasta las {hhmm(o.offer_until)}</span><b className="gold" style={{ fontSize: 24 }}>{fmtM(o.sale_offer)}</b></div>
-                    <button className="btn gold block" disabled={busyInv} onClick={release}>Aceptar {fmtM(o.sale_offer)}</button>
-                  </> : <p className="small muted" style={{ margin: 0 }}>El mercado te hará una oferta a las {hhmm(o.offer_at)}.</p>}
+                  <h3>En venta</h3>
+                  {received.map((x) => (
+                    <div key={x.from_user} className="row between">
+                      <span className="small"><b>{c.names?.[x.from_user] || 'Alguien'}</b> te ofrece <b className="gold">{fmtM(x.amount)}</b></span>
+                      <button className="btn gold sm" disabled={busyInv} onClick={() => acceptOffer(x.from_user)}>Aceptar</button>
+                    </div>
+                  ))}
+                  {hasOffer ? (
+                    <div className="row between">
+                      <span className="small">El <b>mercado</b> te ofrece <b className="gold">{fmtM(o.sale_offer)}</b> <span className="xs muted">hasta las {hhmm(o.offer_until)}</span></span>
+                      <button className="btn gold sm" disabled={busyInv} onClick={release}>Aceptar</button>
+                    </div>
+                  ) : <p className="small muted" style={{ margin: 0 }}>El mercado te hará una oferta a las {hhmm(o.offer_at)}.{received.length ? '' : ' Los demás también pueden hacerte ofertas.'}</p>}
                   <button className="fs-link" disabled={busyInv} onClick={() => setSale(false)}>Quitar de la venta</button>
                 </section>
               );

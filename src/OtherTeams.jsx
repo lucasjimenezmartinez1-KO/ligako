@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { supabase, errText } from './supabase.js';
+import { useToast } from './ui.jsx';
 import { fmt, fmtM, rankLabel } from './format.js';
 import { Avatar } from './ui.jsx';
 import { FighterSheet } from './FighterSheet.jsx';
@@ -7,7 +9,19 @@ import { tierOf } from './Card.jsx';
 
 // Equipos de los demás mánagers, ordenados por puntos. Al tocar un luchador se abre su ficha.
 export function OtherTeams({ c }) {
+  const toast = useToast();
   const [sel, setSel] = useState(null);
+  const [amt, setAmt] = useState('');
+  const [busy, setBusy] = useState(false);
+  async function offer(on) {
+    const v = Math.round((Number(String(amt).replace(',', '.')) || 0) * 10) / 10;
+    setBusy(true);
+    const { error } = on ? await supabase.rpc('make_offer', { p_league: c.leagueId, p_fighter: sel, p_amount: v })
+      : await supabase.rpc('cancel_offer', { p_league: c.leagueId, p_fighter: sel });
+    setBusy(false);
+    if (error) { toast(errText(error)); return; }
+    toast(on ? `Oferta enviada: ${fmtM(v)}` : 'Oferta retirada'); setAmt(''); c.reload();
+  }
   const ph = phase(c.ev, c.le);
   const started = ph === 'live' || ph === 'finished';
   const ids = new Set(activeFights(c).flatMap((f) => [f.a, f.b]));
@@ -35,7 +49,7 @@ export function OtherTeams({ c }) {
                     <button key={o.fighter_id} type="button" className="item team-row" onClick={() => setSel(o.fighter_id)}>
                       <Avatar f={f} />
                       <div className="grow" style={{ textAlign: 'left', minWidth: 0 }}>
-                        <div className="bold ellipsis">{f.name} {cap && <span className="pill gold">C ×2</span>} {o.assigned && <span className="pill blue">Sorteo</span>}</div>
+                        <div className="bold ellipsis">{f.name} {cap && <span className="pill gold">C ×2</span>} {o.for_sale && !started && <span className="pill green">En venta</span>} {o.assigned && <span className="pill blue">Sorteo</span>}</div>
                         <div className="xs muted"><span className={`tier-dot ${t}`} aria-hidden="true" />{rankLabel(f)} · {fmt(c.exp[o.fighter_id])} pts esp.</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
@@ -52,10 +66,28 @@ export function OtherTeams({ c }) {
           </section>
         );
       })}
-      {sel && c.own[sel] && (
-        <FighterSheet c={c} id={sel} onClose={() => setSel(null)} pill={c.members.find((m) => m.user_id === c.own[sel].owner)?.name}
-          kpis={[[fmtM(c.own[sel].value), 'Valor'], [fmtM(clausePrice(c.own[sel])), 'Cláusula', 'mine'], [fmt(c.exp[sel]), 'Pts esp.']]} />
-      )}
+      {sel && c.own[sel] && (() => {
+        const o = c.own[sel]; const mine = (c.offers || []).find((x) => x.fighter_id === sel && x.from_user === c.me);
+        return (
+          <FighterSheet c={c} id={sel} onClose={() => { setSel(null); setAmt(''); }} pill={c.members.find((m) => m.user_id === o.owner)?.name}
+            kpis={[[fmtM(o.value), 'Valor'], [fmtM(clausePrice(o)), 'Cláusula', 'mine'], [fmt(c.exp[sel]), 'Pts esp.']]}>
+            {o.for_sale && !started && (
+              <section className="fs-bid sale">
+                <h3>Hacer una oferta</h3>
+                {mine && <div className="row between small"><span className="muted">Tu oferta</span><b className="gold">{fmtM(mine.amount)}</b></div>}
+                <div className="fs-input">
+                  <input inputMode="decimal" aria-label="Millones que ofreces" placeholder={String(o.value).replace('.', ',')} value={amt}
+                    onChange={(e) => setAmt(e.target.value.replace(/[^0-9.,]/g, ''))} />
+                  <span aria-hidden="true">M</span>
+                </div>
+                <button className="btn gold block" disabled={busy || !(Number(String(amt).replace(',', '.')) > 0)} onClick={() => offer(true)}>{mine ? 'Cambiar oferta' : 'Enviar oferta'}</button>
+                {mine && <button className="fs-link" disabled={busy} onClick={() => offer(false)}>Retirar mi oferta</button>}
+                <p className="xs muted" style={{ margin: 0 }}>Solo la ve {c.members.find((m) => m.user_id === o.owner)?.name}. Si la acepta, se te cobra y el luchador pasa a tu equipo.</p>
+              </section>
+            )}
+          </FighterSheet>
+        );
+      })()}
     </>
   );
 }

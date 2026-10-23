@@ -151,12 +151,20 @@ export function ClauseAlerts({ c }) {
 export function SaleOffers({ c }) {
   const now = Date.now();
   const list = Object.values(c.own).filter((o) => o.owner === c.me && o.for_sale && o.sale_offer != null && o.offer_until && new Date(o.offer_until).getTime() > now);
-  return list.map((o) => (
+  const fromManagers = (c.offers || []).filter((x) => x.to_user === c.me);
+  return [...fromManagers.map((x) => (
+    <section key={'m' + x.fighter_id + x.from_user} className="card tight" style={{ borderColor: '#1F5A3D', cursor: 'pointer' }} onClick={() => c.go('equipo')}>
+      <div className="row between">
+        <div><div className="eyebrow" style={{ color: 'var(--green)' }}>Oferta de {c.names?.[x.from_user] || 'un mánager'}</div><div className="bold">Te ofrece {String(x.amount).replace('.', ',')} M por {c.F[x.fighter_id]?.name}</div></div>
+        <span className="btn sm">Ver</span>
+      </div>
+    </section>
+  )), ...list.map((o) => (
     <section key={o.fighter_id} className="card tight" style={{ borderColor: '#1F5A3D', cursor: 'pointer' }} onClick={() => c.go('equipo')}>
       <div className="row between">
         <div><div className="eyebrow" style={{ color: 'var(--green)' }}>Oferta del mercado</div><div className="bold">Te ofrecen {String(o.sale_offer).replace('.', ',')} M por {c.F[o.fighter_id]?.name}</div></div>
         <span className="btn sm">Ver</span>
       </div>
     </section>
-  ));
+  ))];
 }
