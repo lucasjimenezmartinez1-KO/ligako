@@ -389,3 +389,6 @@ table.stand tr.me td { font-weight: 800; }
 .tier-tag.f { background: #1B2A22; color: #8FD9B1; }
 .tier-tag.n { background: #2A2512; color: #E2C26B; }
 .tier-tag.d { background: #3A1417; color: #F7A2A5; }
+.team-row { width: 100%; background: none; border: 0; font: inherit; color: inherit; cursor: pointer; padding: 10px 0; }
+.tier-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+.tier-dot.oro { background: #E2B04C; } .tier-dot.plata { background: #B8C2CF; } .tier-dot.bronce { background: #C98A5B; }

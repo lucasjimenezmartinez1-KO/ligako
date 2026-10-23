@@ -4,6 +4,7 @@ import { fmt, fmtM, fmtDate } from '../format.js';
 import { useToast } from '../ui.jsx';
 import { FighterCard } from '../Card.jsx';
 import { FighterSheet } from '../FighterSheet.jsx';
+import { OtherTeams } from '../OtherTeams.jsx';
 import { marketStarted } from '../Ready.jsx';
 import { phase, myTeam, maxTeam, needTeam, oppOf, fightOf, committed, clauseBase, clausePrice } from '../helpers.js';
 
@@ -13,6 +14,7 @@ export default function Equipo(c) {
   const started = ph === 'live' || ph === 'finished';
   const [cap, setCap] = useState(undefined);
   const [sel, setSel] = useState(null);
+  const [view, setView] = useState('mine');
   const [inv, setInv] = useState('');
   const [busyInv, setBusyInv] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -36,8 +38,17 @@ export default function Equipo(c) {
     c.reload();
   }
 
+  const tabs = (
+    <div className="seg">
+      <button className={`chip ${view === 'mine' ? 'on' : ''}`} onClick={() => setView('mine')}>Mi equipo</button>
+      <button className={`chip ${view === 'others' ? 'on' : ''}`} onClick={() => setView('others')}>Otros equipos</button>
+    </div>
+  );
+  if (view === 'others') return <>{tabs}<OtherTeams c={c} /></>;
+
   return (
     <>
+      {tabs}
       <section className="card">
         <div className="row between"><h1 className="h-display" style={{ fontSize: 30 }}>Mi equipo</h1><span className={`pill ${missing && open ? 'red' : 'green'}`}>{Math.min(team.length, need)} de {need} fichados</span></div>
         {!waiting && (
@@ -48,12 +59,13 @@ export default function Equipo(c) {
         {!waiting && open && missing > 0 && (
           <div className="must-sign">
             <b>Tienes que fichar {need} luchadores</b>
-            <span>Te {missing === 1 ? 'falta 1' : `faltan ${missing}`}{pending.length ? ` · ${pending.length === 1 ? 'tienes 1 puja' : `tienes ${pending.length} pujas`} en marcha` : ''}. El mercado cierra el {fmtDate(c.ev.market_closes_at)}.</span>
+            <span>Te {missing === 1 ? 'falta 1' : `faltan ${missing}`}{pending.length ? ` · ${pending.length === 1 ? 'tienes 1 puja' : `tienes ${pending.length} pujas`} en marcha` : ''}. El mercado cierra el {fmtDate(c.ev.market_closes_at)}. Si empiezas el evento con menos de {need}, pierdes 5 puntos por cada uno que falte.</span>
           </div>
         )}
-        <p className="small muted">Para el evento {c.ev.id}. Todos tus luchadores puntúan y el capitán puntúa doble. Al terminar el evento se venden solos según los puntos que hagan frente a los esperados.</p>
+        <p className="small muted">Para el evento {c.ev.id}. Todos tus luchadores puntúan y el capitán puntúa doble. Si empiezas el evento con menos de 5 luchadores, pierdes 5 puntos por cada uno que falte.</p>
         <div className="row between small"><span className="muted">Presupuesto de este evento</span><b>{fmtM(s?.start_money)}</b></div>
         <div className="row between small"><span className="muted">{started ? 'Dinero' : 'Te queda'}</span><b className="gold">{fmtM(s?.money)}</b></div>
+        {started && Number(s?.penalty) > 0 && <div className="row between small"><span className="red">Penalización por equipo incompleto</span><b className="red">−{fmt(s.penalty)}</b></div>}
         {started && <div className="row between small"><span className="muted">Puntos en este evento</span><b>{fmt(s?.pts)}</b></div>}
       </section>
 
@@ -89,7 +101,7 @@ export default function Equipo(c) {
             <button key={'e' + i} type="button" className="slot empty" onClick={() => c.go('mercado')}>
               <span className="slot-ic" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></span>
               <span className="slot-t">Te falta fichar</span>
-              <span className="slot-s">Hueco {team.length + pending.length + i + 1} de {need}</span>
+              <span className="slot-s">Hueco {team.length + pending.length + i + 1} de {need} · −5 pts si no lo llenas</span>
               <span className="slot-cta">Ir al mercado</span>
             </button>
           ))}
