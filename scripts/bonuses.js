@@ -23,7 +23,7 @@ export function parseBonuses(lines, fighters) {
       const n = norm(f.name), last = n.split(' ').pop();
       const lastUnique = fighters.filter((g) => norm(g.name).split(' ').pop() === last).length === 1;
       if (text.includes(' ' + n + ' ') || (lastUnique && text.includes(' ' + last + ' '))) {
-        out.push({ fighter_id: f.id, label: fotn ? 'Pelea de la noche' : 'Actuación de la noche', pts: fotn ? 25 : 20 });
+        out.push({ fighter_id: f.id, label: fotn ? 'Pelea de la noche' : 'Actuación de la noche', pts: fotn ? 35 : 40 });
       }
     }
   }
