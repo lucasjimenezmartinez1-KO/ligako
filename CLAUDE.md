@@ -106,6 +106,10 @@ Solo las 5 peleas de la cartelera principal; solo cuenta si aciertas el ganador.
 
 Máx. 12 M por pelea y **50 M en total**. Tras cargar una cartelera nueva hay que ejecutar `scripts/pred-prizes.js`.
 
+## Avisos en el móvil
+
+Notificaciones push cuando te hacen un clausulazo o te recuperan un luchador con la venganza. Tarjeta «Avisos en el móvil» en Inicio (`src/PushToggle.jsx`, service worker `public/sw.js` sin caché). En iPhone solo con la app instalada. Trigger `moves_push` → `send_push` → `pg_net` → `api/push.js` (Vercel, `web-push`). Tablas `push_subs` y `push_config` (claves VAPID, las crea solo el workflow de migraciones; nunca en el repo). Migración 022.
+
 ## Navegación
 
 1. **Inicio:** próximo evento, luchador del sorteo, lista de tareas antes del evento, clasificación.

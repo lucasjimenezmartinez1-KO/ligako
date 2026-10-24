@@ -35,3 +35,14 @@ jobs:
             fi
           done
           echo "::notice::Base de datos al día"
+      - name: Claves de los avisos al móvil (solo la primera vez)
+        env:
+          DB: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          DB=$(printf %s "$DB" | tr -d "[:space:]")
+          has=$(psql "$DB" -tAc "select count(*) from push_config" 2>/dev/null || echo skip)
+          if [ "$has" = "0" ]; then
+            npm i --no-save --silent web-push@3.6.7
+            node -e "const k=require('web-push').generateVAPIDKeys();process.stdout.write(\"insert into push_config values ('vapid_public','\"+k.publicKey+\"'),('vapid_private','\"+k.privateKey+\"');\")" | psql "$DB" -q -v ON_ERROR_STOP=1
+            echo "::notice::Claves de avisos creadas"
+          fi
