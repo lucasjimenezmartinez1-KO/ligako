@@ -29,6 +29,10 @@ export default function Equipo(c) {
   const emptySlots = Math.max(0, missing - pending.length);
   const open = ph === 'market';
 
+  // Con el evento empezado se puede cambiar de capitán mientras ni el actual ni el nuevo hayan peleado
+  const notFought = (id) => (fightOf(c, id)?.status || 'scheduled') === 'scheduled';
+  const capLocked = started && captain && !notFought(captain);
+  const canCap = (id) => !started || (!capLocked && notFought(id));
   async function setCaptain(id) {
     const next = captain === id ? null : id;
     setCap(next);
@@ -80,7 +84,7 @@ export default function Equipo(c) {
             return (
               <div key={o.fighter_id} className="stack" style={{ gap: 6 }}>
                 <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} onClick={() => { setSel(o.fighter_id); setInv(''); }}
-                  extra={started
+                  extra={started && !canCap(o.fighter_id)
                     ? <div className="fc-btn on" style={{ textAlign: 'center' }}>{p ? fmt(p.total * (isCap ? 2 : 1)) + ' pts' : 'Sin empezar'}</div>
                     : <button type="button" className={`fc-btn ${isCap ? 'on' : ''}`} aria-pressed={isCap} onClick={(e) => { e.stopPropagation(); setCaptain(o.fighter_id); }}>{isCap ? 'Capitán ×2' : 'Hacer capitán'}</button>} />
                 <div className="xs muted" style={{ textAlign: 'center' }}>
@@ -210,7 +214,7 @@ export default function Equipo(c) {
                 </section>
               );
             })()}
-            {!started && <button className={`btn block ${isCap ? '' : 'primary'}`} onClick={() => setCaptain(sel)}>{isCap ? 'Quitar capitán' : 'Hacer capitán (puntúa doble)'}</button>}
+            {canCap(sel) && <button className={`btn block ${isCap ? '' : 'primary'}`} onClick={() => setCaptain(sel)}>{isCap ? 'Quitar capitán' : 'Hacer capitán (puntúa doble)'}</button>}
           </FighterSheet>
         );
       })()}
