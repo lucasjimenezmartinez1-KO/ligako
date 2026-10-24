@@ -16,7 +16,6 @@ export default function Equipo(c) {
   const [sel, setSel] = useState(null);
   const [view, setView] = useState('mine');
   const [inv, setInv] = useState('');
-  const [low, setLow] = useState('');
   const [busyInv, setBusyInv] = useState(false);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { if (!sel) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [sel]);
@@ -113,7 +112,6 @@ export default function Equipo(c) {
         const clause = clausePrice(o); const extra = Number(o.clause_extra) || 0;
         const free = Math.round(((Number(s?.money) || 0) - committed(c)) * 10) / 10;
         const amount = Math.round((Number(String(inv).replace(',', '.')) || 0) * 10) / 10;
-        const lowAmt = Math.round((Number(String(low).replace(',', '.')) || 0) * 10) / 10;
         async function setSale(on) {
           setBusyInv(true);
           const { error } = await supabase.rpc('list_for_sale', { p_league: c.leagueId, p_fighter: sel, p_on: on });
@@ -134,13 +132,6 @@ export default function Equipo(c) {
           setBusyInv(false);
           if (error) { toast(errText(error)); c.reload(); return; }
           toast(`Has vendido a ${c.F[sel].name} por ${fmtM(o.sale_offer)}`); setSel(null); c.reload();
-        }
-        async function lower() {
-          setBusyInv(true);
-          const { error } = await supabase.rpc('lower_clause', { p_league: c.leagueId, p_fighter: sel, p_amount: lowAmt });
-          setBusyInv(false);
-          if (error) { toast(errText(error)); return; }
-          toast(`Cláusula bajada a ${fmtM(clause - lowAmt)}. Cobras ${fmtM(Math.round(lowAmt * 5) / 10)}`); setLow(''); c.reload();
         }
         async function raise() {
           setBusyInv(true);
@@ -181,18 +172,6 @@ export default function Equipo(c) {
                 {amount > 0 && <div className="row between small"><span className="muted">Nueva cláusula</span><b className="gold">{fmtM(clause + Math.round(amount * 15) / 10)}</b></div>}
                 <button className="btn gold block" disabled={busyInv || !(amount > 0) || amount > free} onClick={raise}>{amount > free ? `Solo tienes ${fmtM(free)}` : `Pagar${amount > 0 ? ' ' + fmtM(amount) : ''}`}</button>
                 </>}
-              </section>
-            )}
-            {!started && extra > 0 && (
-              <section className="fs-bid raise">
-                <h3>Bajar cláusula</h3>
-                <div className="fs-input">
-                  <input inputMode="decimal" aria-label="Millones a bajar" placeholder="0" value={low}
-                    onChange={(e) => setLow(e.target.value.replace(/[^0-9.,]/g, ''))} />
-                  <span aria-hidden="true">M</span>
-                </div>
-                {lowAmt > 0 && lowAmt <= extra && <div className="row between small"><span className="muted">Nueva cláusula · cobras</span><b className="gold">{fmtM(clause - lowAmt)} · {fmtM(Math.round(lowAmt * 5) / 10)}</b></div>}
-                <button className="btn block" disabled={busyInv || !(lowAmt > 0) || lowAmt > extra} onClick={lower}>{lowAmt > extra ? `Como mucho ${fmtM(extra)}` : `Bajar${lowAmt > 0 ? ' ' + fmtM(lowAmt) : ''}`}</button>
               </section>
             )}
             {!started && marketStarted(c) && (() => {
