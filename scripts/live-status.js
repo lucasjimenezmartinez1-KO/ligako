@@ -8,7 +8,7 @@ const fp = Object.fromEntries((await db.from('fighter_points').select('fighter_i
 log('Sin ser favorito: ' + Object.entries(fp).filter(([, x]) => (x.lines || []).some((l) => /favorito/.test(l[0]))).map(([id, x]) => F[id] + ' ' + x.lines.find((l) => /favorito/.test(l[0]))[1]).join(', '));
 const ex = (await db.from('event_extras').select('fighter_id,label,pts').eq('event_id', 333)).data;
 log('Extras: ' + ex.map((x) => `${F[x.fighter_id]} ${x.label} ${x.pts}`).join(', '));
-log('Peleas: ' + fights.filter((f) => f.status !== 'scheduled').map((f) => `${F[f.a]} ${fp[f.a]?.total ?? '-'} vs ${F[f.b]} ${fp[f.b]?.total ?? '-'} (${f.status}${f.method ? ' ' + f.method + ' R' + f.round : ''})`).join(' · '));
+log('Peleas: ' + fights.filter((f) => f.status !== 'scheduled').map((f) => `${F[f.a]} ${fp[f.a]?.total ?? '-'} vs ${F[f.b]} ${fp[f.b]?.total ?? '-'} (${f.status}${f.method ? ' ' + f.method + ' R' + f.round : ''} @${(f.updated_at || '').slice(11, 19)})`).join(' · '));
 const names = Object.fromEntries((await db.from('profiles').select('id,username')).data.map((p) => [p.id, p.username]));
 for (const L of (await db.from('leagues').select('id,name')).data) {
   const sq = (await db.from('squads').select('user_id,pts,penalty').eq('league_id', L.id).eq('event_id', 333)).data.sort((a, b) => b.pts - a.pts);
