@@ -25,7 +25,7 @@ on:
         default: ''
 
 concurrency:
-  group: live
+  group: live-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'cron' }}
   cancel-in-progress: false
 
 jobs:
