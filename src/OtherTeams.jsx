@@ -11,17 +11,6 @@ import { tierOf } from './Card.jsx';
 export function OtherTeams({ c }) {
   const toast = useToast();
   const [sel, setSel] = useState(null);
-  const [amt, setAmt] = useState('');
-  const [busy, setBusy] = useState(false);
-  async function offer(on) {
-    const v = Math.round((Number(String(amt).replace(',', '.')) || 0) * 10) / 10;
-    setBusy(true);
-    const { error } = on ? await supabase.rpc('make_offer', { p_league: c.leagueId, p_fighter: sel, p_amount: v })
-      : await supabase.rpc('cancel_offer', { p_league: c.leagueId, p_fighter: sel });
-    setBusy(false);
-    if (error) { toast(errText(error)); return; }
-    toast(on ? `Oferta enviada: ${fmtM(v)}` : 'Oferta retirada'); setAmt(''); c.reload();
-  }
   const ph = phase(c.ev, c.le);
   const started = ph === 'live' || ph === 'finished';
   const ids = new Set(activeFights(c).flatMap((f) => [f.a, f.b]));
@@ -66,28 +55,48 @@ export function OtherTeams({ c }) {
           </section>
         );
       })}
-      {sel && c.own[sel] && (() => {
-        const o = c.own[sel]; const mine = (c.offers || []).find((x) => x.fighter_id === sel && x.from_user === c.me);
-        return (
-          <FighterSheet c={c} id={sel} onClose={() => { setSel(null); setAmt(''); }} pill={c.members.find((m) => m.user_id === o.owner)?.name}
-            kpis={[[fmtM(o.value), 'Valor'], [fmtM(clausePrice(o)), 'Cláusula', 'mine'], [fmt(c.exp[sel]), 'Pts esp.']]}>
-            {o.for_sale && !started && (
-              <section className="fs-bid sale">
-                <h3>Hacer una oferta</h3>
-                {mine && <div className="row between small"><span className="muted">Tu oferta</span><b className="gold">{fmtM(mine.amount)}</b></div>}
-                <div className="fs-input">
-                  <input inputMode="decimal" aria-label="Millones que ofreces" placeholder={String(o.value).replace('.', ',')} value={amt}
-                    onChange={(e) => setAmt(e.target.value.replace(/[^0-9.,]/g, ''))} />
-                  <span aria-hidden="true">M</span>
-                </div>
-                <button className="btn gold block" disabled={busy || !(Number(String(amt).replace(',', '.')) > 0)} onClick={() => offer(true)}>{mine ? 'Cambiar oferta' : 'Enviar oferta'}</button>
-                {mine && <button className="fs-link" disabled={busy} onClick={() => offer(false)}>Retirar mi oferta</button>}
-                <p className="xs muted" style={{ margin: 0 }}>Solo la ve {c.members.find((m) => m.user_id === o.owner)?.name}. Si la acepta, se te cobra y el luchador pasa a tu equipo.</p>
-              </section>
-            )}
-          </FighterSheet>
-        );
-      })()}
+      {sel && c.own[sel] && <OfferSheet c={c} id={sel} onClose={() => setSel(null)} />}
     </>
+  );
+}
+
+// Ficha de un luchador de otro mánager: cláusula y oferta privada (solo la ve el dueño)
+export function OfferSheet({ c, id, onClose }) {
+  const toast = useToast();
+  const [amt, setAmt] = useState('');
+  const [busy, setBusy] = useState(false);
+  const o = c.own[id];
+  if (!o) return null;
+  const ph = phase(c.ev, c.le);
+  const started = ph === 'live' || ph === 'finished';
+  const owner = c.members.find((m) => m.user_id === o.owner)?.name || 'su dueño';
+  const mine = (c.offers || []).find((x) => x.fighter_id === id && x.from_user === c.me);
+  async function offer(on) {
+    const v = Math.round((Number(String(amt).replace(',', '.')) || 0) * 10) / 10;
+    setBusy(true);
+    const { error } = on ? await supabase.rpc('make_offer', { p_league: c.leagueId, p_fighter: id, p_amount: v })
+      : await supabase.rpc('cancel_offer', { p_league: c.leagueId, p_fighter: id });
+    setBusy(false);
+    if (error) { toast(errText(error)); return; }
+    toast(on ? `Oferta enviada a ${owner}: ${fmtM(v)}` : 'Oferta retirada'); setAmt(''); c.reload();
+  }
+  return (
+    <FighterSheet c={c} id={id} onClose={onClose} pill={owner}
+      kpis={[[fmtM(o.value), 'Valor'], [fmtM(clausePrice(o)), 'Cláusula', 'mine'], [fmt(c.exp[id]), 'Pts esp.']]}>
+      {!started && (
+        <section className="fs-bid sale">
+          <h3>Oferta privada {o.for_sale && <span className="pill green">En venta</span>}</h3>
+          {mine && <div className="row between small"><span className="muted">Tu oferta</span><b className="gold">{fmtM(mine.amount)}</b></div>}
+          <div className="fs-input">
+            <input inputMode="decimal" aria-label="Millones que ofreces" placeholder={String(o.value).replace('.', ',')} value={amt}
+              onChange={(e) => setAmt(e.target.value.replace(/[^0-9.,]/g, ''))} />
+            <span aria-hidden="true">M</span>
+          </div>
+          <button className="btn gold block" disabled={busy || !(Number(String(amt).replace(',', '.')) > 0)} onClick={() => offer(true)}>{mine ? 'Cambiar oferta' : 'Enviar oferta'}</button>
+          {mine && <button className="fs-link" disabled={busy} onClick={() => offer(false)}>Retirar mi oferta</button>}
+          <p className="xs muted" style={{ margin: 0 }}>Solo la ve {owner} (le llega a Inicio). Si la acepta, se te cobra y el luchador pasa a tu equipo. Sin escudos ni venganza de por medio.</p>
+        </section>
+      )}
+    </FighterSheet>
   );
 }

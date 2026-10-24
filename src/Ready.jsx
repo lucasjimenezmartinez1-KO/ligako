@@ -152,14 +152,7 @@ export function SaleOffers({ c }) {
   const now = Date.now();
   const list = Object.values(c.own).filter((o) => o.owner === c.me && o.for_sale && o.sale_offer != null && o.offer_until && new Date(o.offer_until).getTime() > now);
   const fromManagers = (c.offers || []).filter((x) => x.to_user === c.me);
-  return [...fromManagers.map((x) => (
-    <section key={'m' + x.fighter_id + x.from_user} className="card tight" style={{ borderColor: '#1F5A3D', cursor: 'pointer' }} onClick={() => c.go('equipo')}>
-      <div className="row between">
-        <div><div className="eyebrow" style={{ color: 'var(--green)' }}>Oferta de {c.names?.[x.from_user] || 'un mánager'}</div><div className="bold">Te ofrece {String(x.amount).replace('.', ',')} M por {c.F[x.fighter_id]?.name}</div></div>
-        <span className="btn sm">Ver</span>
-      </div>
-    </section>
-  )), ...list.map((o) => (
+  return [...fromManagers.map((x) => <ManagerOffer key={'m' + x.fighter_id + x.from_user} c={c} x={x} />  ), ...list.map((o) => (
     <section key={o.fighter_id} className="card tight" style={{ borderColor: '#1F5A3D', cursor: 'pointer' }} onClick={() => c.go('equipo')}>
       <div className="row between">
         <div><div className="eyebrow" style={{ color: 'var(--green)' }}>Oferta del mercado</div><div className="bold">Te ofrecen {String(o.sale_offer).replace('.', ',')} M por {c.F[o.fighter_id]?.name}</div></div>
@@ -167,4 +160,36 @@ export function SaleOffers({ c }) {
       </div>
     </section>
   ))];
+}
+
+// Oferta privada de otro mánager por uno de tus luchadores: aceptar o rechazar desde Inicio
+function ManagerOffer({ c, x }) {
+  const toast = useToast();
+  const [armed, setArmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const who = c.names?.[x.from_user] || 'Un mánager';
+  const name = c.F[x.fighter_id]?.name || 'tu luchador';
+  const m = (v) => String(v).replace('.', ',') + ' M';
+  async function act(accept) {
+    if (accept && !armed) { setArmed(true); return; }
+    setBusy(true);
+    const { error } = accept
+      ? await supabase.rpc('accept_offer', { p_league: c.leagueId, p_fighter: x.fighter_id, p_from: x.from_user })
+      : await supabase.rpc('reject_offer', { p_league: c.leagueId, p_fighter: x.fighter_id, p_from: x.from_user });
+    setBusy(false); setArmed(false);
+    if (error) { toast(errText(error)); c.reload(); return; }
+    toast(accept ? `Has vendido a ${name} a ${who} por ${m(x.amount)}` : 'Oferta rechazada'); c.reload();
+  }
+  const o = c.own[x.fighter_id];
+  return (
+    <section className="card tight offer-card">
+      <div className="eyebrow" style={{ color: 'var(--green)' }}>Oferta privada de {who}</div>
+      <div className="bold">Te ofrece {m(x.amount)} por {name}</div>
+      {o && <div className="xs muted">Su valor: {m(o.value)} · te costó {o.assigned ? 'nada (sorteo)' : m(o.paid)}</div>}
+      <div className="actions">
+        <button className="btn sm" disabled={busy} onClick={() => act(false)}>Rechazar</button>
+        <button className="btn gold sm" disabled={busy} onClick={() => act(true)}>{armed ? `Confirmar venta` : 'Aceptar'}</button>
+      </div>
+    </section>
+  );
 }

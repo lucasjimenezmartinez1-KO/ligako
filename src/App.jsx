@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PushPrompt } from './PushToggle.jsx';
 import { supabase, configured, errText } from './supabase.js';
 import { useLeague } from './data.js';
 import { fmtM } from './format.js';
@@ -105,6 +106,7 @@ function Shell({ leagueId, userId, leagues, onSwitch }) {
           : tab === 'equipo' ? <Equipo {...ctx} />
           : <Liga {...ctx} />}
       </main>
+      {!data.loading && !data.error && !picker && <PushPrompt />}
       {picker && <LeaguePicker leagues={leagues} current={leagueId} start={picker} onClose={() => { setPicker(null); if (/liga=/.test(location.search)) history.replaceState(null, '', '/'); }} onSwitch={onSwitch} />}
       <nav className="tabs" aria-label="Secciones">
         <div className="tabs-in">

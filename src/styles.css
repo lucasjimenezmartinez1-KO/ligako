@@ -421,3 +421,9 @@ table.stand tr.me td { font-weight: 800; }
 .day-plan b { min-width: 92px; font-family: var(--display); font-size: 15px; color: #C9D1E0; }
 .day-plan .now { background: rgba(255,201,60,.12); color: var(--ink, #fff); box-shadow: inset 3px 0 0 #FFC93C; }
 .day-plan .now.hot { background: linear-gradient(90deg, rgba(255,90,46,.25), rgba(255,178,62,.1)); box-shadow: inset 3px 0 0 #FF5A2E; }
+.offer-btn { flex: none; border: 1px solid rgba(63,214,140,.45); background: rgba(63,214,140,.08); color: #6FE3A8; border-radius: 10px; padding: 9px 10px; font: inherit; font-size: 12px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; cursor: pointer; margin-right: 6px; }
+.offer-card { border-color: #1F5A3D !important; }
+.offer-card .actions { display: flex; gap: 8px; margin-top: 8px; }
+.offer-card .actions .btn { flex: 1; }
+.push-pop { gap: 14px; padding-top: 14px; }
+.push-pop-ic { align-self: center; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 32px; background: radial-gradient(circle, rgba(255,201,60,.3), rgba(255,90,46,.12)); box-shadow: 0 0 30px rgba(255,178,62,.35); }

@@ -25,7 +25,7 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 2. **Mercado por etapas** (antes "tandas"): horario fijo de Madrid, de 21:00 a 12:00 del día siguiente y de 12:00 a 21:00 (`stage_bounds`, migración 011; se salta un corte si la etapa dura menos de 3 h). El mercado cierra el **viernes a las 21:00**. Los luchadores se reparten entre las etapas (mezcla de oro, plata y bronce). Pujas secretas (solo se ve cuántos han pujado): gana la más alta al cerrar su etapa (mínimo, el valor). Los que nadie ficha **se reparten entre las etapas que quedan** (`spread_leftovers`). Después del cierre, solo cláusulas y libres del sábado.
    - El sorteo lo lanza el workflow "Sorteo de luchadores" cuando el usuario avisa; resta del presupuesto el 25 % del valor del luchador que toca.
 3. **Fichar a un luchador de otro jugador:** solo de dos formas:
-   - Oferta que el dueño acepta (solo si lo ha puesto a la venta; ver punto 7).
+   - **Oferta privada** que el dueño acepta, por cualquier luchador (esté o no a la venta): botón «Oferta» en Mercado → De otros mánagers o en su ficha (`OfferSheet` en `src/OtherTeams.jsx`). No sale en Movimientos; al dueño le llega a Inicio (Aceptar/Rechazar, `ManagerOffer` en `src/Ready.jsx`) y un aviso al móvil. `make_offer`, `reject_offer`, `accept_offer` (migración 026).
    - Pago de la **cláusula**: un 25 % más de lo que pagó el dueño (o de su valor si le tocó en el sorteo). El dinero va al dueño.
    (Aplica a todos los luchadores. Se puede pagar hasta que empiece el evento, solo con hueco en el equipo.)
    - **Escudo:** 2 h sin poder clausular a un luchador tras cualquier cambio de dueño salvo una venganza (trigger `ownership_shield`, columna `shield_until`; migración 019). Con escudo, en Mercado se ve igualmente el precio de la cláusula con el tiempo que falta.
@@ -109,7 +109,7 @@ Máx. 12 M por pelea y **50 M en total**. Tras cargar una cartelera nueva hay qu
 
 ## Avisos en el móvil
 
-Notificaciones push cuando te hacen un clausulazo o te recuperan un luchador con la venganza. Tarjeta «Avisos en el móvil» en Inicio (`src/PushToggle.jsx`, service worker `public/sw.js` sin caché). En iPhone solo con la app instalada. Trigger `moves_push` → `send_push` → `pg_net` → `api/push.js` (Vercel, `web-push`). Tablas `push_subs` y `push_config` (claves VAPID, las crea solo el workflow de migraciones; nunca en el repo). Migración 022.
+Notificaciones push cuando te hacen un clausulazo, te recuperan un luchador con la venganza o te hacen una oferta privada. Al abrir la app salta un aviso para activarlos (`PushPrompt`, una vez por apertura mientras no estén activados) y hay tarjeta en Inicio (`src/PushToggle.jsx`, service worker `public/sw.js` sin caché). En iPhone solo con la app instalada. Trigger `moves_push` → `send_push` → `pg_net` → `api/push.js` (Vercel, `web-push`). Tablas `push_subs` y `push_config` (claves VAPID, las crea solo el workflow de migraciones; nunca en el repo). Migración 022.
 
 ## Navegación
 

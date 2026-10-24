@@ -4,6 +4,7 @@ import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
 import { FighterCard, Streak, fmtLeft, tierOf } from '../Card.jsx';
 import { WaitingRoom, WaveResults, Revenge, marketStarted } from '../Ready.jsx';
+import { OfferSheet } from '../OtherTeams.jsx';
 import { phase, myTeam, maxTeam, committed, oppOf, activeFights, clausePrice } from '../helpers.js';
 
 export default function Mercado(c) {
@@ -16,6 +17,7 @@ export default function Mercado(c) {
   const [amounts, setAmounts] = useState({});
   const [err, setErr] = useState({});
   const [sel, setSel] = useState(null);
+  const [offerSel, setOfferSel] = useState(null);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
   useEffect(() => {
@@ -272,6 +274,7 @@ export default function Mercado(c) {
                   <div key={o.fighter_id} className="item">
                     <Avatar f={f} />
                     <div className="grow"><div className="bold ellipsis">{f.name} {o.assigned && <span className="pill blue">Sorteo</span>}</div><div className="xs muted">{fmtM(o.value)} · {fmt(c.exp[o.fighter_id])} pts esp.</div></div>
+                    {!started && <button type="button" className="offer-btn" onClick={() => setOfferSel(o.fighter_id)} aria-label={`Hacer una oferta por ${f.name}`}>Oferta</button>}
                     {!started && clausesClosed ? <span className="clause-btn locked" title="Las cláusulas ya están cerradas"><span>Cerrada</span><b>{fmtM(price)}</b></span> : !started && (!noShield && o.shield_until && new Date(o.shield_until).getTime() > now
                       ? <span className="clause-btn locked" title="Con escudo: todavía no se puede clausular"><span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg> {fmtLeft(new Date(o.shield_until).getTime() - now)}</span><b>{fmtM(price)}</b></span>
                       : <button className={`clause-btn ${armed === o.fighter_id ? 'armed' : ''}`} disabled={busy === o.fighter_id || team.length >= max || avail < price} onClick={() => clause(o)}>
@@ -285,6 +288,7 @@ export default function Mercado(c) {
       })}
       {tab === 'otros' && <p className="note">Cláusula: 25 % más de lo que pagó su dueño (el dinero es para él). Necesitas hueco en el equipo. Escudo de 2 h tras cada fichaje (no tras una venganza); si te quitan uno, tienes 30 min para recuperarlo.</p>}
 
+      {offerSel && <OfferSheet c={c} id={offerSel} onClose={() => setOfferSel(null)} />}
       <button type="button" className="all-cards-btn" onClick={() => setShowAll(!showAll)} aria-expanded={showAll}>
         <span>Todas las cartas <b>{rows.length}</b></span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true" style={{ transform: showAll ? 'rotate(180deg)' : 'none' }}><path d="m6 9 6 6 6-6" /></svg>

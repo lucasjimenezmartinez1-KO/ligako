@@ -177,7 +177,20 @@ export default function Equipo(c) {
             {!started && marketStarted(c) && (() => {
               const hasOffer = o.for_sale && o.sale_offer != null && o.offer_until && new Date(o.offer_until).getTime() > now;
               const received = (c.offers || []).filter((x) => x.fighter_id === sel && x.to_user === c.me).sort((a, b) => b.amount - a.amount);
-              if (!o.for_sale) return <button className="btn block" disabled={busyInv} onClick={() => setSale(true)}>Poner a la venta</button>;
+              if (!o.for_sale) return <>
+                {received.length > 0 && (
+                  <section className="fs-bid sale">
+                    <h3>Ofertas privadas</h3>
+                    {received.map((x) => (
+                      <div key={x.from_user} className="row between">
+                        <span className="small"><b>{c.names?.[x.from_user] || 'Alguien'}</b> te ofrece <b className="gold">{fmtM(x.amount)}</b></span>
+                        <button className="btn gold sm" disabled={busyInv} onClick={() => acceptOffer(x.from_user)}>Aceptar</button>
+                      </div>
+                    ))}
+                  </section>
+                )}
+                <button className="btn block" disabled={busyInv} onClick={() => setSale(true)}>Poner a la venta</button>
+              </>;
               return (
                 <section className="fs-bid sale">
                   <h3>En venta</h3>
