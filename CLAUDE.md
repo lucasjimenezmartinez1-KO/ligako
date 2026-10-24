@@ -28,8 +28,8 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
    - Oferta que el dueño acepta (solo si lo ha puesto a la venta; ver punto 7).
    - Pago de la **cláusula**: un 25 % más de lo que pagó el dueño (o de su valor si le tocó en el sorteo). El dinero va al dueño.
    (Aplica a todos los luchadores. Se puede pagar hasta que empiece el evento, solo con hueco en el equipo.)
-   - **Escudo:** 2 h sin poder clausular a un luchador tras cualquier cambio de dueño (trigger `ownership_shield`, columna `shield_until`).
-   - **Venganza:** si te clausulan, 30 min para recuperarlo pagando lo que pagó el otro +10 % (`pay_revenge`; ignora el escudo). Columnas `rev_user`, `rev_until`, `rev_price`.
+   - **Escudo:** 2 h sin poder clausular a un luchador tras cualquier cambio de dueño salvo una venganza (trigger `ownership_shield`, columna `shield_until`; migración 019). Con escudo, en Mercado se ve igualmente el precio de la cláusula con el tiempo que falta.
+   - **Venganza:** si te clausulan, 30 min para recuperarlo pagando lo que pagó el otro +10 % (`pay_revenge`; ignora el escudo y no pone escudo nuevo). Columnas `rev_user`, `rev_until`, `rev_price`.
    - **Libres del sábado:** con el mercado cerrado y antes del evento, los luchadores sin dueño se fichan a su valor, por orden de llegada (`sign_free`).
    - **Subir la cláusula:** el dueño paga los millones que quiera (con decimales) desde la ficha en Equipo, apartado «Subir cláusula» → Pagar; cada 1 M la sube 1,5 M, sin tope, solo limitado por su dinero libre; no se puede durante la venganza del anterior dueño (`raise_clause`, migraciones 010 y 018, columna `clause_extra`; se pone a 0 al cambiar de dueño). El dinero invertido se pierde; si le clausulan, cobra la cláusula entera. Cláusula = `clause_base` (25 % sobre lo pagado o el valor) + `clause_extra`.
    Las cadenas de cláusulas son parte del juego (decisión del usuario).

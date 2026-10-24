@@ -258,7 +258,7 @@ export default function Mercado(c) {
                     <Avatar f={f} />
                     <div className="grow"><div className="bold ellipsis">{f.name} {o.assigned && <span className="pill blue">Sorteo</span>}</div><div className="xs muted">{fmtM(o.value)} · {fmt(c.exp[o.fighter_id])} pts esp.</div></div>
                     {!started && (o.shield_until && new Date(o.shield_until).getTime() > now
-                      ? <span className="shield-pill" title="Recién fichado: no se puede clausular todavía"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>Escudo {fmtLeft(new Date(o.shield_until).getTime() - now)}</span>
+                      ? <span className="clause-btn locked" title="Con escudo: todavía no se puede clausular"><span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg> {fmtLeft(new Date(o.shield_until).getTime() - now)}</span><b>{fmtM(price)}</b></span>
                       : <button className={`clause-btn ${armed === o.fighter_id ? 'armed' : ''}`} disabled={busy === o.fighter_id || team.length >= max || avail < price} onClick={() => clause(o)}>
                       <span>{armed === o.fighter_id ? 'Confirmar' : 'Cláusula'}</span><b>{fmtM(price)}</b></button>)}
                   </div>
@@ -268,7 +268,7 @@ export default function Mercado(c) {
           </section>
         );
       })}
-      {tab === 'otros' && <p className="note">Cláusula: 25 % más de lo que pagó su dueño (el dinero es para él). Necesitas hueco en el equipo. Escudo de 2 h tras cada fichaje; si te quitan uno, tienes 30 min para recuperarlo.</p>}
+      {tab === 'otros' && <p className="note">Cláusula: 25 % más de lo que pagó su dueño (el dinero es para él). Necesitas hueco en el equipo. Escudo de 2 h tras cada fichaje (no tras una venganza); si te quitan uno, tienes 30 min para recuperarlo.</p>}
 
       <button type="button" className="all-cards-btn" onClick={() => setShowAll(!showAll)} aria-expanded={showAll}>
         <span>Todas las cartas <b>{rows.length}</b></span>
