@@ -19,6 +19,10 @@ on:
         description: 'Prueba sin escribir nada (1)'
         required: false
         default: ''
+      minutes:
+        description: 'Seguir leyendo cada minuto durante estos minutos (máx. 350)'
+        required: false
+        default: ''
 
 concurrency:
   group: live
@@ -27,7 +31,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: ${{ github.event.inputs.minutes && 360 || 6 }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,11 +42,14 @@ jobs:
       - name: Leer resultados (durante el evento, cada minuto)
         run: |
           rm -f /tmp/notlive; ok=0
-          for i in 1 2 3 4; do
+          n=4; [ -n "${{ github.event.inputs.minutes }}" ] && n=${{ github.event.inputs.minutes }}
+          end=$(( $(date +%s) + n * 60 ))
+          while :; do
             if node scripts/live.js; then ok=1; fi
             [ -f /tmp/notlive ] && break
-            [ "${{ github.event_name }}" = "workflow_dispatch" ] && break
-            sleep 50
+            [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -z "${{ github.event.inputs.minutes }}" ] && break
+            [ $(date +%s) -ge $end ] && break
+            sleep 45
           done
           [ $ok = 1 ]
         env:
