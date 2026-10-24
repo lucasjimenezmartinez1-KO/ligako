@@ -4,6 +4,7 @@
 // - Al terminar: lee los bonos de la noche de Wikipedia; el lunes siguiente liquida el evento (venta automática y dinero).
 // Variables: SUPABASE_SERVICE_KEY (obligatoria), SUPABASE_URL. Opcional: EVENT_ID, FORCE=1, DRY=1.
 import { createClient } from '@supabase/supabase-js';
+import { writeFileSync } from 'node:fs';
 import { scoreFighter } from '../shared/scoring.js';
 import { expectedPoints, rawPrice } from './pricing.js';
 import { fetchBonusLines, parseBonuses } from './bonuses.js';
@@ -166,6 +167,8 @@ async function main() {
     : (await q(db.from('events').select('*').neq('status', 'finished').order('starts_at').limit(1)))[0];
   if (!ev) { log('No hay evento pendiente'); return; }
   const start = new Date(ev.starts_at).getTime();
+  // Fuera del directo, el workflow no repite la lectura cada minuto
+  if (process.env.LOOP_FLAG && !(Date.now() >= start - 20 * 60e3 && Date.now() < start + 10 * 3600e3)) writeFileSync(process.env.LOOP_FLAG, '1');
   if (Date.now() < start - 8 * 864e5) { log(`Evento ${ev.id}: falta más de una semana`); return; }
 
   const fights = await q(db.from('fights').select('*').eq('event_id', ev.id).order('ord'));

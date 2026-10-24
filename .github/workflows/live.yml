@@ -27,7 +27,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,9 +35,19 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --omit=dev
-      - run: node scripts/live.js
+      - name: Leer resultados (durante el evento, cada minuto)
+        run: |
+          rm -f /tmp/notlive; ok=0
+          for i in 1 2 3 4; do
+            if node scripts/live.js; then ok=1; fi
+            [ -f /tmp/notlive ] && break
+            [ "${{ github.event_name }}" = "workflow_dispatch" ] && break
+            sleep 50
+          done
+          [ $ok = 1 ]
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY || vars.SUPABASE_SERVICE_KEY }}
           FORCE: ${{ github.event.inputs.force }}
           DRY: ${{ github.event.inputs.dry }}
+          LOOP_FLAG: /tmp/notlive
