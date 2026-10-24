@@ -26,8 +26,9 @@ const slug = (s) => norm(s).replace(/ /g, '-');
 
 async function get(url) {
   for (let i = 0; i < 3; i++) {
-    const r = await fetch(url.replace('http://', 'https://'), { headers: { 'User-Agent': 'Mozilla/5.0 LigaKO' } });
-    if (r.ok) return r.json();
+    const sep = url.includes('?') ? '&' : '?';
+    const r = await fetch(url.replace('http://', 'https://') + sep + '_=' + Date.now(), { headers: { 'User-Agent': 'Mozilla/5.0 LigaKO', 'Cache-Control': 'no-cache' }, signal: AbortSignal.timeout(15000) }).catch(() => null);
+    if (r?.ok) return r.json();
     await new Promise((z) => setTimeout(z, 1500 * (i + 1)));
   }
   throw new Error('No se pudo leer ' + url);
@@ -229,7 +230,11 @@ async function main() {
       if (Date.now() > start) { log(`Se cae ${F[f.a].name} vs ${F[f.b].name} durante el evento`); await rpc('cancel_fight', { p_fight: f.id }); f.status = 'cancelled'; }
       continue;
     }
-    const st = comp.status?.type || {};
+    let st = comp.status?.type || {};
+    // El marcador general tarda en actualizarse: para las peleas en curso o la siguiente, se mira el estado de la pelea directamente
+    if (f.status !== 'finished' && Date.now() >= start - 10 * 60e3) {
+      try { const cs = await get(`${CORE}/events/${espnEv.id}/competitions/${comp.id}/status`); if (cs?.type) { st = cs.type; comp.status = { ...comp.status, ...cs, type: cs.type }; } } catch { /* nos quedamos con el marcador */ }
+    }
     const state = st.completed || st.state === 'post' ? 'finished' : st.state === 'in' ? 'live' : 'scheduled';
     if (state === 'scheduled') continue;
 
@@ -239,8 +244,15 @@ async function main() {
 
     let result = { winner: null, round: comp.status?.period || null, clock: comp.status?.displayClock || null };
     if (state === 'finished') {
-      const w = comp.competitors.find((x) => x.winner);
-      const winner = w ? (same(w.athlete.displayName, F[f.a].name) ? f.a : f.b) : null;
+      let w = comp.competitors.find((x) => x.winner);
+      if (!w) {   // el marcador aún no dice quién ganó: se pregunta a la pelea
+        for (const x of comp.competitors) {
+          const d = await get(`${CORE}/events/${espnEv.id}/competitions/${comp.id}/competitors/${x.id}`).catch(() => null);
+          if (d?.winner) { w = x; break; }
+        }
+      }
+      const winner = w ? (same(w.athlete?.displayName || '', F[f.a].name) ? f.a : f.b) : null;
+      if (!winner) { log(`${F[f.a].name} vs ${F[f.b].name}: terminada pero sin ganador todavía`); }
       let res = null;
       try { res = (await get(`${CORE}/events/${espnEv.id}/competitions/${comp.id}/status`)).result; } catch { /* sin método */ }
       const m = mapMethod(res);
