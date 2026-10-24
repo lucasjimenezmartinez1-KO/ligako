@@ -141,6 +141,7 @@ export default function Equipo(c) {
           toast(`Cláusula subida a ${fmtM(clause + Math.round(amount * 15) / 10)}`); setInv(''); c.reload();
         }
         const shielded = o.shield_until && new Date(o.shield_until).getTime() > now;
+        const revOpen = o.rev_user && o.rev_until && new Date(o.rev_until).getTime() > now;
         const hhmm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
         return (
           <FighterSheet c={c} id={sel} onClose={() => setSel(null)}
@@ -162,6 +163,7 @@ export default function Equipo(c) {
             {!started && (
               <section className="fs-bid raise">
                 <h3>Subir cláusula</h3>
+                {revOpen ? <p className="small muted">Podrás subirla cuando acabe su plazo para recuperarlo (a las {hhmm(o.rev_until)}).</p> : <>
                 <div className="fs-input">
                   <input inputMode="decimal" aria-label="Millones a pagar" placeholder="0" value={inv}
                     onChange={(e) => setInv(e.target.value.replace(/[^0-9.,]/g, ''))} />
@@ -169,6 +171,7 @@ export default function Equipo(c) {
                 </div>
                 {amount > 0 && <div className="row between small"><span className="muted">Nueva cláusula</span><b className="gold">{fmtM(clause + Math.round(amount * 15) / 10)}</b></div>}
                 <button className="btn gold block" disabled={busyInv || !(amount > 0) || amount > free} onClick={raise}>{amount > free ? `Solo tienes ${fmtM(free)}` : `Pagar${amount > 0 ? ' ' + fmtM(amount) : ''}`}</button>
+                </>}
               </section>
             )}
             {!started && marketStarted(c) && (() => {
