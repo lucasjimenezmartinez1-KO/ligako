@@ -416,3 +416,8 @@ table.stand tr.me td { font-weight: 800; }
 .clause-btn.locked { background: rgba(255,140,50,.08); color: #FFB23E; box-shadow: inset 0 0 0 1.5px rgba(255,178,62,.55); cursor: default; }
 .clause-btn.locked span { display: inline-flex; align-items: center; gap: 3px; color: #B9C3D6; }
 .push-card { display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(255,201,60,.35); }
+.day-plan { display: grid; gap: 4px; margin-top: 4px; }
+.day-plan > div { display: flex; gap: 10px; align-items: baseline; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,.03); color: #8D97AB; font-size: 13px; }
+.day-plan b { min-width: 92px; font-family: var(--display); font-size: 15px; color: #C9D1E0; }
+.day-plan .now { background: rgba(255,201,60,.12); color: var(--ink, #fff); box-shadow: inset 3px 0 0 #FFC93C; }
+.day-plan .now.hot { background: linear-gradient(90deg, rgba(255,90,46,.25), rgba(255,178,62,.1)); box-shadow: inset 3px 0 0 #FF5A2E; }

@@ -91,6 +91,13 @@ export default function Mercado(c) {
   }
 
   const started = ph === 'live' || ph === 'finished';
+  // Día del evento: franja de clausulazos sin escudo, mini mercado de libres y cierre
+  const tms = (x) => (x ? new Date(x).getTime() : null);
+  const hm = (x) => new Date(x).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+  const nowT = Date.now();
+  const noShield = tms(c.ev.no_shield_from) != null && nowT >= tms(c.ev.no_shield_from);
+  const clausesClosed = tms(c.ev.clauses_until) != null && nowT >= tms(c.ev.clauses_until);
+  const freeWait = tms(c.ev.free_from) != null && noShield && nowT < tms(c.ev.free_from);
   const st = c.le?.started_at ? new Date(c.le.started_at).getTime() : null;
   const moves = c.moves.filter((mv) => !/^Sorteo:/.test(mv.text) || (st && new Date(mv.created_at).getTime() >= st - 5000));
   return (
@@ -110,6 +117,14 @@ export default function Mercado(c) {
             : started ? 'El evento ya ha empezado. El mercado vuelve a abrirse con la cartelera del siguiente evento numerado.'
             : 'Las pujas ya se han resuelto. Hasta que empiece el evento aún puedes pagar la cláusula de un luchador de otro mánager.'}
         </p>
+        {!started && ph === 'locked' && c.ev.no_shield_from && (
+          <div className="day-plan">
+            <div className={!noShield ? 'now' : ''}><b>Hasta {hm(c.ev.no_shield_from)}</b><span>Cláusulas con escudo y libres</span></div>
+            <div className={noShield && !clausesClosed ? 'now hot' : ''}><b>{hm(c.ev.no_shield_from)}–{hm(c.ev.clauses_until)}</b><span>⚡ Clausulazos sin escudos</span></div>
+            <div className={clausesClosed ? 'now' : ''}><b>{hm(c.ev.free_from)}–{hm(c.ev.starts_at)}</b><span>Mini mercado: fichar libres</span></div>
+            <div><b>{hm(c.ev.starts_at)}</b><span>Empiezan las peleas. Todo cerrado</span></div>
+          </div>
+        )}
       </section>
 
       <MovesFeed c={c} moves={moves} />
@@ -128,8 +143,8 @@ export default function Mercado(c) {
             {rows.filter((o) => !o.owner).sort((a, b) => b.value - a.value).map((o) => (
               <FighterCard key={o.fighter_id} f={c.F[o.fighter_id]} fight={fightOf(o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]}
                 onClick={() => { setSel(o.fighter_id); setErr({}); }}
-                extra={<button type="button" className={`fc-btn ${armed === o.fighter_id ? 'on' : ''}`} disabled={busy === o.fighter_id || team.length >= max || (s?.money || 0) < o.value}
-                  onClick={(e) => { e.stopPropagation(); signFree(o); }}>{armed === o.fighter_id ? `Confirmar ${fmtM(o.value)}` : `Fichar por ${fmtM(o.value)}`}</button>} />
+                extra={<button type="button" className={`fc-btn ${armed === o.fighter_id ? 'on' : ''}`} disabled={freeWait || busy === o.fighter_id || team.length >= max || (s?.money || 0) < o.value}
+                  onClick={(e) => { e.stopPropagation(); signFree(o); }}>{freeWait ? `Abre a las ${hm(c.ev.free_from)}` : armed === o.fighter_id ? `Confirmar ${fmtM(o.value)}` : `Fichar por ${fmtM(o.value)}`}</button>} />
             ))}
           </section>
         </>
@@ -257,7 +272,7 @@ export default function Mercado(c) {
                   <div key={o.fighter_id} className="item">
                     <Avatar f={f} />
                     <div className="grow"><div className="bold ellipsis">{f.name} {o.assigned && <span className="pill blue">Sorteo</span>}</div><div className="xs muted">{fmtM(o.value)} · {fmt(c.exp[o.fighter_id])} pts esp.</div></div>
-                    {!started && (o.shield_until && new Date(o.shield_until).getTime() > now
+                    {!started && clausesClosed ? <span className="clause-btn locked" title="Las cláusulas ya están cerradas"><span>Cerrada</span><b>{fmtM(price)}</b></span> : !started && (!noShield && o.shield_until && new Date(o.shield_until).getTime() > now
                       ? <span className="clause-btn locked" title="Con escudo: todavía no se puede clausular"><span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg> {fmtLeft(new Date(o.shield_until).getTime() - now)}</span><b>{fmtM(price)}</b></span>
                       : <button className={`clause-btn ${armed === o.fighter_id ? 'armed' : ''}`} disabled={busy === o.fighter_id || team.length >= max || avail < price} onClick={() => clause(o)}>
                       <span>{armed === o.fighter_id ? 'Confirmar' : 'Cláusula'}</span><b>{fmtM(price)}</b></button>)}
