@@ -60,13 +60,16 @@ export function scoreFighter(fid, fight, result, stats, preRank, extras = {}) {
   const after = []; // v4: título y mejor clasificado se suman sin multiplicar
 
   if (won) {
-    if (result.method === 'KO') lines.push(['Victoria por KO/TKO', P.fin]);
+    if (result.method === 'DQ') lines.push(['Victoria por descalificación del rival', P.sd]);
+    else if (result.method === 'KO') lines.push(['Victoria por KO/TKO', P.fin]);
     else if (result.method === 'SUB') lines.push(['Victoria por sumisión', P.fin]);
     else if (result.decision === 'UD') lines.push(['Victoria por decisión unánime', P.ud]);
     else lines.push([result.decision === 'MD' ? 'Victoria por decisión mayoritaria' : 'Victoria por decisión dividida', P.sd]);
     if (finish) lines.push(['Finalización en el asalto ' + result.round, result.round === 1 ? 15 : result.round === 2 ? 10 : 5]);
     if (fight.title) (v3 ? lines : after).push(['Gana un combate por el título', P.title]);
     if ((preRank[opp] ?? 16) < (preRank[fid] ?? 16)) (v3 ? lines : after).push(['Gana a un rival mejor clasificado', 10]);
+  } else if (result.winner && result.method === 'DQ') {
+    after.push(['Descalificado', -20]);
   } else if (result.winner && finish) {
     lines.push(['Derrota por finalización', -5]);
   } else if (result.winner) {
@@ -82,7 +85,8 @@ export function scoreFighter(fid, fight, result, stats, preRank, extras = {}) {
 
   // Sanciones (no dar el peso, punto restado) cuentan con el resto; los bonos de la noche van aparte
   const all = extras[fid] || [];
-  all.filter(([t]) => !isNightBonus(t)).forEach(([t, v]) => lines.push([t, Number(v)]));
+  // Sanciones (no dar el peso, puntos restados) se restan enteras, sin multiplicar
+  all.filter(([t]) => !isNightBonus(t)).forEach(([t, v]) => after.push([t, Number(v)]));
 
   const sub = lines.reduce((t, l) => t + l[1], 0);
   const m = slotMult(fight);

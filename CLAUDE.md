@@ -69,7 +69,8 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 | Minuto de control | +0,5 |
 | Ganar un combate por el título | +20 |
 | Ganar a un rival mejor clasificado | +10 |
-| No dar el peso / punto restado | −10 / −5 |
+| No dar el peso / punto restado por el árbitro | −10 / −5 por punto (enteros, sin multiplicar; los puntos restados se leen solos de Wikipedia, `parseDeductions` en `scripts/bonuses.js`) |
+| Descalificado / ganar por descalificación | −20 (entero) / +8 (`DQ` en `mapMethod`) |
 
 Sin bonos por intensidad ni "ida y vuelta" (quitados en v3).
 

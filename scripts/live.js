@@ -8,7 +8,7 @@ import { writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { oddsProb } from './pricing.js';
 import { scoreFighter } from '../shared/scoring.js';
 import { expectedPoints, rawPrice } from './pricing.js';
-import { fetchBonusLines, parseBonuses } from './bonuses.js';
+import { fetchBonusLines, parseBonuses, fetchDeductionLines, parseDeductions } from './bonuses.js';
 import { recordsFor, espnRecords, norm as nrm } from './records.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://vizqrxhulaqzehtlnvpx.supabase.co';
@@ -51,6 +51,7 @@ const strict = (espnName, ours) => norm(espnName) === norm(ours) || tokens(espnN
 
 function mapMethod(res) {
   const t = `${res?.name || ''} ${res?.displayName || ''} ${res?.shortDisplayName || ''}`.toLowerCase();
+  if (/\bdq\b|disqual/.test(t)) return { method: 'DQ' };
   if (/ko|tko/.test(t)) return { method: 'KO' };
   if (/sub/.test(t)) return { method: 'SUB' };
   if (/split/.test(t)) return { method: 'DEC', decision: 'SD' };
@@ -160,6 +161,18 @@ async function syncBonuses(ev, fights, F, espnEv, extrasRows) {
   found.forEach((b) => extrasRows.push(b));
 }
 
+// ───────────── Puntos restados por el árbitro (Wikipedia) ─────────────
+async function syncDeductions(ev, fights, F, extrasRows) {
+  const lines = await fetchDeductionLines(`UFC ${ev.id}`).catch(() => []);
+  if (!lines.length) return;
+  const onCard = fights.filter((f) => f.status !== 'cancelled').flatMap((f) => [F[f.a], F[f.b]]);
+  const found = parseDeductions(lines, onCard).filter((d) => !extrasRows.some((x) => x.fighter_id === d.fighter_id && /restado/.test(x.label)));
+  if (!found.length) return;
+  log(`Puntos restados: ${found.map((d) => `${F[d.fighter_id].name} (${d.pts})`).join(', ')}`);
+  if (!DRY) await q(db.from('event_extras').insert(found.map((d) => ({ event_id: ev.id, ...d }))));
+  found.forEach((d) => extrasRows.push(d));
+}
+
 async function main() {
   await rpc('close_due_markets', {});
 
@@ -203,6 +216,7 @@ async function main() {
 
   const anyDone = (espnEv.competitions || []).some((c) => c.status?.type?.completed);
   if (anyDone) await syncBonuses(ev, fights, F, espnEv, extrasRows);
+  if (anyDone) await syncDeductions(ev, fights, F, extrasRows);
   const extras = {};
   extrasRows.forEach((x) => (extras[x.fighter_id] = extras[x.fighter_id] || []).push([x.label, Number(x.pts)]));
   const preRank = Object.fromEntries(Object.values(F).map((f) => [f.id, f.rank]));

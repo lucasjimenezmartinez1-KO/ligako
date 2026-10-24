@@ -145,7 +145,7 @@ function Predicciones(c) {
 function statusText(f) {
   if (f.status === 'finished') {
     if (f.method === 'DEC') return { UD: 'Decisión unánime', SD: 'Decisión dividida', MD: 'Decisión mayoritaria' }[f.decision] || 'Decisión';
-    return (METHODS[f.method] || f.method || 'Final') + (f.round ? ` · A${f.round} ${f.clock || ''}` : '');
+    return (f.method === 'DQ' ? 'Descalificación' : METHODS[f.method] || f.method || 'Final') + (f.round ? ` · A${f.round} ${f.clock || ''}` : '');
   }
   if (f.status === 'live') return 'En curso' + (f.round ? ` · asalto ${f.round}` : '');
   if (f.status === 'cancelled') return 'Cancelada';

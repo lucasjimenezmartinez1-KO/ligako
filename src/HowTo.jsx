@@ -8,7 +8,7 @@ export const rulesFor = (eventId) => {
     ['Derrota por decisión', '0'], ['Derrota por finalización', '−5'], ['Finalizar en el asalto 1 / 2 / 3+', '+15 / +10 / +5'],
     ['Golpe significativo', '+0,5'], ['Knockdown', '+10'], ['Takedown', '+4'], ['Intento de sumisión', '+3'], ['Minuto de control', '+0,5'],
     ['Ganar un combate por el título', v3 ? '+20' : '+10 (sin multiplicar)'], ['Ganar a un rival mejor clasificado', v3 ? '+10' : '+10 (sin multiplicar)'],
-    ['No dar el peso', '−10'], ['Punto restado', '−5'],
+    ['No dar el peso', '−10 (entero)'], ['Punto restado por el árbitro', '−5 cada uno (entero)'], ['Descalificado', '−20 (entero)'], ['Ganar por descalificación', '+8'],
   ];
 };
 export const RULES = rulesFor(null);
