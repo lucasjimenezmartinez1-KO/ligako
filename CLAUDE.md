@@ -91,6 +91,10 @@ El cambio (v4) depende del `event_id` de la pelea en `slotMult` (`shared/scoring
 
 Se suman enteros después del multiplicador y del tope, en cualquier pelea: pelea de la noche +25, actuación de la noche +20. Se leen solos de Wikipedia (`scripts/bonuses.js`).
 
+### Ganar sin ser favorito
+
+Desde el evento 333 (puesto el mismo día): si gana con menos de un 45 % de probabilidad previa, +5 a +15 (+15 con un 20 % o menos), entero, después del multiplicador y del tope (`underdogBonus` en `shared/scoring.js`; `scripts/live.js` lee la probabilidad de `data/event-<n>.json`). La app no muestra la probabilidad.
+
 El capitán multiplica por 2 su puntuación total del evento.
 
 ## Predicciones

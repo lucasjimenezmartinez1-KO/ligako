@@ -4,7 +4,8 @@
 // - Al terminar: lee los bonos de la noche de Wikipedia; el lunes siguiente liquida el evento (venta automática y dinero).
 // Variables: SUPABASE_SERVICE_KEY (obligatoria), SUPABASE_URL. Opcional: EVENT_ID, FORCE=1, DRY=1.
 import { createClient } from '@supabase/supabase-js';
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, readFileSync, existsSync } from 'node:fs';
+import { oddsProb } from './pricing.js';
 import { scoreFighter } from '../shared/scoring.js';
 import { expectedPoints, rawPrice } from './pricing.js';
 import { fetchBonusLines, parseBonuses } from './bonuses.js';
@@ -173,6 +174,19 @@ async function main() {
 
   const fights = await q(db.from('fights').select('*').eq('event_id', ev.id).order('ord'));
   const F = Object.fromEntries((await q(db.from('fighters').select('*'))).map((f) => [f.id, f]));
+  // Probabilidad de ganar antes de la pelea (para el bonus por ganar sin ser favorito)
+  try {
+    const file = new URL(`../data/event-${ev.id}.json`, import.meta.url);
+    if (existsSync(file)) {
+      const evj = JSON.parse(readFileSync(file, 'utf8'));
+      for (const f of fights) for (const [na, nb, , , oa, ob] of evj.fights) {
+        const key = `${na} vs ${nb}`, p = evj.prob?.[key] ?? (oa != null && ob != null ? oddsProb(oa, ob) : null);
+        if (p == null) continue;
+        if (norm(na) === norm(F[f.a]?.name || '') && norm(nb) === norm(F[f.b]?.name || '')) f.pA = p;
+        else if (norm(na) === norm(F[f.b]?.name || '') && norm(nb) === norm(F[f.a]?.name || '')) f.pA = 1 - p;
+      }
+    }
+  } catch (e) { log('Sin probabilidades: ' + e.message); }
   const extrasRows = await q(db.from('event_extras').select('*').eq('event_id', ev.id));
 
   const day = new Date(start).toISOString().slice(0, 10).replace(/-/g, '');

@@ -26,6 +26,13 @@ export function slotMult(fight) {
 
 const isNightBonus = (label) => /noche/i.test(label);
 
+// Bonus por ganar sin ser favorito (probabilidad de ganar antes de la pelea, solo por dentro):
+// desde el 45 % hacia abajo, de +5 a +15 (con un 20 % o menos). Se suma entero, sin multiplicar ni tope.
+export function underdogBonus(p) {
+  if (p == null || !(p < 0.45)) return 0;
+  return Math.round(Math.min(15, 5 + (10 * (0.45 - p)) / 0.25));
+}
+
 const r1 = (x) => Math.round(x * 10) / 10;
 
 // Minutos totales de pelea a partir del asalto y el reloj ("3:26")
@@ -84,6 +91,10 @@ export function scoreFighter(fid, fight, result, stats, preRank, extras = {}) {
   if (m.cap != null && total > m.cap) { lines.push(['Máximo en ' + m.label.toLowerCase() + ': ' + m.cap, r1(m.cap - total)]); total = m.cap; }
 
   after.forEach(([t, v]) => { lines.push([t, v]); total += v; });
+  if (won && fight.pA != null) {
+    const ub = underdogBonus(fid === fight.a ? fight.pA : 1 - fight.pA);
+    if (ub) { lines.push(['Gana sin ser favorito', ub]); total += ub; }
+  }
   all.filter(([t]) => isNightBonus(t)).forEach(([t, v]) => { lines.push([t, Number(v)]); total += Number(v); });
   return { total: r1(total), lines: lines.map(([t, v]) => [t, r1(v)]) };
 }
