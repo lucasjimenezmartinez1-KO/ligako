@@ -89,7 +89,7 @@ El cambio (v4) depende del `event_id` de la pelea en `slotMult` (`shared/scoring
 
 ### Bonos oficiales de la noche
 
-Se suman enteros después del multiplicador y del tope, en cualquier pelea: pelea de la noche +25, actuación de la noche +20. Se leen solos de Wikipedia (`scripts/bonuses.js`).
+Se suman enteros después del multiplicador y del tope, en cualquier pelea: **pelea de la noche +35** (a los dos), **actuación de la noche +40** (subidos el día del evento 333; antes +25 y +20). Se leen solos de Wikipedia (`scripts/bonuses.js`) cuando están publicados los dos, al terminar la cartelera.
 
 ### Ganar sin ser favorito
 

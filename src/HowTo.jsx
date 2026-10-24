@@ -21,7 +21,7 @@ export const multsFor = (eventId) => {
   ];
 };
 export const MULTS = multsFor(null);
-export const BONUS = [['Pelea de la noche', '+25'], ['Actuación de la noche', '+20'], ['Ganar sin ser favorito', '+5 a +15']];
+export const BONUS = [['Pelea de la noche', '+35'], ['Actuación de la noche', '+40'], ['Ganar sin ser favorito', '+5 a +15']];
 
 const STEPS = (budget) => [
   ['Te toca un luchador', 'Al abrirse cada evento se sortea un luchador de la cartelera para cada mánager. Es tuyo gratis.'],

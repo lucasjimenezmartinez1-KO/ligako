@@ -81,8 +81,8 @@ function simulate(fight) {
   }
   // Bonos de la noche (unos 4 por evento): actuación para algunas finalizaciones, pelea de la noche al azar
   const extras = {};
-  if (method !== 'DEC' && Math.random() < 0.3) extras[W] = [['Actuación de la noche', 20]];
-  if (Math.random() < 1 / 13) for (const P of [W, L]) (extras[P] = extras[P] || []).push(['Pelea de la noche', 25]);
+  if (method !== 'DEC' && Math.random() < 0.3) extras[W] = [['Actuación de la noche', 40]];
+  if (Math.random() < 1 / 13) for (const P of [W, L]) (extras[P] = extras[P] || []).push(['Pelea de la noche', 35]);
   return { result: { winner: W, method, decision, round, clock }, stats, extras };
 }
 
