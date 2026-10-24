@@ -5,5 +5,5 @@ const { data, error } = await sb.rpc('push_status');
 console.log(error ? 'ERROR ' + error.message : JSON.stringify(data));
 const { data: pub } = await sb.rpc('push_public_key');
 const r = await fetch('https://ligako.vercel.app/api/push', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ vapid: { pub: 'x', priv: 'y' } }) });
-console.log('api con clave falsa:', r.status, await r.text(), '· clave pública:', pub ? 'sí' : 'no');
-console.log(`::notice::${error ? error.message : JSON.stringify(data)} · api ${r.status}`);
+const body = (await r.text()).slice(0, 300).replace(/\n/g, ' ');
+console.log(`::notice::${error ? error.message : JSON.stringify(data)} · api ${r.status} ${body} · pub ${pub ? 'sí' : 'no'}`);
