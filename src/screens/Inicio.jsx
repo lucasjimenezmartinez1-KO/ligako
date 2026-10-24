@@ -5,6 +5,7 @@ import { phase, myTeam, maxTeam, oppOf, activeFights, share, mainFights, needTea
 import { HowTo } from '../HowTo.jsx';
 import { InstallHint } from '../InstallHint.jsx';
 import { PushToggle } from '../PushToggle.jsx';
+import { LiveTeam } from '../LiveTeam.jsx';
 import { WaitingRoom, WaveResults, Revenge, ClauseAlerts, SaleOffers, marketStarted } from '../Ready.jsx';
 
 function useNow(ms = 30000) {
@@ -29,6 +30,7 @@ export default function Inicio(c) {
   const cd = countdown(target, now);
   const pos = c.members.findIndex((m) => m.user_id === c.me) + 1;
   const offerLink = `${location.origin}/?liga=${c.league.code}`;
+  const started = ph === 'live' || ph === 'finished';
 
   return (
     <>
@@ -74,14 +76,16 @@ export default function Inicio(c) {
         </FaceOff>
       )}
 
-      <Revenge c={c} />
-      <ClauseAlerts c={c} />
-      <PushToggle />
-      <SaleOffers c={c} />
+      {started ? <LiveTeam c={c} /> : <>
+        <Revenge c={c} />
+        <ClauseAlerts c={c} />
+        <PushToggle />
+        <SaleOffers c={c} />
+      </>}
       {ph === 'market' && !marketStarted(c) && <WaitingRoom c={c} compact />}
       {ph === 'market' && marketStarted(c) && <WaveResults c={c} limit={1} />}
 
-      {assigned && ph !== 'finished' && (ph !== 'market' || marketStarted(c)) && (
+      {assigned && !started && (ph !== 'market' || marketStarted(c)) && (
         <section className="card tight" style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Avatar f={F[assigned.fighter_id]} size="lg" ring="blue" />
           <div className="grow">
@@ -93,7 +97,7 @@ export default function Inicio(c) {
         </section>
       )}
 
-      {ph !== 'finished' && (
+      {!started && (
         <section className="card tight" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 10 }}>
           <Check ok={team.length >= needTeam(c)} text={`Fichajes ${Math.min(team.length, needTeam(c))}/${needTeam(c)}`} onClick={() => c.go('equipo')} />
           <Check ok={!!mySquad?.captain} text={mySquad?.captain ? 'Capitán: ' + F[mySquad.captain].name.split(' ').pop() : 'Sin capitán'} onClick={() => c.go('equipo')} />

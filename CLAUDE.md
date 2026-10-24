@@ -118,7 +118,7 @@ Notificaciones push cuando te hacen un clausulazo, te recuperan un luchador con 
 
 ## Navegación
 
-1. **Inicio:** próximo evento, luchador del sorteo, lista de tareas antes del evento, clasificación.
+1. **Inicio:** próximo evento, luchador del sorteo, lista de tareas antes del evento, clasificación. Con el evento empezado desaparecen cláusulas, ofertas y avisos, y sale **Tus luchadores** (`src/LiveTeam.jsx`): puntos de cada uno (capitán ×2), si está peleando, resultado o la hora aproximada de su pelea (~25 min por pelea desde la última de la cartelera, sin adelantar el inicio de cada parte).
 2. **Mi equipo:** luchadores del evento, capitán, ofertas recibidas.
 3. **Mercado:** arriba los **Movimientos** (los 4 últimos, «Ver todos»; cláusulas en naranja con rayo), luego dos pestañas: **Libres** y **De otros mánagers** (botón de cláusula naranja brillante), y al final el desplegable **Todas las cartas**.
 4. **Eventos:** solo los próximos eventos numerados (cartelera y predicciones).
