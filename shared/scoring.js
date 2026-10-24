@@ -18,8 +18,8 @@ export function slotMult(fight) {
   const v3 = isV3(fight);
   if (fight.title) return { x: v3 ? 1.5 : 1.2, cap: null, label: 'Pelea por el título' };
   if (fight.slot === 'Estelar') return { x: v3 ? 1.25 : 1.1, cap: null, label: 'Pelea estelar' };
-  // Preliminares: evento 333 ×0,8 máx. 50 y primeras ×0,5 máx. 40 (cambiado el día del evento). v4 ×0,75 máx. 50 y ×0,6 máx. 40
-  if (fight.slot === 'Preliminares') return v3 ? { x: 0.8, cap: 50, label: 'Preliminares' } : { x: 0.75, cap: 50, label: 'Preliminares' };
+  // Preliminares: evento 333 ×0,75 máx. 50 y primeras ×0,5 máx. 40 (cambiado el día del evento). v4 ×0,75 máx. 50 y ×0,6 máx. 40
+  if (fight.slot === 'Preliminares') return v3 ? { x: 0.75, cap: 50, label: 'Preliminares' } : { x: 0.75, cap: 50, label: 'Preliminares' };
   if (fight.slot === 'Primeras preliminares') return v3 ? { x: 0.5, cap: 40, label: 'Primeras preliminares' } : { x: 0.6, cap: 40, label: 'Primeras preliminares' };
   return { x: 1, cap: null, label: '' };
 }
