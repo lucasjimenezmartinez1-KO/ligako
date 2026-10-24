@@ -10,6 +10,7 @@ export default function Mercado(c) {
   const toast = useToast();
   const ph = phase(c.ev, c.le);
   const [tab, setTab] = useState('libres');
+  const [showAll, setShowAll] = useState(false);
   const [armed, setArmed] = useState(null);
   const [busy, setBusy] = useState(null);
   const [amounts, setAmounts] = useState({});
@@ -111,8 +112,10 @@ export default function Mercado(c) {
         </p>
       </section>
 
-      <div className="seg">
-        {[['libres', `Libres (${free.length})`], ['cartas', `Todas las cartas (${rows.length})`], ['otros', 'De otros mánagers'], ['mov', 'Movimientos']].map(([k, n]) =>
+      <MovesFeed c={c} moves={moves} />
+
+      <div className="seg seg-2">
+        {[['libres', `Libres (${free.length})`], ['otros', 'De otros mánagers']].map(([k, n]) =>
           <button key={k} className={`chip ${tab === k ? 'on' : ''}`} onClick={() => setTab(k)}>{n}</button>)}
       </div>
 
@@ -166,31 +169,6 @@ export default function Mercado(c) {
           {slots <= 0 && <p className="xs gold">Con tus luchadores y tus pujas ya llenas el equipo ({max}). Retira una puja para pujar por otro.</p>}
         </>
       ))}
-
-      {tab === 'cartas' && (
-        <>
-          <p className="xs muted">Todos los luchadores de la cartelera del evento {c.ev.id}. Toca una carta para ver sus récords.</p>
-          {[['oro', 'Oro · peleas por el título'], ['plata', 'Plata · cartelera principal'], ['bronce', 'Bronce · preliminares']].map(([t, label]) => {
-            const list = rows.filter((o) => tierOf(fightOf(o.fighter_id)) === t).sort((a, b) => b.value - a.value);
-            if (!list.length) return null;
-            return (
-              <section key={t} className="stack" style={{ gap: 10 }}>
-                <h2 className={`h-display tier-h ${t}`}>{label}</h2>
-                <div className="cards-grid">
-                  {list.map((o) => {
-                    const st = statusOf(o); const on = st === 'En puja ahora';
-                    return (
-                      <FighterCard key={o.fighter_id} f={c.F[o.fighter_id]} fight={fightOf(o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]}
-                        mine={o.owner === c.me && marketStarted(c)} onClick={() => { setSel(o.fighter_id); setErr({}); }}
-                        extra={<div className={`fc-btn ${on ? 'on' : ''}`} style={{ textAlign: 'center' }}>{st}</div>} />
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })}
-        </>
-      )}
 
       {sel && c.own[sel] && (() => {
         const o = c.own[sel]; const f = c.F[sel]; const myBid = c.bids[sel]; const fight = fightOf(sel); const opp = oppOf(c, sel);
@@ -281,8 +259,8 @@ export default function Mercado(c) {
                     <div className="grow"><div className="bold ellipsis">{f.name} {o.assigned && <span className="pill blue">Sorteo</span>}</div><div className="xs muted">{fmtM(o.value)} · {fmt(c.exp[o.fighter_id])} pts esp.</div></div>
                     {!started && (o.shield_until && new Date(o.shield_until).getTime() > now
                       ? <span className="shield-pill" title="Recién fichado: no se puede clausular todavía"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /></svg>Escudo {fmtLeft(new Date(o.shield_until).getTime() - now)}</span>
-                      : <button className={`btn sm ${armed === o.fighter_id ? 'gold' : ''}`} disabled={busy === o.fighter_id || team.length >= max || avail < price} onClick={() => clause(o)}>
-                      {armed === o.fighter_id ? `Confirmar ${fmtM(price)}` : `Cláusula ${fmtM(price)}`}</button>)}
+                      : <button className={`clause-btn ${armed === o.fighter_id ? 'armed' : ''}`} disabled={busy === o.fighter_id || team.length >= max || avail < price} onClick={() => clause(o)}>
+                      <span>{armed === o.fighter_id ? 'Confirmar' : 'Cláusula'}</span><b>{fmtM(price)}</b></button>)}
                   </div>
                 );
               })}
@@ -290,21 +268,64 @@ export default function Mercado(c) {
           </section>
         );
       })}
-      {tab === 'otros' && <p className="note">La cláusula cuesta un 25 % más de lo que pagó su dueño (o de su valor, si le tocó en el sorteo) y el dinero se lo lleva él. Solo puedes pagarla si tienes hueco en el equipo, y hasta que empiece el evento. Su dueño puede subirla (cada 1 M que paga la sube 1,5 M). Después de cada fichaje el luchador queda protegido 2 horas (escudo). Si te quitan uno, tienes 30 minutos para recuperarlo pagando lo que pagó el otro más un 10 %.</p>}
+      {tab === 'otros' && <p className="note">Cláusula: 25 % más de lo que pagó su dueño (el dinero es para él). Necesitas hueco en el equipo. Escudo de 2 h tras cada fichaje; si te quitan uno, tienes 30 min para recuperarlo.</p>}
 
-      {tab === 'mov' && (
-        <section className="card" style={{ padding: '4px 14px' }}>
-          <div className="list">
-            {moves.length === 0 ? <p className="muted small" style={{ padding: '12px 0' }}>Aún no hay movimientos.</p>
-              : moves.map((mv) => (
-                <div key={mv.id} className="item small" style={mv.user_ids?.includes(c.me) ? undefined : { color: 'var(--muted)' }}>
-                  <span className="grow">{mv.text}</span><span className="xs muted" style={{ whiteSpace: 'nowrap' }}>{fmtDate(mv.created_at)}</span>
+      <button type="button" className="all-cards-btn" onClick={() => setShowAll(!showAll)} aria-expanded={showAll}>
+        <span>Todas las cartas <b>{rows.length}</b></span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true" style={{ transform: showAll ? 'rotate(180deg)' : 'none' }}><path d="m6 9 6 6 6-6" /></svg>
+      </button>
+      {showAll && (
+        <>
+          <p className="xs muted">Todos los luchadores de la cartelera del evento {c.ev.id}. Toca una carta para ver sus récords.</p>
+          {[['oro', 'Oro · peleas por el título'], ['plata', 'Plata · cartelera principal'], ['bronce', 'Bronce · preliminares']].map(([t, label]) => {
+            const list = rows.filter((o) => tierOf(fightOf(o.fighter_id)) === t).sort((a, b) => b.value - a.value);
+            if (!list.length) return null;
+            return (
+              <section key={t} className="stack" style={{ gap: 10 }}>
+                <h2 className={`h-display tier-h ${t}`}>{label}</h2>
+                <div className="cards-grid">
+                  {list.map((o) => {
+                    const st = statusOf(o); const on = st === 'En puja ahora';
+                    return (
+                      <FighterCard key={o.fighter_id} f={c.F[o.fighter_id]} fight={fightOf(o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]}
+                        mine={o.owner === c.me && marketStarted(c)} onClick={() => { setSel(o.fighter_id); setErr({}); }}
+                        extra={<div className={`fc-btn ${on ? 'on' : ''}`} style={{ textAlign: 'center' }}>{st}</div>} />
+                    );
+                  })}
                 </div>
-              ))}
-          </div>
-        </section>
+              </section>
+            );
+          })}
+        </>
       )}
+
     </>
+  );
+}
+
+// Movimientos de la liga: los últimos arriba del todo del mercado; las cláusulas, en color vivo
+const kindOf = (t) => (/paga la cláusula|Venganza|sube la cláusula/.test(t) ? 'clause' : /ficha |vende a|ficha libre/.test(t) ? 'sign' : '');
+function MovesFeed({ c, moves }) {
+  const [all, setAll] = useState(false);
+  const list = all ? moves : moves.slice(0, 4);
+  return (
+    <section className="card tight mv-feed">
+      <div className="row between"><h2 className="h-display" style={{ fontSize: 20, margin: 0 }}>Movimientos</h2>
+        {moves.length > 4 && <button type="button" className="fs-link" style={{ padding: 0 }} onClick={() => setAll(!all)}>{all ? 'Ver menos' : `Ver todos (${moves.length})`}</button>}</div>
+      {moves.length === 0 ? <p className="muted small" style={{ margin: 0 }}>Aún no hay movimientos.</p> : (
+        <ul className="mv-list">
+          {list.map((mv) => {
+            const k = kindOf(mv.text); const mine = mv.user_ids?.includes(c.me);
+            return (
+              <li key={mv.id} className={`mv ${k} ${mine ? 'mine' : ''}`}>
+                {k === 'clause' && <svg className="mv-ic" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13 2 4 14h6l-1 8 9-12h-6z" /></svg>}
+                <span className="grow">{mv.text}</span><span className="mv-t">{fmtDate(mv.created_at)}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }
 

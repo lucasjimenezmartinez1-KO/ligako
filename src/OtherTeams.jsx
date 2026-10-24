@@ -53,7 +53,7 @@ export function OtherTeams({ c }) {
                         <div className="xs muted"><span className={`tier-dot ${t}`} aria-hidden="true" />{rankLabel(f)} · {fmt(c.exp[o.fighter_id])} pts esp.</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        {started ? <b>{p ? fmt(p.total * (cap ? 2 : 1)) : '—'} pts</b> : <b>{fmtM(clausePrice(o))}</b>}
+                        {started ? <b>{p ? fmt(p.total * (cap ? 2 : 1)) : '—'} pts</b> : <b className="clause-val">{fmtM(clausePrice(o))}</b>}
                         <div className="xs muted">{started ? 'en el evento' : 'cláusula'}</div>
                       </div>
                     </button>

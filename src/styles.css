@@ -392,3 +392,24 @@ table.stand tr.me td { font-weight: 800; }
 .team-row { width: 100%; background: none; border: 0; font: inherit; color: inherit; cursor: pointer; padding: 10px 0; }
 .tier-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
 .tier-dot.oro { background: #E2B04C; } .tier-dot.plata { background: #B8C2CF; } .tier-dot.bronce { background: #C98A5B; }
+
+/* Mercado: movimientos arriba, dos pestañas y cláusulas llamativas */
+.seg-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg-2 .chip { justify-content: center; text-align: center; padding: 11px 8px; font-size: 15px; }
+.mv-feed { gap: 8px; }
+.mv-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.mv { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; line-height: 1.35; padding: 8px 10px; border-radius: 10px; background: var(--card-2); color: var(--muted); }
+.mv.mine { color: var(--ink); }
+.mv.sign { color: var(--ink-2); border-left: 3px solid var(--gold); }
+.mv.clause { color: #FFE2D2; font-weight: 700; background: linear-gradient(90deg, rgba(255,107,44,.28), rgba(255,77,46,.08)); border-left: 3px solid #FF6B2C; }
+.mv-ic { flex: none; color: #FFB23E; margin-top: 2px; filter: drop-shadow(0 0 4px rgba(255,178,62,.8)); }
+.mv-t { flex: none; font-size: 11px; color: var(--dim); white-space: nowrap; margin-top: 2px; }
+.clause-btn { flex: none; display: inline-flex; flex-direction: column; align-items: center; gap: 0; border: 0; border-radius: 12px; padding: 6px 12px; cursor: pointer; font: inherit; color: #1A0700;
+  background: linear-gradient(180deg, #FFB23E, #FF5A2E); box-shadow: 0 0 0 1px rgba(255,140,60,.6), 0 4px 16px rgba(255,90,46,.45); }
+.clause-btn span { font-size: 10px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
+.clause-btn b { font-family: var(--display); font-size: 19px; font-weight: 900; line-height: 1; }
+.clause-btn.armed { background: linear-gradient(180deg, #FFF0A0, #FFC93C); box-shadow: 0 0 0 2px #fff, 0 4px 18px rgba(255,201,60,.7); }
+.clause-btn:disabled { filter: grayscale(.6) brightness(.7); box-shadow: none; cursor: default; }
+.clause-val { color: #FF9A4D; font-family: var(--display); font-size: 18px; font-weight: 900; }
+.all-cards-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--line-2); background: var(--card); color: var(--ink); font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 4px; }
+.all-cards-btn b { color: var(--gold); margin-left: 6px; }

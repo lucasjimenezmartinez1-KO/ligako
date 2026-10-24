@@ -55,10 +55,10 @@ export function useLeague(leagueId, userId) {
         q(supabase.from('league_events').select('*').eq('league_id', leagueId).eq('event_id', E)),
       ]);
       // Si ya pasó la hora de cierre y el mercado sigue abierto, se cierra ahora y se recarga
-      if (le[0] && !le[0].closed_at && Date.now() >= new Date(ev.market_closes_at).getTime() && !synced.closing) {
-        synced.closing = true;
+      // (solo una vez por sesión: si el cierre no se aplica, la app sigue cargando con lo que hay en vez de quedarse en bucle)
+      if (le[0] && !le[0].closed_at && Date.now() >= new Date(ev.market_closes_at).getTime() && !synced.closeTried) {
+        synced.closeTried = true;
         await supabase.rpc('sync_league', { p_league: leagueId });
-        synced.closing = false;
         busy.current = false;
         return load();
       }

@@ -109,7 +109,7 @@ Máx. 12 M por pelea y **50 M en total**. Tras cargar una cartelera nueva hay qu
 
 1. **Inicio:** próximo evento, luchador del sorteo, lista de tareas antes del evento, clasificación.
 2. **Mi equipo:** luchadores del evento, capitán, ofertas recibidas.
-3. **Mercado:** libres (pujas) y de otros mánagers (ofertas y cláusulas).
+3. **Mercado:** arriba los **Movimientos** (los 4 últimos, «Ver todos»; cláusulas en naranja con rayo), luego dos pestañas: **Libres** y **De otros mánagers** (botón de cláusula naranja brillante), y al final el desplegable **Todas las cartas**.
 4. **Eventos:** solo los próximos eventos numerados (cartelera y predicciones).
 5. **Liga:** clasificación, resultados del último evento, historial, reglas y créditos de fotos.
 
