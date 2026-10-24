@@ -7,6 +7,7 @@ async function ourPublicKey() {
   if (pubCache) return pubCache;
   const url = process.env.VITE_SUPABASE_URL, key = process.env.VITE_SUPABASE_ANON_KEY;
   const r = await fetch(`${url}/rest/v1/rpc/push_public_key`, { method: 'POST', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: '{}' });
+  if (!url || !key) throw new Error('faltan variables de Supabase');
   pubCache = await r.json();
   return pubCache;
 }
@@ -16,6 +17,10 @@ async function dropSub(endpoint) {
 }
 
 export default async function handler(req, res) {
+  try { return await run(req, res); } catch (e) { return res.status(500).json({ ok: false, error: String(e && e.message || e).slice(0, 200) }); }
+}
+
+async function run(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
   const b = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : req.body || {};
   const { subs = [], payload = {}, vapid = {} } = b;
