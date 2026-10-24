@@ -2,17 +2,20 @@
 // Solo acepta el par de claves de la liga: la pública se comprueba contra Supabase.
 import webpush from 'web-push';
 
+// Datos públicos (los mismos que usa la app)
+const SB_URL = process.env.VITE_SUPABASE_URL || 'https://vizqrxhulaqzehtlnvpx.supabase.co';
+const SB_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_lUI5vonaUzj-6fPG6x_YVQ_CrCPDaSe';
 let pubCache = null;
 async function ourPublicKey() {
   if (pubCache) return pubCache;
-  const url = process.env.VITE_SUPABASE_URL, key = process.env.VITE_SUPABASE_ANON_KEY;
+  const url = SB_URL, key = SB_KEY;
   const r = await fetch(`${url}/rest/v1/rpc/push_public_key`, { method: 'POST', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: '{}' });
   if (!url || !key) throw new Error('faltan variables de Supabase');
   pubCache = await r.json();
   return pubCache;
 }
 async function dropSub(endpoint) {
-  const url = process.env.VITE_SUPABASE_URL, key = process.env.VITE_SUPABASE_ANON_KEY;
+  const url = SB_URL, key = SB_KEY;
   await fetch(`${url}/rest/v1/rpc/drop_push_sub`, { method: 'POST', headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_endpoint: endpoint }) }).catch(() => {});
 }
 
