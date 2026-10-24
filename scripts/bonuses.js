@@ -3,7 +3,7 @@ const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().rep
 
 export async function fetchBonusLines(pageTitle) {
   const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=wikitext&redirects=1&format=json&formatversion=2`;
-  const r = await fetch(url, { headers: { 'User-Agent': 'LigaKO/1.0 (fantasy MMA entre amigos)' } });
+  const r = await fetch(url, { headers: { 'User-Agent': 'LigaKO/1.0 (fantasy MMA entre amigos)' }, signal: AbortSignal.timeout(15000) });
   if (!r.ok) return [];
   const w = (await r.json()).parse?.wikitext || '';
   return w.split('\n')
@@ -33,7 +33,7 @@ export function parseBonuses(lines, fighters) {
 // Puntos restados por el árbitro: frases de la página del evento que hablan de "deducted"
 export async function fetchDeductionLines(pageTitle) {
   const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&prop=wikitext&redirects=1&format=json&formatversion=2`;
-  const r = await fetch(url, { headers: { 'User-Agent': 'LigaKO/1.0 (fantasy MMA entre amigos)' } });
+  const r = await fetch(url, { headers: { 'User-Agent': 'LigaKO/1.0 (fantasy MMA entre amigos)' }, signal: AbortSignal.timeout(15000) });
   if (!r.ok) return [];
   const w = (await r.json()).parse?.wikitext || '';
   return w.replace(/<ref[^>]*\/>/g, '').replace(/<ref[\s\S]*?<\/ref>/g, '').split(/\n|(?<=\.)\s+/)

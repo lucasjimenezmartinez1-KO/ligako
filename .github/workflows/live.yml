@@ -45,7 +45,7 @@ jobs:
           n=4; [ -n "${{ github.event.inputs.minutes }}" ] && n=${{ github.event.inputs.minutes }}
           end=$(( $(date +%s) + n * 60 ))
           while :; do
-            if node scripts/live.js; then ok=1; fi
+            if timeout 150 node scripts/live.js; then ok=1; fi
             [ -f /tmp/notlive ] && break
             [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -z "${{ github.event.inputs.minutes }}" ] && break
             [ $(date +%s) -ge $end ] && break
