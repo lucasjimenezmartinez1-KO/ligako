@@ -2,6 +2,9 @@ name: Fotos de luchadores
 
 on:
   workflow_dispatch:
+  schedule:
+    # Cada día: fotos para los luchadores de la cartelera que aún no tienen
+    - cron: '15 6 * * *'
 
 permissions:
   contents: write
