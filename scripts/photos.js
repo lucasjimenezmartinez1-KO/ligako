@@ -31,18 +31,22 @@ const usable = (f, name) => {
   const md = f.extmetadata || {};
   const lic = md.LicenseShortName?.value;
   if (!OK_LICENSE(lic) || !/jpe?g|png|webp/.test(f.mime) || f.width < 250 || f.height < 250) return null;
-  const last = norm(name).split(' ').pop();
-  if (!norm(f.title).includes(last)) return null;
+  if (!norm(f.title).includes(norm(name))) return null;   // nombre completo en el archivo
   return { url: f.thumburl || f.url, credit: `${strip(md.Artist?.value) || 'Autor desconocido'} · ${lic} · https://commons.wikimedia.org/wiki/${encodeURIComponent(f.title.replace(/ /g, '_'))}` };
 };
 
 async function findPhoto(name) {
   // 1) Imagen del artículo de Wikipedia
-  const w = await api('en.wikipedia.org', { action: 'query', titles: name, redirects: '1', prop: 'pageimages', piprop: 'name' });
-  const img = w?.query?.pages?.[0]?.pageimage;
-  if (img) { const [f] = await fileInfo(['File:' + img]); const u = f && usable(f, name); if (u) return u; }
+  // (solo si el artículo es de un luchador: hay muchos homónimos)
+  for (const t of [`${name} (fighter)`, name]) {
+    const w = await api('en.wikipedia.org', { action: 'query', titles: t, redirects: '1', prop: 'pageimages|description', piprop: 'name' });
+    const pg = w?.query?.pages?.[0];
+    if (!pg || pg.missing || !/martial|fighter|mma|kickbox|wrestl|boxer|jiu/i.test(pg.description || '')) continue;
+    if (pg.pageimage) { const [f] = await fileInfo(['File:' + pg.pageimage]); const u = f && usable(f, name); if (u) return u; }
+    break;
+  }
   // 2) Búsqueda en Commons
-  const s = await api('commons.wikimedia.org', { action: 'query', list: 'search', srsearch: `"${name}"`, srnamespace: '6', srlimit: '10' });
+  const s = await api('commons.wikimedia.org', { action: 'query', list: 'search', srsearch: `"${name}" (UFC OR MMA OR fighter OR fight)`, srnamespace: '6', srlimit: '10' });
   const titles = (s?.query?.search || []).map((x) => x.title);
   if (!titles.length) return null;
   const infos = await fileInfo(titles);
