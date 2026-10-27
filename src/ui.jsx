@@ -29,10 +29,13 @@ export const Belt = () => (
 
 function Side({ f, side }) {
   const hero = HERO[f.id];
+  // Portada: foto grande (/hero), si no la de la carta (/cards), si no la pequeña
+  const srcs = [`/hero/${f.id}.jpg`, `/cards/${f.id}.jpg`, f.photo].filter(Boolean);
+  const [i, setI] = useState(0);
+  const src = srcs[i];
   return (
     <div className={`fo-side ${side}`}>
-      {hero ? <img src={`/hero/${f.id}.jpg`} alt={f.name} style={{ objectPosition: hero }} />
-        : f.photo ? <img src={f.photo} alt={f.name} style={{ objectPosition: '50% 30%' }} />
+      {src ? <img src={src} alt={f.name} style={{ objectPosition: hero || '50% 22%' }} onError={() => setI(i + 1)} />
         : <div className="ph"><svg width="120" height="140" viewBox="0 0 40 46" aria-hidden="true"><circle cx="20" cy="15" r="9" fill="#2A303B" /><path d="M2 46c1-12 8-17 18-17s17 5 18 17z" fill="#2A303B" /></svg></div>}
       <div className="tint" aria-hidden="true" />
     </div>

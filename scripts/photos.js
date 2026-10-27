@@ -24,7 +24,7 @@ const OK_LICENSE = (l) => /^(cc[ -]by(-sa)?[ -]?[\d.]*|cc0|public domain|pd)/i.t
 const strip = (h) => String(h || '').replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
 
 async function fileInfo(titles) {
-  const d = await api('commons.wikimedia.org', { action: 'query', titles: titles.join('|'), prop: 'imageinfo', iiprop: 'url|extmetadata|size|mime', iiurlwidth: '700' });
+  const d = await api('commons.wikimedia.org', { action: 'query', titles: titles.join('|'), prop: 'imageinfo', iiprop: 'url|extmetadata|size|mime', iiurlwidth: '900' });
   return (d?.query?.pages || []).filter((p) => p.imageinfo?.[0]).map((p) => ({ title: p.title, ...p.imageinfo[0] }));
 }
 const usable = (f, name) => {
@@ -51,10 +51,11 @@ async function findPhoto(name) {
 }
 
 const ev = (await db.from('events').select('id').neq('status', 'finished').order('starts_at').limit(1)).data[0];
-const fights = (await db.from('fights').select('a,b,status').eq('event_id', ev.id)).data.filter((f) => f.status !== 'cancelled');
+const fights = (await db.from('fights').select('a,b,status,ord').eq('event_id', ev.id)).data.filter((f) => f.status !== 'cancelled');
+const mainIds = fights.filter((f) => f.ord === Math.min(...fights.map((x) => x.ord))).flatMap((f) => [f.a, f.b]);
 const ids = fights.flatMap((f) => [f.a, f.b]);
 const fighters = (await db.from('fighters').select('id,name,photo').in('id', ids)).data;
-const missing = fighters.filter((f) => !f.photo || !fs.existsSync(`public/cards/${f.id}.jpg`));
+const missing = fighters.filter((f) => !f.photo || !fs.existsSync(`public/cards/${f.id}.jpg`) || (mainIds.includes(f.id) && !fs.existsSync(`public/hero/${f.id}.jpg`)));
 log(`${ids.length} luchadores en la cartelera, ${missing.length} sin foto o sin carta`);
 const found = [], notFound = [];
 for (const f of missing) {
@@ -66,7 +67,9 @@ for (const f of missing) {
   const buf = Buffer.from(await r.arrayBuffer());
   fs.mkdirSync('public/fighters', { recursive: true }); fs.mkdirSync('public/cards', { recursive: true });
   if (!f.photo) await sharp(buf).resize(80, 80, { fit: 'cover', position: sharp.strategy.attention }).webp({ quality: 80 }).toFile(`public/fighters/${f.id}.webp`);
-  await sharp(buf).resize(300, 360, { fit: 'cover', position: sharp.strategy.attention }).jpeg({ quality: 82 }).toFile(`public/cards/${f.id}.jpg`);
+  if (!fs.existsSync(`public/cards/${f.id}.jpg`)) await sharp(buf).resize(300, 360, { fit: 'cover', position: sharp.strategy.attention }).jpeg({ quality: 82 }).toFile(`public/cards/${f.id}.jpg`);
+  // Foto grande para la portada de Inicio (pelea estelar)
+  if (mainIds.includes(f.id)) { fs.mkdirSync('public/hero', { recursive: true }); await sharp(buf).resize(360, 480, { fit: 'cover', position: sharp.strategy.attention }).jpeg({ quality: 84 }).toFile(`public/hero/${f.id}.jpg`); }
   if (!f.photo) await db.from('fighters').update({ photo: `/fighters/${f.id}.webp`, photo_credit: p.credit }).eq('id', f.id);
   found.push(f.name);
 }
