@@ -440,3 +440,12 @@ table.stand tr.me td { font-weight: 800; }
 .lt-pts span { font-size: 11px; color: #8D97AB; }
 .lt-total { border-top: 1px solid var(--line, #2A3140); padding-top: 10px; font-size: 15px; }
 .lt-total b { font-family: var(--display); font-size: 22px; color: var(--gold, #FFC93C); }
+/* Portada sin foto: apellido gigante en relieve sobre el color de su esquina */
+.fo-typo { position: absolute; inset: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 0; }
+.fo-side.l .fo-typo { background: radial-gradient(120% 90% at 30% 30%, #7A1E24, #2A0B0E 70%); align-items: flex-start; padding-left: 8px; }
+.fo-side.r .fo-typo { background: radial-gradient(120% 90% at 70% 30%, #1E3C8A, #0B1430 70%); align-items: flex-end; padding-right: 8px; }
+.fo-typo span { font-family: var(--display); font-weight: 900; font-size: 78px; line-height: .86; text-transform: uppercase; letter-spacing: -1px; color: transparent; -webkit-text-stroke: 1.5px rgba(255,255,255,.14); white-space: nowrap; }
+.fo-typo span:nth-child(2) { -webkit-text-stroke: 0; color: rgba(255,255,255,.08); }
+.fo-typo b { position: absolute; top: 46%; transform: translateY(-50%); font-family: var(--display); font-weight: 900; font-size: 92px; line-height: 1; color: rgba(255,255,255,.92); text-shadow: 0 6px 30px rgba(0,0,0,.5); }
+.fo-side.l .fo-typo b { left: 9%; }
+.fo-side.r .fo-typo b { right: 9%; }

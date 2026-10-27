@@ -27,17 +27,17 @@ export const Belt = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true"><rect x="2" y="8" width="20" height="8" rx="2" /><circle cx="12" cy="12" r="2.5" /></svg>
 );
 
-function Side({ f, side }) {
+// Lado de la portada. Si no hay foto con licencia (o se pide "typo"), un diseño tipográfico con el apellido
+function Side({ f, side, typo }) {
   const hero = HERO[f.id];
-  // Portada: foto grande (/hero), si no la de la carta (/cards), si no la pequeña
-  const srcs = [`/hero/${f.id}.jpg`, `/cards/${f.id}.jpg`, f.photo].filter(Boolean);
+  const srcs = typo ? [] : [`/hero/${f.id}.jpg`, `/cards/${f.id}.jpg`, f.photo].filter(Boolean);
   const [i, setI] = useState(0);
   const src = srcs[i];
+  const last = f.name.replace(/ Jr\.$/, '').split(' ').pop();
   return (
     <div className={`fo-side ${side}`}>
-      {src ? <img src={src} alt={f.name} style={{ objectPosition: hero || '50% 22%' }} onError={() => setI(i + 1)} />
-        : <div className="ph"><svg width="120" height="140" viewBox="0 0 40 46" aria-hidden="true"><circle cx="20" cy="15" r="9" fill="#2A303B" /><path d="M2 46c1-12 8-17 18-17s17 5 18 17z" fill="#2A303B" /></svg></div>}
-      <div className="tint" aria-hidden="true" />
+      {src ? <><img src={src} alt={f.name} style={{ objectPosition: hero || '50% 22%' }} onError={() => setI(i + 1)} /><div className="tint" aria-hidden="true" /></>
+        : <div className="fo-typo" aria-hidden="true"><span>{last}</span><span>{last}</span><span>{last}</span><b>{initials(f.name)}</b></div>}
     </div>
   );
 }
