@@ -31,7 +31,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ github.event.inputs.minutes && 360 || 6 }}
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -42,7 +42,8 @@ jobs:
       - name: Leer resultados (durante el evento, cada minuto)
         run: |
           rm -f /tmp/notlive; ok=0
-          n=4; [ -n "${{ github.event.inputs.minutes }}" ] && n=${{ github.event.inputs.minutes }}
+          # Programado: durante el evento sigue leyendo cada minuto hasta 340 min (fuera del evento termina enseguida)
+          n=340; [ -n "${{ github.event.inputs.minutes }}" ] && n=${{ github.event.inputs.minutes }}
           end=$(( $(date +%s) + n * 60 ))
           while :; do
             if timeout 150 node scripts/live.js; then ok=1; fi

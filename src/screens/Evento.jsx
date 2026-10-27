@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
-import { DIVS, METHODS, fmt, fmtM, fmtDate, fmtTime, rankLabel, surname } from '../format.js';
+import { DIVS, METHODS, fmt, fmtM, fmtDate, fmtTime, rankLabel, surname, evName } from '../format.js';
 import { Avatar, FaceOff, OwnerTag, useToast } from '../ui.jsx';
 import { phase, slotGroups, activeFights , mainFights } from '../helpers.js';
 
@@ -13,8 +13,8 @@ export default function Evento(c) {
   return (
     <>
       <header className="stack" style={{ gap: 4 }}>
-        <span className="eyebrow">{started ? (ph === 'live' ? 'En directo' : 'Evento terminado') : 'Próximo evento numerado'}</span>
-        <h1 className="h-display h1">Evento <span className="red">{c.ev.id}</span></h1>
+        <span className="eyebrow">{started ? (ph === 'live' ? 'En directo' : 'Evento terminado') : 'Próximo evento'}</span>
+        <h1 className="h-display h1">{c.ev.id < 1000 ? <>Evento <span className="red">{c.ev.id}</span></> : <>Velada <span className="red">{evName(c.ev).replace('Velada del ', '')}</span></>}</h1>
         <span className="small muted">{fmtDate(c.ev.starts_at)} · {c.ev.place} · {activeFights(c).length} peleas</span>
       </header>
       <div className="seg">
@@ -109,7 +109,7 @@ function Predicciones(c) {
 
   return (
     <>
-      <p className="small muted">Acierta el ganador, el método y el asalto. Cuanto más difícil sea lo que aciertas, más dinero ganas: hasta 12 M por pelea y 50 M en total, que se suman a tus 200 M del siguiente evento. Se cierran cuando empieza la primera pelea.</p>
+      <p className="small muted">Acierta el ganador, el método y el asalto. Cuanto más difícil sea lo que aciertas, más dinero ganas: hasta 12 M por pelea y 50 M en total, que se suman a tu presupuesto del siguiente evento. Se cierran cuando empieza la primera pelea.</p>
       {mainFights(c).map((f) => {
         const p = P[f.id] || null;
         const rounds = Array.from({ length: f.rounds }, (_, i) => i + 1);

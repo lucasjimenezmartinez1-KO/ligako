@@ -35,7 +35,7 @@ export default function Auth() {
       <div className="stack" style={{ gap: 12 }}>
         <div className="split-bar"><span /><span /></div>
         <div className="hero-word">Liga <b>KO</b></div>
-        <p className="muted">El fantasy de MMA para jugar con tus amigos. Ficha luchadores en cada evento numerado y suma puntos en directo con cada golpe.</p>
+        <p className="muted">El fantasy de MMA para jugar con tus amigos. Ficha luchadores en cada evento y suma puntos en directo con cada golpe.</p>
       </div>
       <div className="seg" role="tablist">
         <button className={`chip ${mode === 'signup' ? 'on' : ''}`} onClick={() => setMode('signup')} role="tab" aria-selected={mode === 'signup'}>Crear cuenta</button>

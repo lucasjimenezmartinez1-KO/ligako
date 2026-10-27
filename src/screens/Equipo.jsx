@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
-import { fmt, fmtM, fmtDate } from '../format.js';
+import { fmt, fmtM, fmtDate, evName } from '../format.js';
 import { useToast } from '../ui.jsx';
 import { FighterCard } from '../Card.jsx';
 import { FighterSheet } from '../FighterSheet.jsx';
@@ -66,7 +66,7 @@ export default function Equipo(c) {
             <span>Te {missing === 1 ? 'falta 1' : `faltan ${missing}`}{pending.length ? ` · ${pending.length === 1 ? 'tienes 1 puja' : `tienes ${pending.length} pujas`} en marcha` : ''}. El mercado cierra el {fmtDate(c.ev.market_closes_at)}. Si empiezas el evento con menos de {need}, pierdes 5 puntos por cada uno que falte.</span>
           </div>
         )}
-        <p className="small muted">Para el evento {c.ev.id}. Todos tus luchadores puntúan y el capitán puntúa doble. Si empiezas el evento con menos de 5 luchadores, pierdes 5 puntos por cada uno que falte.</p>
+        <p className="small muted">Para la cartelera: {evName(c.ev)}. Todos tus luchadores puntúan y el capitán puntúa doble. Si empiezas el evento con menos de 5 luchadores, pierdes 5 puntos por cada uno que falte.</p>
         <div className="row between small"><span className="muted">Presupuesto de este evento</span><b>{fmtM(s?.start_money)}</b></div>
         <div className="row between small"><span className="muted">{started ? 'Dinero' : 'Te queda'}</span><b className="gold">{fmtM(s?.money)}</b></div>
         {started && Number(s?.penalty) > 0 && <div className="row between small"><span className="red">Penalización por equipo incompleto</span><b className="red">−{fmt(s.penalty)}</b></div>}

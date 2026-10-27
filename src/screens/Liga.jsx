@@ -1,5 +1,5 @@
 import { supabase } from '../supabase.js';
-import { fmt } from '../format.js';
+import { fmt, evShort } from '../format.js';
 import { useToast } from '../ui.jsx';
 import { share } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
@@ -34,7 +34,7 @@ export default function Liga(c) {
 
       <section className="card" style={{ padding: '6px 14px' }}>
         <table className="stand">
-          <thead><tr><th>#</th><th>Mánager</th><th className="num">{c.ev.id}</th><th className="num">Total</th></tr></thead>
+          <thead><tr><th>#</th><th>Mánager</th><th className="num">{evShort(c.ev)}</th><th className="num">Total</th></tr></thead>
           <tbody>
             {c.members.map((m, i) => (
               <tr key={m.user_id} className={m.user_id === c.me ? 'me' : ''}>
@@ -53,7 +53,7 @@ export default function Liga(c) {
         </div>
       </section>
 
-      <HowTo budget={200} eventId={c.ev?.id} />
+      <HowTo budget={c.ev?.budget || 200} eventId={c.ev?.id} />
 
 
 

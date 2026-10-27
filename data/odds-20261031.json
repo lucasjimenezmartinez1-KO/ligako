@@ -1,0 +1,18 @@
+{
+  "source": "Cuotas de apertura (MMAOddsBreaker), 27 oct 2026. Petroski vs Bekoev se cae (Bekoev se retira).",
+  "odds": {
+    "Tom Nolan vs Renato Moicano": [-170, 149],
+    "Jacobe Smith vs Randy Brown": [-350, 284],
+    "Luana Santos vs Yana Santos": [-250, 207],
+    "Cody Durden vs Ode' Osbourne": [-110, -110],
+    "Jean-Paul Lebosnoyani vs Farman Hasanov": [-175, 153],
+    "Francis Marshall vs Dakota Hope": [-205, 177],
+    "Rodrigo Sezinando vs Theodor Berggren": [-220, 186],
+    "JeongYeong Lee vs Julian Erosa": [-300, 245],
+    "Joe Kropschot vs Nick Klein": [-215, 183],
+    "Piera Rodriguez vs Talita Alencar": [-195, 170],
+    "Lucia Szabová vs Tainara Lisboa": [-400, 316],
+    "Mickey Gall vs Zach Reese": [-900, 575]
+  },
+  "cancelled": ["Andre Petroski vs Azamat Bekoev"]
+}

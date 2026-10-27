@@ -100,7 +100,7 @@ function Shell({ leagueId, userId, leagues, onSwitch }) {
       <main className="screen">
         {data.loading ? <><div className="skeleton" style={{ height: 300 }} /><div className="skeleton" /></>
           : data.error ? <div className="card"><p>No se ha podido cargar la liga: {errText(data.error)}</p><button className="btn" onClick={reload}>Reintentar</button></div>
-          : data.empty ? <div className="card"><p>Todavía no hay ningún evento numerado programado.</p></div>
+          : data.empty ? <div className="card"><p>Todavía no hay ningún evento programado. Se carga solo en cuanto se conoce la siguiente cartelera.</p></div>
           : tab === 'inicio' ? <Inicio {...ctx} />
           : tab === 'evento' ? <Evento {...ctx} />
           : tab === 'mercado' ? <Mercado {...ctx} />

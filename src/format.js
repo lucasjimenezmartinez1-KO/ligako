@@ -27,3 +27,13 @@ export function countdown(target, now = Date.now()) {
   const m = Math.floor(s / 60);
   return { d, h, m, done: new Date(target).getTime() <= now };
 }
+
+// Nombre del evento sin marca: "Evento 333" (numerados) o "Velada del 31 oct" (sin número)
+const MES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+export function evName(ev) {
+  if (!ev) return '';
+  if (ev.id < 1000) return 'Evento ' + ev.id;
+  const d = new Date(new Date(ev.starts_at).toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+  return `Velada del ${d.getDate()} ${MES[d.getMonth()]}`;
+}
+export const evShort = (ev) => (!ev ? '' : ev.id < 1000 ? String(ev.id) : 'Velada');

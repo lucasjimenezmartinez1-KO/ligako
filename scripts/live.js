@@ -9,6 +9,7 @@ import { oddsProb } from './pricing.js';
 import { scoreFighter } from '../shared/scoring.js';
 import { expectedPoints, rawPrice } from './pricing.js';
 import { fetchBonusLines, parseBonuses, fetchDeductionLines, parseDeductions } from './bonuses.js';
+import { loadNextEvent } from './next-event.js';
 import { recordsFor, espnRecords, norm as nrm } from './records.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://vizqrxhulaqzehtlnvpx.supabase.co';
@@ -97,7 +98,7 @@ async function syncCard(ev, fights, F, espnEv) {
   const still = fights.filter((f) => f.status !== 'cancelled');
   let ord = Math.max(0, ...fights.map((f) => f.ord));
   for (const c of comps) {
-    if (isCancelled(c) || still.some((f) => matchComp([c], f, F))) continue;
+    if (isCancelled(c) || fights.some((f) => matchComp([c], f, F))) continue;   // también las ya caídas: no se vuelven a añadir
     const names = c.competitors.map((x) => x.athlete?.displayName || '');
     if (names.some((n) => !n || /tba/i.test(n))) continue;
     // Buscar (o dar de alta) a los dos luchadores
@@ -151,7 +152,7 @@ async function syncRecords(fights, F, espnEv) {
 // ───────────── Bonos de la noche (Wikipedia) ─────────────
 async function syncBonuses(ev, fights, F, espnEv, extrasRows) {
   if (extrasRows.some((x) => /noche/i.test(x.label))) return;
-  let lines = await fetchBonusLines(`UFC ${ev.id}`).catch(() => []);
+  let lines = await fetchBonusLines(ev.wiki || `UFC ${ev.id}`).catch(() => []);
   if (!lines.length) lines = await fetchBonusLines(espnEv.name || '').catch(() => []);
   const onCard = fights.filter((f) => f.status !== 'cancelled').flatMap((f) => [F[f.a], F[f.b]]);
   const found = parseBonuses(lines, onCard);
@@ -164,7 +165,7 @@ async function syncBonuses(ev, fights, F, espnEv, extrasRows) {
 
 // ───────────── Puntos restados por el árbitro (Wikipedia) ─────────────
 async function syncDeductions(ev, fights, F, extrasRows) {
-  const lines = await fetchDeductionLines(`UFC ${ev.id}`).catch(() => []);
+  const lines = await fetchDeductionLines(ev.wiki || `UFC ${ev.id}`).catch(() => []);
   if (!lines.length) return;
   const onCard = fights.filter((f) => f.status !== 'cancelled').flatMap((f) => [F[f.a], F[f.b]]);
   const found = parseDeductions(lines, onCard).filter((d) => !extrasRows.some((x) => x.fighter_id === d.fighter_id && /restado/.test(x.label)));
@@ -180,7 +181,12 @@ async function main() {
   const ev = process.env.EVENT_ID
     ? (await q(db.from('events').select('*').eq('id', Number(process.env.EVENT_ID))))[0]
     : (await q(db.from('events').select('*').neq('status', 'finished').order('starts_at').limit(1)))[0];
-  if (!ev) { log('No hay evento pendiente'); return; }
+  if (!ev) {   // entre eventos: se carga la siguiente cartelera en cuanto ESPN la tiene
+    if (process.env.LOOP_FLAG) writeFileSync(process.env.LOOP_FLAG, '1');
+    log('No hay evento pendiente: busco la siguiente cartelera');
+    if (!DRY) await loadNextEvent(db, { log }).catch((e) => log('No se pudo cargar la siguiente cartelera: ' + e.message));
+    return;
+  }
   const start = new Date(ev.starts_at).getTime();
   // Fuera del directo, el workflow no repite la lectura cada minuto
   if (process.env.LOOP_FLAG && !(Date.now() >= start - 20 * 60e3 && Date.now() < start + 10 * 3600e3)) writeFileSync(process.env.LOOP_FLAG, '1');
@@ -188,8 +194,9 @@ async function main() {
 
   const fights = await q(db.from('fights').select('*').eq('event_id', ev.id).order('ord'));
   const F = Object.fromEntries((await q(db.from('fighters').select('*'))).map((f) => [f.id, f]));
-  // Probabilidad de ganar antes de la pelea (para el bonus por ganar sin ser favorito)
-  try {
+  // Probabilidad de ganar antes de la pelea (para el bonus por ganar sin ser favorito): de la base de datos o del fichero del evento
+  for (const f of fights) if (f.pa != null) f.pA = Number(f.pa);
+  if (fights.some((f) => f.pA == null)) try {
     const file = new URL(`../data/event-${ev.id}.json`, import.meta.url);
     if (existsSync(file)) {
       const evj = JSON.parse(readFileSync(file, 'utf8'));
@@ -205,7 +212,7 @@ async function main() {
 
   const day = new Date(start).toISOString().slice(0, 10).replace(/-/g, '');
   const board = await get(`${SITE}?dates=${day}`);
-  const espnEv = (board.events || []).find((e) => new RegExp(`\\b${ev.id}\\b`).test(e.name)) ||
+  const espnEv = (board.events || []).find((e) => (ev.espn_id && String(e.id) === String(ev.espn_id)) || (ev.id < 1000 && new RegExp(`\\b${ev.id}\\b`).test(e.name))) ||
     (board.events || []).find((e) => (e.competitions || []).length >= 5);
   if (!espnEv) { log('ESPN no tiene el evento todavía'); return; }
 
@@ -283,14 +290,15 @@ async function main() {
 
   log(`Evento ${ev.id} (${espnEv.name}): ${fights.filter((x) => x.status !== 'cancelled').length} peleas, ${fights.filter((x) => x.status === 'finished').length} terminadas, ${fights.filter((x) => x.status === 'cancelled').length} caídas`);
 
-  // Cierre del evento: se deja el domingo y el lunes por la mañana para ver los resultados.
-  // El lunes siguiente al evento a las 10:00 (hora de España) se venden los luchadores y se reparte el dinero.
   const now = fights.filter((x) => x.status !== 'cancelled');
   const allDone = now.length > 0 && now.every((x) => x.status === 'finished');
-  const settleAt = mondayAfter(start);
+  // Dos días después de la última pelea se cierra el evento y se carga el siguiente
+  const end = Math.max(...now.map((x) => new Date(x.updated_at || ev.starts_at).getTime()));
+  const settleAt = end + 2 * 864e5;
   if (allDone && Date.now() >= settleAt) {
-    log(`Evento ${ev.id} terminado: venta automática y reparto del dinero`);
+    log(`Evento ${ev.id} terminado: venta automática, reparto del dinero y siguiente cartelera`);
     await rpc('settle_event', { p_event: ev.id });
+    if (!DRY) await loadNextEvent(db, { log }).catch((e) => log('No se pudo cargar la siguiente cartelera: ' + e.message));
   } else if (allDone) log(`Evento ${ev.id}: peleas terminadas; la venta será el ${new Date(settleAt).toISOString().slice(0, 16)} UTC`);
 }
 

@@ -28,7 +28,7 @@ const STEPS = (budget) => [
   ['Ficha en el mercado', `Tienes ${fmtM(budget)} por evento. Los luchadores salen al mercado por etapas (de 21:00 a 12:00 y de 12:00 a 21:00): puja por ellos antes de que cierre su etapa. Los que nadie ficha vuelven a salir en las etapas siguientes. Las pujas son secretas (solo se ve cuántos han pujado) y gana la más alta. Los buenos son caros: tú decides si una estrella o varios baratos.`],
   ['Elige capitán', 'Tu capitán puntúa el doble. Todos tus luchadores puntúan, no hay banquillo. Tienes que tener 5: por cada uno que te falte cuando empiece el evento, pierdes 5 puntos.'],
   ['Predice las peleas', 'En las 5 peleas de la cartelera principal: acierta ganador, método y asalto. Cuanto más difícil, más dinero (hasta 12 M por pelea y 50 M en total) para el siguiente evento.'],
-  ['Sigue el evento en directo', 'Los puntos se actualizan solos según acaba cada pelea. Cada evento empezáis todos con 200 M más lo que ganasteis prediciendo en el anterior.'],
+  ['Sigue el evento en directo', 'Los puntos se actualizan solos según acaba cada pelea. Cada evento empezáis todos con el mismo presupuesto (200 M en los eventos numerados, 100 M en las veladas) más lo que ganasteis prediciendo en el anterior.'],
 ];
 
 export function HowTo({ budget = 100, open = false, eventId }) {

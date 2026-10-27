@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase, errText } from '../supabase.js';
-import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname } from '../format.js';
+import { DIVS, fmt, fmtM, fmtDate, rankLabel, surname, evName } from '../format.js';
 import { Avatar, useToast } from '../ui.jsx';
 import { FighterCard, Streak, fmtLeft, tierOf } from '../Card.jsx';
 import { WaitingRoom, WaveResults, Revenge, marketStarted } from '../Ready.jsx';
@@ -116,7 +116,7 @@ export default function Mercado(c) {
         </div>
         <p className="xs muted">
           {ph === 'market' ? 'Pujas secretas: nadie ve cuánto pujan los demás, solo cuántos han pujado. Al cerrar cada etapa gana la puja más alta.'
-            : started ? 'El evento ya ha empezado. El mercado vuelve a abrirse con la cartelera del siguiente evento numerado.'
+            : started ? 'El evento ya ha empezado. El mercado vuelve a abrirse con la cartelera del siguiente evento.'
             : 'Las pujas ya se han resuelto. Hasta que empiece el evento aún puedes pagar la cláusula de un luchador de otro mánager.'}
         </p>
         {!started && ph === 'locked' && c.ev.no_shield_from && (
@@ -295,7 +295,7 @@ export default function Mercado(c) {
       </button>
       {showAll && (
         <>
-          <p className="xs muted">Todos los luchadores de la cartelera del evento {c.ev.id}. Toca una carta para ver sus récords.</p>
+          <p className="xs muted">Todos los luchadores de la cartelera ({evName(c.ev)}). Toca una carta para ver sus récords.</p>
           {[['oro', 'Oro · peleas por el título'], ['plata', 'Plata · cartelera principal'], ['bronce', 'Bronce · preliminares']].map(([t, label]) => {
             const list = rows.filter((o) => tierOf(fightOf(o.fighter_id)) === t).sort((a, b) => b.value - a.value);
             if (!list.length) return null;

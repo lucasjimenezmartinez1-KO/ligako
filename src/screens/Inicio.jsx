@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DIVS, countdown, fmtDate, fmt, fmtM, rankLabel } from '../format.js';
+import { DIVS, countdown, fmtDate, fmt, fmtM, rankLabel, evName } from '../format.js';
 import { Avatar, FaceOff, useToast } from '../ui.jsx';
 import { phase, myTeam, maxTeam, oppOf, activeFights, share, mainFights, needTeam } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
@@ -36,7 +36,7 @@ export default function Inicio(c) {
     <>
       <InstallHint />
       {main && (
-        <FaceOff A={F[main.a]} B={F[main.b]} tag={`EVENTO ${ev.id} · ${ev.place.split(',').pop().trim().toUpperCase()}`}
+        <FaceOff A={F[main.a]} B={F[main.b]} tag={`${evName(ev).toUpperCase()} · ${ev.place.split(',').pop().trim().toUpperCase()}`}
           belt={main.title ? 'TÍTULO ' + DIVS[main.division].n.toUpperCase() : null}
           subA={F[main.a].rank === 0 ? 'Campeón' : rankLabel(F[main.a])} subB={F[main.b].rank === 0 ? 'Campeón' : F[main.b].rank === 1 ? 'Nº 1 aspirante' : rankLabel(F[main.b])}>
           <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -52,7 +52,7 @@ export default function Inicio(c) {
               </>
             ) : ph === 'finished' ? (
               <>
-                <p>El evento ha terminado. Has sumado <b>{fmt(mySquad?.pts)}</b> puntos{mySquad?.pred_money != null ? <> y has ganado <b className="gold">{fmtM(mySquad.pred_money)}</b> con las predicciones: en el siguiente evento empiezas con <b className="gold">{fmtM(200 + Number(mySquad.pred_money || 0))}</b></> : null}.</p>
+                <p>El evento ha terminado. Has sumado <b>{fmt(mySquad?.pts)}</b> puntos{mySquad?.pred_money != null ? <> y has ganado <b className="gold">{fmtM(mySquad.pred_money)}</b> con las predicciones, que se suman a tu presupuesto del siguiente evento</> : null}.</p>
                 <button className="btn primary block" onClick={() => c.go('liga')}>Ver resultados</button>
               </>
             ) : (
@@ -126,7 +126,7 @@ export default function Inicio(c) {
         <p className="xs muted">{c.members.length} de 12 mánagers. Quien entre antes del cierre del mercado recibe su luchador del sorteo.</p>
       </section>
 
-      <HowTo budget={200} eventId={c.ev?.id} open={c.members.length < 2 || !mySquad?.captain && team.length <= 1} />
+      <HowTo budget={c.ev?.budget || 200} eventId={c.ev?.id} open={c.members.length < 2 || !mySquad?.captain && team.length <= 1} />
     </>
   );
 }
