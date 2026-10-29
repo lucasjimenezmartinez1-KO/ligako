@@ -39,7 +39,7 @@ export function WaitingRoom({ c, compact = false }) {
       <div className="eyebrow gold">Sala de espera</div>
       <h2 className="h-display" style={{ fontSize: 28, lineHeight: 1 }}>El mercado empieza cuando estéis todos</h2>
       <p className="small muted" style={{ lineHeight: 1.45 }}>
-        Cuando todos pulséis <b style={{ color: 'var(--ink)' }}>Estoy listo</b> se hace el sorteo (un luchador para cada uno) y salen las primeras cartas a puja. El mercado irá por etapas (de 21:00 a 12:00 y de 12:00 a 21:00) hasta el {fmtDate(c.ev.market_closes_at)}.
+        Cuando todos pulséis <b style={{ color: 'var(--ink)' }}>Estoy listo</b> se hace el sorteo (un luchador para cada uno) y salen las primeras cartas a puja. El mercado irá por etapas (de 21:00 a 12:00 y de 12:00 a 21:00) hasta el {fmtDate(c.ev.market_closes_at)}. <b style={{ color: 'var(--ink)' }}>Si no estáis todos listos antes del cierre, en esta liga no se juega este evento.</b>
       </p>
       <ul className="ready-list">
         {c.members.map((m) => (
