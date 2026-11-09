@@ -175,6 +175,8 @@ async function syncDeductions(ev, fights, F, extrasRows) {
   found.forEach((d) => extrasRows.push(d));
 }
 
+const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
+
 async function main() {
   await rpc('close_due_markets', {});
 
@@ -193,6 +195,11 @@ async function main() {
   if (Date.now() < start - 8 * 864e5) { log(`Evento ${ev.id}: falta más de una semana`); return; }
 
   const fights = await q(db.from('fights').select('*').eq('event_id', ev.id).order('ord'));
+  // Antes de que empiece ningún mercado: si alguna pelea aún no tiene probabilidad del mercado, se reintenta (Kalshi abre unos 6 días antes)
+  if (!DRY && Date.now() < new Date(ev.market_closes_at).getTime() && fights.some((f) => f.status !== 'cancelled' && f.pa == null)) {
+    const started = (await q(db.from('league_events').select('started_at').eq('event_id', ev.id))).some((x) => x.started_at);
+    if (!started) await loadNextEvent(db, { log, day: ymd(new Date(ev.starts_at)) }).catch((e) => log('No se pudieron refrescar las probabilidades: ' + e.message));
+  }
   const F = Object.fromEntries((await q(db.from('fighters').select('*'))).map((f) => [f.id, f]));
   // Probabilidad de ganar antes de la pelea (para el bonus por ganar sin ser favorito): de la base de datos o del fichero del evento
   for (const f of fights) if (f.pa != null) f.pA = Number(f.pa);

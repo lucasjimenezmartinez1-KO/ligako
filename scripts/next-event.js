@@ -82,7 +82,10 @@ export async function loadNextEvent(db, { log = console.log, day = null, dry = f
   const num = (espn.name.match(/\bUFC (\d{3,4})\b/) || [])[1];
   const id = num ? Number(num) : Number(ymd(new Date(espn.date)));
   const existing = (await q(db.from('events').select('*').eq('id', id)))[0];
-  if (existing && (await q(db.from('league_events').select('league_id').eq('event_id', id))).length) { log(`El evento ${id} ya está abierto en alguna liga: no se vuelve a cargar`); return existing; }
+  // Si ya está abierto en alguna liga: solo se refrescan probabilidades y precios mientras ningún mercado haya empezado
+  const les = existing ? await q(db.from('league_events').select('league_id,started_at').eq('event_id', id)) : [];
+  if (les.some((x) => x.started_at)) { log(`El evento ${id} ya tiene el mercado en marcha: no se toca`); return existing; }
+  const refresh = les.length > 0;
 
   const comps = espn.competitions.filter((c) => c.competitors?.length === 2 && c.competitors.every((x) => x.athlete?.displayName));
   const n = comps.length;
@@ -157,10 +160,20 @@ export async function loadNextEvent(db, { log = console.log, day = null, dry = f
     active.map((f) => `${f.slot[0]}${f.ord} ${f.a} ${exp[f.a].toFixed(0)}/${f.b} ${exp[f.b].toFixed(0)} (${Math.round(f.pA * 100)}% ${f.src})`).join(' · '));
   if (dry) return event;
 
+  if (refresh) {   // mismas peleas: actualizar probabilidad, título, premios y precios; las ligas reescalan con sync_league
+    const cur = await q(db.from('fights').select('id,a,b').eq('event_id', id));
+    if (cur.length !== fights.length || cur.some((c) => !fights.find((f) => f.id === c.id && f.a === c.a && f.b === c.b))) { log(`Evento ${id}: la cartelera ha cambiado, se encarga el directo`); return existing; }
+    for (const { pA, src, ...f } of fights) await q(db.from('fights').update({ pa: src === 'sin cuotas' ? null : Math.round(pA * 1000) / 1000, title: f.title, rounds: f.rounds, prizes: f.status === 'cancelled' ? null : fightPrizes({ ...f, pA }, stats) }).eq('id', f.id));
+    await q(db.from('event_fighters').upsert(Object.keys(exp).map((fid) => ({ event_id: id, fighter_id: fid, exp: +exp[fid].toFixed(1), raw: +rawPrice(exp[fid], rank[fid]).toFixed(3) }))));
+    for (const l of les) await db.rpc('sync_league', { p_league: l.league_id });
+    log(`Evento ${id}: probabilidades y precios actualizados`);
+    return event;
+  }
+
   if (newF.length) await q(db.from('fighters').upsert(newF.map((f) => ({ id: f.id, name: f.name, division: f.division || 'ligero', rank: 16, nr: true })), { onConflict: 'id', ignoreDuplicates: true }));
   await q(db.from('events').upsert(event));
   await q(db.from('fights').delete().eq('event_id', id));
-  await q(db.from('fights').insert(fights.map(({ pA, src, ...f }) => ({ ...f, pa: Math.round(pA * 1000) / 1000,
+  await q(db.from('fights').insert(fights.map(({ pA, src, ...f }) => ({ ...f, pa: src === 'sin cuotas' ? null : Math.round(pA * 1000) / 1000,
     prizes: f.status === 'cancelled' ? null : fightPrizes({ ...f, pA }, stats) }))));
   await q(db.from('event_fighters').delete().eq('event_id', id));
   await q(db.from('event_fighters').insert(Object.keys(exp).map((fid) => ({ event_id: id, fighter_id: fid, exp: +exp[fid].toFixed(1), raw: +rawPrice(exp[fid], rank[fid]).toFixed(3) }))));
