@@ -1,7 +1,7 @@
 // Carga la siguiente cartelera de la élite desde ESPN: luchadores, peleas, probabilidades, estadísticas, precio y premios.
 // - Eventos numerados: id = número, presupuesto 200 M. Veladas sin número: id = AAAAMMDD, presupuesto 100 M.
 // - Probabilidades: data/odds-<id>.json si existe ({ odds: { "A vs B": [cuotaA, cuotaB] }, cancelled: ["A vs B"], source }),
-//   si no, las de ESPN si las tiene; si no, 50 %. "titles": ["A vs B"] marca las peleas por el título.
+//   si no, Kalshi (mercado de intercambio); si no, las de ESPN; si no, 50 %. Títulos: ESPN o Wikipedia. "titles": ["A vs B"] marca las peleas por el título.
 // - Horario: mercado hasta las 21:00 de Madrid del día anterior; el día del evento, cláusulas sin escudo desde las 12:00
 //   y mini mercado de libres la última hora antes de empezar.
 // Uso directo: node scripts/next-event.js [AAAAMMDD]   (sin fecha: el siguiente evento a partir de hoy)
@@ -52,6 +52,29 @@ const espnML = (c, side) => {
   return typeof v === 'number' ? v : null;
 };
 
+// Probabilidades del mercado de intercambio Kalshi (precio medio de "gana X", sin margen al normalizar la pelea)
+async function kalshiPrices() {
+  const out = {};
+  let cursor = '';
+  for (let i = 0; i < 5; i++) {
+    const d = await getJSON(`https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=KXUFCFIGHT&status=open&limit=200${cursor ? '&cursor=' + cursor : ''}`);
+    for (const m of d?.markets || []) {
+      const bid = Number(m.yes_bid_dollars), ask = Number(m.yes_ask_dollars), last = Number(m.last_price_dollars);
+      const p = bid > 0 && ask > 0 && ask - bid <= 0.15 ? (bid + ask) / 2 : last > 0 ? last : null;
+      if (p && m.yes_sub_title) out[norm(m.yes_sub_title)] = p;
+    }
+    cursor = d?.cursor; if (!cursor) break;
+  }
+  return out;
+}
+
+// Peleas por el título según Wikipedia: frases con "Championship" y los dos apellidos
+async function wikiTitles(page) {
+  const d = await getJSON(`https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(page)}&prop=wikitext&redirects=1&format=json&formatversion=2&origin=*`);
+  const w = (d?.parse?.wikitext || '').replace(/\[\[([^\]|]*\|)?([^\]]*)\]\]/g, '$2');
+  return w.split(/\n|(?<=\.)\s+/).filter((l) => /championship/i.test(l) && !/former|previously|vacated/i.test(l)).map(norm);
+}
+
 export async function loadNextEvent(db, { log = console.log, day = null, dry = false } = {}) {
   const q = async (p) => { const { data, error } = await p; if (error) throw new Error(error.message); return data; };
   const espn = await findNext(day);
@@ -71,6 +94,9 @@ export async function loadNextEvent(db, { log = console.log, day = null, dry = f
     return times.length >= 3 && i === 0 ? 'early' : 'prelims';
   };
   const overrides = fs.existsSync(`data/odds-${id}.json`) ? JSON.parse(fs.readFileSync(`data/odds-${id}.json`, 'utf8')) : {};
+  const kalshi = await kalshiPrices().catch(() => ({}));
+  const titleLines = await wikiTitles(num ? `UFC ${num}` : espn.name).catch(() => []);
+  const lastName = (n) => norm(n).split(' ').pop();
   const pairKey = (a, b) => [norm(a), norm(b)].sort().join(' | ');
   const odds = Object.fromEntries(Object.entries(overrides.odds || {}).map(([k, v]) => { const [a, b] = k.split(' vs '); return [pairKey(a, b), { a: norm(a), v }]; }));
   const cancelled = new Set((overrides.cancelled || []).map((k) => { const [a, b] = k.split(' vs '); return pairKey(a, b); }));
@@ -94,9 +120,11 @@ export async function loadNextEvent(db, { log = console.log, day = null, dry = f
     const slot = ord === 1 ? 'Estelar' : seg === 'main' || (!seg && ord <= 5) ? (ord === 2 ? 'Coestelar' : 'Cartelera principal')
       : seg === 'early' ? 'Primeras preliminares' : 'Preliminares';
     const k = pairKey(A.name, B.name);
-    const title = titles.has(k) || (c.notes || []).some((x) => /title/i.test(x.headline || x.text || ''));
+    const title = titles.has(k) || (c.notes || []).some((x) => /title/i.test(x.headline || x.text || ''))
+      || titleLines.some((l) => l.includes(lastName(A.name)) && l.includes(lastName(B.name)));
     let pA = 0.5, src = 'sin cuotas';
     if (odds[k]) { const [oa, ob] = odds[k].a === norm(A.name) ? odds[k].v : [...odds[k].v].reverse(); pA = oddsProb(oa, ob); src = 'cuotas'; }
+    else if (kalshi[norm(A.name)] && kalshi[norm(B.name)]) { pA = kalshi[norm(A.name)] / (kalshi[norm(A.name)] + kalshi[norm(B.name)]); src = 'Kalshi'; }
     else if (espnML(c, 0) != null && espnML(c, 1) != null) { pA = oddsProb(espnML(c, 0), espnML(c, 1)); src = 'ESPN'; }
     return { id: `${id}-${String(ord).padStart(2, '0')}`, event_id: id, ord, slot, a: A.id, b: B.id, division: division || A.division || 'ligero',
       title, rounds: title || ord === 1 ? 5 : 3, pA, status: cancelled.has(k) ? 'cancelled' : 'scheduled', src };
@@ -137,6 +165,7 @@ export async function loadNextEvent(db, { log = console.log, day = null, dry = f
   await q(db.from('event_fighters').delete().eq('event_id', id));
   await q(db.from('event_fighters').insert(Object.keys(exp).map((fid) => ({ event_id: id, fighter_id: fid, exp: +exp[fid].toFixed(1), raw: +rawPrice(exp[fid], rank[fid]).toFixed(3) }))));
   log(`Evento ${id} cargado`);
+  if (process.env.NEW_EVENT_FLAG) fs.writeFileSync(process.env.NEW_EVENT_FLAG, String(id));
   return event;
 }
 

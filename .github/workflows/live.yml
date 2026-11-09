@@ -28,6 +28,10 @@ concurrency:
   group: live-${{ github.event_name == 'workflow_dispatch' && github.run_id || 'cron' }}
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -59,3 +63,10 @@ jobs:
           FORCE: ${{ github.event.inputs.force }}
           DRY: ${{ github.event.inputs.dry }}
           LOOP_FLAG: /tmp/notlive
+          NEW_EVENT_FLAG: /tmp/new_event
+      - name: Fotos de la nueva cartelera
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -f /tmp/new_event ]; then gh workflow run photos.yml --repo ${{ github.repository }} && echo "::notice::Nueva cartelera $(cat /tmp/new_event): buscando fotos"; fi

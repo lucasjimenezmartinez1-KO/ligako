@@ -292,9 +292,9 @@ async function main() {
 
   const now = fights.filter((x) => x.status !== 'cancelled');
   const allDone = now.length > 0 && now.every((x) => x.status === 'finished');
-  // Dos días después de la última pelea se cierra el evento y se carga el siguiente
+  // Un día después de la última pelea se cierra el evento y se carga el siguiente
   const end = Math.max(...now.map((x) => new Date(x.updated_at || ev.starts_at).getTime()));
-  const settleAt = end + 2 * 864e5;
+  const settleAt = end + 864e5;   // un día después de la última pelea
   if (allDone && Date.now() >= settleAt) {
     log(`Evento ${ev.id} terminado: venta automática, reparto del dinero y siguiente cartelera`);
     await rpc('settle_event', { p_event: ev.id });
