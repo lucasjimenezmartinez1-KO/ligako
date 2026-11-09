@@ -1,7 +1,7 @@
 // Carga la siguiente cartelera de la élite desde ESPN: luchadores, peleas, probabilidades, estadísticas, precio y premios.
 // - Eventos numerados: id = número, presupuesto 200 M. Veladas sin número: id = AAAAMMDD, presupuesto 100 M.
 // - Probabilidades: data/odds-<id>.json si existe ({ odds: { "A vs B": [cuotaA, cuotaB] }, cancelled: ["A vs B"], source }),
-//   si no, las de ESPN si las tiene; si no, 50 %.
+//   si no, las de ESPN si las tiene; si no, 50 %. "titles": ["A vs B"] marca las peleas por el título.
 // - Horario: mercado hasta las 21:00 de Madrid del día anterior; el día del evento, cláusulas sin escudo desde las 12:00
 //   y mini mercado de libres la última hora antes de empezar.
 // Uso directo: node scripts/next-event.js [AAAAMMDD]   (sin fecha: el siguiente evento a partir de hoy)
@@ -74,6 +74,7 @@ export async function loadNextEvent(db, { log = console.log, day = null, dry = f
   const pairKey = (a, b) => [norm(a), norm(b)].sort().join(' | ');
   const odds = Object.fromEntries(Object.entries(overrides.odds || {}).map(([k, v]) => { const [a, b] = k.split(' vs '); return [pairKey(a, b), { a: norm(a), v }]; }));
   const cancelled = new Set((overrides.cancelled || []).map((k) => { const [a, b] = k.split(' vs '); return pairKey(a, b); }));
+  const titles = new Set((overrides.titles || []).map((k) => { const [a, b] = k.split(' vs '); return pairKey(a, b); }));
 
   // Luchadores: los que ya tenemos (por nombre) o nuevos sin clasificar
   const all = await q(db.from('fighters').select('id,name,rank,division'));
@@ -89,11 +90,11 @@ export async function loadNextEvent(db, { log = console.log, day = null, dry = f
     const ord = n - i;
     const division = DIV[(c.type?.abbreviation || c.type?.text || '').toLowerCase()] || null;
     const [A, B] = c.competitors.map((x) => fighterFor(x.athlete.displayName, division));
-    const title = (c.notes || []).some((x) => /title/i.test(x.headline || x.text || ''));
     const seg = segOf(c);
     const slot = ord === 1 ? 'Estelar' : seg === 'main' || (!seg && ord <= 5) ? (ord === 2 ? 'Coestelar' : 'Cartelera principal')
       : seg === 'early' ? 'Primeras preliminares' : 'Preliminares';
     const k = pairKey(A.name, B.name);
+    const title = titles.has(k) || (c.notes || []).some((x) => /title/i.test(x.headline || x.text || ''));
     let pA = 0.5, src = 'sin cuotas';
     if (odds[k]) { const [oa, ob] = odds[k].a === norm(A.name) ? odds[k].v : [...odds[k].v].reverse(); pA = oddsProb(oa, ob); src = 'cuotas'; }
     else if (espnML(c, 0) != null && espnML(c, 1) != null) { pA = oddsProb(espnML(c, 0), espnML(c, 1)); src = 'ESPN'; }
