@@ -2,6 +2,15 @@ name: Fotos de luchadores
 
 on:
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Fotos concretas: id|File:Nombre.jpg|x,y,w,h;...'
+        required: false
+        default: ''
+      hero:
+        description: 'Ids que también llevan foto de portada (separados por comas)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -21,6 +30,8 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL || vars.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY || vars.SUPABASE_SERVICE_KEY }}
+          FORCE: ${{ github.event.inputs.force }}
+          HERO: ${{ github.event.inputs.hero }}
       - name: Guardar las fotos
         run: |
           git add public/fighters public/cards public/hero

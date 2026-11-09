@@ -59,6 +59,30 @@ async function findPhoto(name, credit) {
   return null;
 }
 
+// Forzar una foto concreta: FORCE="id|File:Nombre.jpg|x,y,w,h;..." (recorte opcional en fracciones 0–1 del original)
+if (process.env.FORCE) {
+  for (const item of process.env.FORCE.split(';').filter(Boolean)) {
+    const [id, file, box] = item.split('|');
+    const [f] = await fileInfo([file]);
+    if (!f) { log(`${id}: no encuentro ${file}`); continue; }
+    const md = f.extmetadata || {}, lic = md.LicenseShortName?.value;
+    if (!OK_LICENSE(lic)) { log(`${id}: licencia no válida (${lic})`); continue; }
+    const r = await fetch(f.thumburl || f.url, { headers: UA, signal: AbortSignal.timeout(30000) });
+    let img = sharp(Buffer.from(await r.arrayBuffer()));
+    const meta = await img.metadata();
+    if (box) { const [x, y, w, h] = box.split(',').map(Number); img = sharp(await img.extract({ left: Math.round(x * meta.width), top: Math.round(y * meta.height), width: Math.round(w * meta.width), height: Math.round(h * meta.height) }).toBuffer()); }
+    const buf = await img.toBuffer();
+    for (const d of ['public/fighters', 'public/cards', 'public/hero']) fs.mkdirSync(d, { recursive: true });
+    await sharp(buf).resize(80, 80, { fit: 'cover', position: sharp.strategy.attention }).webp({ quality: 80 }).toFile(`public/fighters/${id}.webp`);
+    await sharp(buf).resize(300, 360, { fit: 'cover', position: sharp.strategy.attention }).jpeg({ quality: 84 }).toFile(`public/cards/${id}.jpg`);
+    if (fs.existsSync(`public/hero/${id}.jpg`) || process.env.HERO?.split(',').includes(id)) await sharp(buf).resize(360, 480, { fit: 'cover', position: sharp.strategy.attention }).jpeg({ quality: 86 }).toFile(`public/hero/${id}.jpg`);
+    const credit = `${strip(md.Artist?.value) || 'Autor desconocido'} · ${lic} · https://commons.wikimedia.org/wiki/${encodeURIComponent(f.title.replace(/ /g, '_'))}`;
+    await db.from('fighters').update({ photo: `/fighters/${id}.webp`, photo_credit: credit }).eq('id', id);
+    log(`${id}: foto puesta (${f.title})`);
+  }
+  process.exit(0);
+}
+
 const ev = (await db.from('events').select('id').neq('status', 'finished').order('starts_at').limit(1)).data[0];
 const fights = (await db.from('fights').select('a,b,status,ord').eq('event_id', ev.id)).data.filter((f) => f.status !== 'cancelled');
 const mainIds = fights.filter((f) => f.ord === Math.min(...fights.map((x) => x.ord))).flatMap((f) => [f.a, f.b]);
