@@ -32,10 +32,15 @@ const usable = (f, name) => {
   const lic = md.LicenseShortName?.value;
   if (!OK_LICENSE(lic) || !/jpe?g|png|webp/.test(f.mime) || f.width < 250 || f.height < 250) return null;
   if (!norm(f.title).includes(norm(name))) return null;   // nombre completo en el archivo
+  const about = norm([md.ImageDescription?.value, md.Categories?.value, md.ObjectName?.value, f.title].map(strip).join(' '));
+  if (!/\b(mma|ufc|mixed martial|martial art|fighter|fight night|kickbox|jiu jitsu|bjj|wrestl|boxing|boxer|judo|grappl|octagon|bellator|pfl)\b/.test(about)) return null;
   return { url: f.thumburl || f.url, credit: `${strip(md.Artist?.value) || 'Autor desconocido'} · ${lic} · https://commons.wikimedia.org/wiki/${encodeURIComponent(f.title.replace(/ /g, '_'))}` };
 };
 
-async function findPhoto(name) {
+async function findPhoto(name, credit) {
+  // 0) Si ya tiene foto con crédito de Commons, el mismo archivo (para que carta y crédito coincidan)
+  const m = String(credit || '').match(/commons\.wikimedia\.org\/wiki\/(File(?:%3A|:)[^\s]+)/);
+  if (m) { const [f] = await fileInfo([decodeURIComponent(m[1]).replace(/_/g, ' ')]); if (f) { const md = f.extmetadata || {}; return { url: f.thumburl || f.url, credit }; } }
   // 1) Imagen del artículo de Wikipedia
   // (solo si el artículo es de un luchador: hay muchos homónimos)
   for (const t of [`${name} (fighter)`, name]) {
@@ -58,13 +63,13 @@ const ev = (await db.from('events').select('id').neq('status', 'finished').order
 const fights = (await db.from('fights').select('a,b,status,ord').eq('event_id', ev.id)).data.filter((f) => f.status !== 'cancelled');
 const mainIds = fights.filter((f) => f.ord === Math.min(...fights.map((x) => x.ord))).flatMap((f) => [f.a, f.b]);
 const ids = fights.flatMap((f) => [f.a, f.b]);
-const fighters = (await db.from('fighters').select('id,name,photo').in('id', ids)).data;
+const fighters = (await db.from('fighters').select('id,name,photo,photo_credit').in('id', ids)).data;
 const missing = fighters.filter((f) => !f.photo || !fs.existsSync(`public/cards/${f.id}.jpg`) || (mainIds.includes(f.id) && !fs.existsSync(`public/hero/${f.id}.jpg`)));
 log(`${ids.length} luchadores en la cartelera, ${missing.length} sin foto o sin carta`);
 const found = [], notFound = [];
 for (const f of missing) {
   await sleep(1500);
-  const p = await findPhoto(f.name).catch(() => null);
+  const p = await findPhoto(f.name, f.photo_credit).catch(() => null);
   if (!p) { notFound.push(f.name); continue; }
   const r = await fetch(p.url, { headers: UA, signal: AbortSignal.timeout(30000) }).catch(() => null);
   if (!r?.ok) { notFound.push(f.name); continue; }
