@@ -449,3 +449,8 @@ table.stand tr.me td { font-weight: 800; }
 .fo-typo b { position: absolute; top: 46%; transform: translateY(-50%); font-family: var(--display); font-weight: 900; font-size: 92px; line-height: 1; color: rgba(255,255,255,.92); text-shadow: 0 6px 30px rgba(0,0,0,.5); }
 .fo-side.l .fo-typo b { left: 9%; }
 .fo-side.r .fo-typo b { right: 9%; }
+/* Botón de cláusula: mismo ancho siempre y sin saltos de línea (también con escudo) */
+.clause-btn { min-width: 96px; padding: 6px 9px; justify-content: center; }
+.clause-btn span, .clause-btn b { white-space: nowrap; }
+.clause-btn.locked span { font-size: 10px; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
+.clause-btn.locked b { font-size: 18px; }
