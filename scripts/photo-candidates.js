@@ -14,7 +14,7 @@ const api = async (params) => {
 };
 const ev = (await db.from('events').select('id').neq('status', 'finished').order('starts_at').limit(1)).data[0];
 const fights = (await db.from('fights').select('a,b,status').eq('event_id', ev.id)).data.filter((f) => f.status !== 'cancelled');
-const fighters = (await db.from('fighters').select('id,name,photo').in('id', fights.flatMap((f) => [f.a, f.b]))).data.filter((f) => !f.photo);
+const fighters = (await db.from('fighters').select('id,name,photo').in('id', fights.flatMap((f) => [f.a, f.b]))).data.filter((f) => !f.photo).filter((f) => !process.argv[2] || process.argv[2].split(',').some((n) => f.name.toLowerCase().includes(n.trim().toLowerCase())));
 console.log(`::notice::Sin foto: ${fighters.map((f) => f.name).join(', ')}`);
 for (const f of fighters) {
   await sleep(1200);
