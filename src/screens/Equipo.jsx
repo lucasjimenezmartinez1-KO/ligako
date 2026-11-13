@@ -6,7 +6,7 @@ import { FighterCard } from '../Card.jsx';
 import { FighterSheet } from '../FighterSheet.jsx';
 import { OtherTeams } from '../OtherTeams.jsx';
 import { marketStarted } from '../Ready.jsx';
-import { phase, myTeam, maxTeam, needTeam, oppOf, fightOf, committed, clauseBase, clausePrice } from '../helpers.js';
+import { phase, myTeam, maxTeam, needTeam, oppOf, fightOf, committed, clauseBase, clausePrice, offerText } from '../helpers.js';
 
 export default function Equipo(c) {
   const toast = useToast();
@@ -128,7 +128,7 @@ export default function Equipo(c) {
           const { error } = await supabase.rpc('accept_offer', { p_league: c.leagueId, p_fighter: sel, p_from: from });
           setBusyInv(false);
           if (error) { toast(errText(error)); c.reload(); return; }
-          toast(`Has vendido a ${c.F[sel].name}`); setSel(null); c.reload();
+          toast('Hecho'); setSel(null); c.reload();
         }
         async function release() {
           setBusyInv(true);
@@ -187,7 +187,7 @@ export default function Equipo(c) {
                     <h3>Ofertas privadas</h3>
                     {received.map((x) => (
                       <div key={x.from_user} className="row between">
-                        <span className="small"><b>{c.names?.[x.from_user] || 'Alguien'}</b> te ofrece <b className="gold">{fmtM(x.amount)}</b></span>
+                        <span className="small"><b>{c.names?.[x.from_user] || 'Alguien'}</b> <b className="gold">{offerText(c, x)}</b></span>
                         <button className="btn gold sm" disabled={busyInv} onClick={() => acceptOffer(x.from_user)}>Aceptar</button>
                       </div>
                     ))}
@@ -200,7 +200,7 @@ export default function Equipo(c) {
                   <h3>En venta</h3>
                   {received.map((x) => (
                     <div key={x.from_user} className="row between">
-                      <span className="small"><b>{c.names?.[x.from_user] || 'Alguien'}</b> te ofrece <b className="gold">{fmtM(x.amount)}</b></span>
+                      <span className="small"><b>{c.names?.[x.from_user] || 'Alguien'}</b> <b className="gold">{offerText(c, x)}</b></span>
                       <button className="btn gold sm" disabled={busyInv} onClick={() => acceptOffer(x.from_user)}>Aceptar</button>
                     </div>
                   ))}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, errText } from './supabase.js';
 import { useToast } from './ui.jsx';
 import { fmtDate } from './format.js';
+import { offerText } from './helpers.js';
 
 // ¿Ha empezado ya el mercado en esta liga? (todos listos → sorteo y tandas)
 export const marketStarted = (c) => !!c.le?.started_at;
@@ -178,17 +179,18 @@ function ManagerOffer({ c, x }) {
       : await supabase.rpc('reject_offer', { p_league: c.leagueId, p_fighter: x.fighter_id, p_from: x.from_user });
     setBusy(false); setArmed(false);
     if (error) { toast(errText(error)); c.reload(); return; }
-    toast(accept ? `Has vendido a ${name} a ${who} por ${m(x.amount)}` : 'Oferta rechazada'); c.reload();
+    toast(accept ? ((x.give || []).length ? `Trueque hecho con ${who}` : `Has vendido a ${name} a ${who} por ${m(x.amount)}`) : 'Oferta rechazada'); c.reload();
   }
   const o = c.own[x.fighter_id];
+  const trade = (x.give || []).length > 0;
   return (
     <section className="card tight offer-card">
-      <div className="eyebrow" style={{ color: 'var(--green)' }}>Oferta privada de {who}</div>
-      <div className="bold">Te ofrece {m(x.amount)} por {name}</div>
+      <div className="eyebrow" style={{ color: 'var(--green)' }}>{trade ? 'Trueque' : 'Oferta privada'} de {who}</div>
+      <div className="bold">{trade ? 'Trueque: ' : ''}{offerText(c, x).replace(/^t/, 'T')} por {name}</div>
       {o && <div className="xs muted">Su valor: {m(o.value)} · te costó {o.assigned ? 'nada (sorteo)' : m(o.paid)}</div>}
       <div className="actions">
         <button className="btn sm" disabled={busy} onClick={() => act(false)}>Rechazar</button>
-        <button className="btn gold sm" disabled={busy} onClick={() => act(true)}>{armed ? `Confirmar venta` : 'Aceptar'}</button>
+        <button className="btn gold sm" disabled={busy} onClick={() => act(true)}>{armed ? (trade ? 'Confirmar trueque' : 'Confirmar venta') : 'Aceptar'}</button>
       </div>
     </section>
   );

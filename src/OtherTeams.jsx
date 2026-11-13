@@ -4,7 +4,7 @@ import { useToast } from './ui.jsx';
 import { fmt, fmtM, rankLabel } from './format.js';
 import { Avatar } from './ui.jsx';
 import { FighterSheet } from './FighterSheet.jsx';
-import { activeFights, needTeam, clausePrice, phase } from './helpers.js';
+import { activeFights, needTeam, clausePrice, phase, myTeam, offerText } from './helpers.js';
 import { tierOf } from './Card.jsx';
 
 // Equipos de los demás mánagers, ordenados por puntos. Al tocar un luchador se abre su ficha.
@@ -64,6 +64,8 @@ export function OtherTeams({ c }) {
 export function OfferSheet({ c, id, onClose }) {
   const toast = useToast();
   const [amt, setAmt] = useState('');
+  const [give, setGive] = useState([]);
+  const [dir, setDir] = useState('pay');   // pay = pago yo · ask = me paga él
   const [busy, setBusy] = useState(false);
   const o = c.own[id];
   if (!o) return null;
@@ -71,30 +73,54 @@ export function OfferSheet({ c, id, onClose }) {
   const started = ph === 'live' || ph === 'finished';
   const owner = c.members.find((m) => m.user_id === o.owner)?.name || 'su dueño';
   const mine = (c.offers || []).find((x) => x.fighter_id === id && x.from_user === c.me);
+  const team = myTeam(c);
+  const money = Math.round((Number(String(amt).replace(',', '.')) || 0) * 10) / 10;
+  const asking = dir === 'ask' && give.length > 0;
+  const valid = give.length > 0 || money > 0;
+  const toggle = (fid) => setGive((g) => (g.includes(fid) ? g.filter((x) => x !== fid) : [...g, fid]));
   async function offer(on) {
-    const v = Math.round((Number(String(amt).replace(',', '.')) || 0) * 10) / 10;
     setBusy(true);
-    const { error } = on ? await supabase.rpc('make_offer', { p_league: c.leagueId, p_fighter: id, p_amount: v })
+    const { error } = on ? await supabase.rpc('make_offer', { p_league: c.leagueId, p_fighter: id, p_amount: asking ? -money : money, p_give: give })
       : await supabase.rpc('cancel_offer', { p_league: c.leagueId, p_fighter: id });
     setBusy(false);
     if (error) { toast(errText(error)); return; }
-    toast(on ? `Oferta enviada a ${owner}: ${fmtM(v)}` : 'Oferta retirada'); setAmt(''); c.reload();
+    toast(on ? `${give.length ? 'Trueque enviado' : 'Oferta enviada'} a ${owner}` : 'Oferta retirada'); setAmt(''); setGive([]); c.reload();
   }
   return (
     <FighterSheet c={c} id={id} onClose={onClose} pill={owner}
       kpis={[[fmtM(o.value), 'Valor'], [fmtM(clausePrice(o)), 'Cláusula', 'mine'], [fmt(c.exp[id]), 'Pts esp.']]}>
       {!started && (
         <section className="fs-bid sale">
-          <h3>Oferta privada {o.for_sale && <span className="pill green">En venta</span>}</h3>
-          {mine && <div className="row between small"><span className="muted">Tu oferta</span><b className="gold">{fmtM(mine.amount)}</b></div>}
+          <h3>Oferta o trueque {o.for_sale && <span className="pill green">En venta</span>}</h3>
+          {mine && <div className="row between small"><span className="muted">Tu oferta ahora</span><b className="gold" style={{ textAlign: 'right' }}>{offerText(c, mine, true)}</b></div>}
+          {team.length > 0 && <>
+            <div className="xs muted">Luchadores tuyos que le das a cambio (opcional)</div>
+            <div className="trade-chips">
+              {team.map((t) => (
+                <button key={t.fighter_id} type="button" className={`trade-chip ${give.includes(t.fighter_id) ? 'on' : ''}`} aria-pressed={give.includes(t.fighter_id)} onClick={() => toggle(t.fighter_id)}>
+                  {c.F[t.fighter_id]?.name} <span>{fmtM(t.value)}</span>
+                </button>
+              ))}
+            </div>
+          </>}
+          <div className="seg seg-2 trade-dir" role="group" aria-label="Quién paga dinero">
+            <button type="button" className={`chip ${!asking ? 'on' : ''}`} onClick={() => setDir('pay')}>Además pago yo</button>
+            <button type="button" className={`chip ${asking ? 'on' : ''}`} disabled={!give.length} onClick={() => setDir('ask')}>Además me paga él</button>
+          </div>
           <div className="fs-input">
-            <input inputMode="decimal" aria-label="Millones que ofreces" placeholder={String(o.value).replace('.', ',')} value={amt}
+            <input inputMode="decimal" aria-label="Millones" placeholder="0" value={amt}
               onChange={(e) => setAmt(e.target.value.replace(/[^0-9.,]/g, ''))} />
             <span aria-hidden="true">M</span>
           </div>
-          <button className="btn gold block" disabled={busy || !(Number(String(amt).replace(',', '.')) > 0)} onClick={() => offer(true)}>{mine ? 'Cambiar oferta' : 'Enviar oferta'}</button>
+          {valid && (
+            <div className="trade-sum">
+              <div><span>Das</span><b>{[...give.map((g) => c.F[g]?.name), !asking && money > 0 ? fmtM(money) : null].filter(Boolean).join(' + ') || '—'}</b></div>
+              <div><span>Recibes</span><b>{[c.F[id]?.name, asking && money > 0 ? fmtM(money) : null].filter(Boolean).join(' + ')}</b></div>
+            </div>
+          )}
+          <button className="btn gold block" disabled={busy || !valid} onClick={() => offer(true)}>{mine ? 'Cambiar oferta' : give.length ? 'Enviar trueque' : 'Enviar oferta'}</button>
           {mine && <button className="fs-link" disabled={busy} onClick={() => offer(false)}>Retirar mi oferta</button>}
-          <p className="xs muted" style={{ margin: 0 }}>Solo la ve {owner} (le llega a Inicio). Si la acepta, se te cobra y el luchador pasa a tu equipo. Sin escudos ni venganza de por medio.</p>
+          <p className="xs muted" style={{ margin: 0 }}>Solo la ve {owner} (le llega a Inicio). Si la acepta, se hace el cambio al momento.</p>
         </section>
       )}
     </FighterSheet>

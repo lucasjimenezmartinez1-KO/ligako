@@ -46,3 +46,14 @@ export const mainFights = (c) => activeFights(c).filter((f) => MAIN_SLOTS.includ
 export const clauseBase = (o) => Math.round(Math.max(Number(o.paid) || 0, Number(o.value)) * 1.25 * 10) / 10;
 export const clausePrice = (o) => Math.round((clauseBase(o) + (Number(o.clause_extra) || 0)) * 10) / 10;
 export const clauseMaxInvest = (o) => Math.max(0, Math.floor((clauseBase(o) - (Number(o.clause_extra) || 0)) / 1.5 + 1e-9));
+
+// Texto de una oferta o trueque. give = luchadores que entrega quien oferta; amount > 0 paga él, amount < 0 pide dinero.
+export function offerText(c, x, mine = false) {
+  const m = (v) => String(Math.abs(Number(v))).replace('.', ',') + ' M';
+  const names = (x.give || []).map((id) => c.F[id]?.name || id);
+  const list = names.length > 1 ? names.slice(0, -1).join(', ') + ' y ' + names[names.length - 1] : names[0];
+  const a = Number(x.amount);
+  if (!names.length) return mine ? `Ofreces ${m(a)}` : `te ofrece ${m(a)}`;
+  const extra = a > 0 ? ` más ${m(a)}` : a < 0 ? (mine ? ` y pides ${m(a)}` : ` y te pide ${m(a)}`) : '';
+  return (mine ? 'Ofreces a ' : 'te ofrece a ') + list + extra;
+}

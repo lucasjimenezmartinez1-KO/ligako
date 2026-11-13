@@ -454,3 +454,15 @@ table.stand tr.me td { font-weight: 800; }
 .clause-btn span, .clause-btn b { white-space: nowrap; }
 .clause-btn.locked span { font-size: 10px; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
 .clause-btn.locked b { font-size: 18px; }
+/* Trueques en la ficha de oferta */
+.trade-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.trade-chip { border: 1px solid var(--line-2, #2A3140); background: rgba(255,255,255,.03); color: var(--ink-2, #C9D1E0); border-radius: 999px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.trade-chip span { color: #8D97AB; font-weight: 600; margin-left: 4px; }
+.trade-chip.on { border-color: #3FD68C; background: rgba(63,214,140,.14); color: #fff; }
+.trade-chip.on span { color: #6FE3A8; }
+.trade-dir .chip { font-size: 13px; padding: 9px 6px; }
+.trade-dir .chip:disabled { opacity: .4; }
+.trade-sum { display: grid; gap: 4px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.04); font-size: 14px; }
+.trade-sum > div { display: flex; justify-content: space-between; gap: 12px; }
+.trade-sum span { color: #8D97AB; flex: none; }
+.trade-sum b { text-align: right; }
