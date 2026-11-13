@@ -36,5 +36,6 @@ jobs:
         run: |
           git add public/fighters public/cards public/hero
           if git diff --cached --quiet; then echo "::notice::No hay fotos nuevas"; exit 0; fi
-          git -c user.name="Liga KO" -c user.email="actions@users.noreply.github.com" commit -qm "Fotos de luchadores (Wikimedia Commons)"
+          # Autor = el dueño del repo: Vercel bloquea los despliegues de commits de otros autores
+          git -c user.name="${{ github.repository_owner }}" -c user.email="${{ github.repository_owner_id }}+${{ github.repository_owner }}@users.noreply.github.com" commit -qm "Fotos de luchadores (Wikimedia Commons)"
           git push
