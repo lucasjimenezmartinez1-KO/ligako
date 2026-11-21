@@ -1,7 +1,7 @@
 import { supabase } from '../supabase.js';
 import { fmt, evShort } from '../format.js';
 import { useToast } from '../ui.jsx';
-import { share } from '../helpers.js';
+import { share, phase } from '../helpers.js';
 import { HowTo } from '../HowTo.jsx';
 
 
@@ -10,6 +10,12 @@ export default function Liga(c) {
   const top = c.members.slice(0, 3);
   const podium = [top[1], top[0], top[2]].filter(Boolean);
   const link = `${location.origin}/?liga=${c.league.code}`;
+  const ph = c.ev ? phase(c.ev, c.le) : null;
+  const playing = c.le?.started_at && (ph === 'live' || ph === 'finished');
+  const allDone = (c.fights || []).length > 0 && c.fights.every((f) => ['finished', 'cancelled'].includes(f.status));
+  const evRank = playing ? [...c.members].sort((a, b) => Number(c.squads[b.user_id]?.pts || 0) - Number(c.squads[a.user_id]?.pts || 0)) : [];
+  const done = (c.fights || []).filter((f) => f.status === 'finished').length;
+  const live = (c.fights || []).some((f) => f.status === 'live');
   return (
     <>
       <header className="stack" style={{ gap: 4 }}>
@@ -32,14 +38,40 @@ export default function Liga(c) {
         </section>
       )}
 
+      {playing && !allDone && (
+        <section className="card ev-rank" style={{ padding: '10px 14px 6px' }}>
+          <div className="row between">
+            <h2 className="h-display h2" style={{ margin: 0 }}>{live && <span className="live-dot" />} Clasificación del evento</h2>
+            <span className="xs muted">{done} de {(c.fights || []).filter((f) => f.status !== 'cancelled').length} peleas</span>
+          </div>
+          <table className="stand">
+            <thead><tr><th>#</th><th>Mánager</th><th className="num">Pts</th></tr></thead>
+            <tbody>
+              {evRank.map((m, i) => {
+                const sq = c.squads[m.user_id];
+                return (
+                  <tr key={m.user_id} className={m.user_id === c.me ? 'me' : ''}>
+                    <td style={{ width: 26 }}>{i + 1}</td>
+                    <td>{m.name}{sq?.penalty ? <span className="xs muted"> (−{fmt(sq.penalty)})</span> : null}</td>
+                    <td className="num bold">{fmt(sq?.pts)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className="xs muted" style={{ margin: '4px 0 6px' }}>Al terminar la última pelea, estos puntos pasan a la clasificación general.</p>
+        </section>
+      )}
+
       <section className="card" style={{ padding: '6px 14px' }}>
+        {playing && !allDone && <div className="eyebrow" style={{ padding: '8px 0 0' }}>Clasificación general</div>}
         <table className="stand">
-          <thead><tr><th>#</th><th>Mánager</th><th className="num">{evShort(c.ev)}</th><th className="num">Total</th></tr></thead>
+          <thead><tr><th>#</th><th>Mánager</th>{playing && allDone && <th className="num">{evShort(c.ev)}</th>}<th className="num">Total</th></tr></thead>
           <tbody>
             {c.members.map((m, i) => (
               <tr key={m.user_id} className={m.user_id === c.me ? 'me' : ''}>
                 <td style={{ width: 26 }}>{i + 1}</td><td>{m.name}</td>
-                <td className="num">{fmt(c.squads[m.user_id]?.pts)}</td><td className="num bold">{fmt(m.points)}</td>
+                {playing && allDone && <td className="num">{fmt(c.squads[m.user_id]?.pts)}</td>}<td className="num bold">{fmt(m.points)}</td>
               </tr>
             ))}
           </tbody>
