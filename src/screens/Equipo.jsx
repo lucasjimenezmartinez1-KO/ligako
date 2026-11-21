@@ -6,6 +6,7 @@ import { FighterCard } from '../Card.jsx';
 import { FighterSheet } from '../FighterSheet.jsx';
 import { OtherTeams } from '../OtherTeams.jsx';
 import { marketStarted } from '../Ready.jsx';
+import { eta, hm, METHOD } from '../LiveTeam.jsx';
 import { phase, myTeam, maxTeam, needTeam, oppOf, fightOf, committed, clauseBase, clausePrice, offerText } from '../helpers.js';
 
 export default function Equipo(c) {
@@ -21,6 +22,23 @@ export default function Equipo(c) {
   useEffect(() => { if (!sel) return; const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, [sel]);
   const captain = cap === undefined ? c.mySquad?.captain : cap;
   const team = myTeam(c).sort((a, b) => b.value - a.value);
+  // Con el evento empezado: estado de cada luchador (peleando, ya peleó o por pelear) y sus puntos
+  const liveOf = (id) => {
+    if (!started) return null;
+    const f = fightOf(c, id), p = c.points[id];
+    const st = !f || f.status === 'cancelled' ? 'cancelled' : f.status;
+    const pts = p ? Number(p.total) * (captain === id ? 2 : 1) : null;
+    const won = f?.winner === id;
+    const label = st === 'live' ? 'Peleando'
+      : st === 'finished' ? (f.winner ? `${won ? 'Ganó' : 'Perdió'} · ${METHOD[f.method] === 'KO/TKO' ? 'KO' : f.method === 'SUB' ? 'Sum.' : f.method === 'DQ' ? 'DQ' : 'Dec.'}${f.method !== 'DEC' && f.round ? ' R' + f.round : ''}` : 'Sin ganador')
+      : st === 'cancelled' ? 'Cancelada'
+      : 'Pelea ~' + hm(eta(c, f, Date.now()).at);
+    return { st, pts, won, label };
+  };
+  if (started) {
+    const rank = { live: 0, finished: 1, scheduled: 2, cancelled: 3 };
+    team.sort((a, b) => rank[liveOf(a.fighter_id).st] - rank[liveOf(b.fighter_id).st]);
+  }
   const s = c.mySquad;
   const waiting = ph === 'market' && !marketStarted(c);
   const need = needTeam(c);
@@ -83,9 +101,9 @@ export default function Equipo(c) {
             const f = c.F[o.fighter_id]; const isCap = captain === o.fighter_id; const p = c.points[o.fighter_id];
             return (
               <div key={o.fighter_id} className="stack" style={{ gap: 6 }}>
-                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} onClick={() => { setSel(o.fighter_id); setInv(''); }}
+                <FighterCard f={f} fight={fightOf(c, o.fighter_id)} opp={oppOf(c, o.fighter_id)} value={o.value} exp={c.exp[o.fighter_id]} mine={isCap} live={liveOf(o.fighter_id)} onClick={() => { setSel(o.fighter_id); setInv(''); }}
                   extra={started && !canCap(o.fighter_id)
-                    ? <div className="fc-btn on" style={{ textAlign: 'center' }}>{p ? fmt(p.total * (isCap ? 2 : 1)) + ' pts' : 'Sin empezar'}</div>
+                    ? <div className="fc-btn on" style={{ textAlign: 'center' }}>{isCap ? 'Capitán ×2' : p ? fmt(p.total) + ' pts' : 'Sin puntos'}</div>
                     : <button type="button" className={`fc-btn ${isCap ? 'on' : ''}`} aria-pressed={isCap} onClick={(e) => { e.stopPropagation(); setCaptain(o.fighter_id); }}>{isCap ? 'Capitán ×2' : 'Hacer capitán'}</button>} />
                 <div className="xs muted" style={{ textAlign: 'center' }}>
                   {o.assigned ? 'Sorteo' : o.paid > 0 ? `Pagaste ${fmtM(o.paid)}` : ''}{o.sold_for != null ? ` · vendido por ${fmtM(o.sold_for)}` : ''}

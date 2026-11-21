@@ -119,7 +119,7 @@ Notificaciones push cuando te hacen un clausulazo, te recuperan un luchador con 
 ## Navegación
 
 1. **Inicio:** próximo evento, luchador del sorteo, lista de tareas antes del evento, clasificación. Con el evento empezado desaparecen cláusulas, ofertas y avisos, y sale **Tus luchadores** (`src/LiveTeam.jsx`): puntos de cada uno (capitán ×2), si está peleando, resultado o la hora aproximada de su pelea (~25 min por pelea desde la última de la cartelera, sin adelantar el inicio de cada parte).
-2. **Mi equipo:** luchadores del evento, capitán, ofertas recibidas.
+2. **Mi equipo:** luchadores del evento, capitán, ofertas recibidas. Con el evento empezado cada carta muestra su estado (prop `live` de `FighterCard`): peleando (borde rojo, puntos en vivo), ya peleó (puntos hechos, verde si ganó) o por pelear (apagada, con la hora aproximada y los puntos esperados); ordenadas en ese orden.
 3. **Mercado:** arriba los **Movimientos** (los 4 últimos, «Ver todos»; cláusulas en naranja con rayo), luego dos pestañas: **Libres** y **De otros mánagers** (botón de cláusula naranja brillante), y al final el desplegable **Todas las cartas**.
 4. **Eventos:** solo los próximos eventos numerados (cartelera y predicciones).
 5. **Liga:** durante el evento (en las ligas que lo juegan), **Clasificación del evento** en directo (`squads.pts`) y debajo la general; la **general** (`league_members.points`) solo suma un evento cuando han terminado todas sus peleas (migración 033). Además: resultados, reglas y créditos de fotos.

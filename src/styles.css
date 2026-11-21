@@ -466,3 +466,20 @@ table.stand tr.me td { font-weight: 800; }
 .trade-sum > div { display: flex; justify-content: space-between; gap: 12px; }
 .trade-sum span { color: #8D97AB; flex: none; }
 .trade-sum b { text-align: right; }
+
+/* Equipo con el evento empezado: estado de cada carta */
+.fc-state { position: absolute; left: 50%; transform: translateX(-50%); top: 44%; z-index: 3; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 900; letter-spacing: .6px; text-transform: uppercase; padding: 4px 9px; border-radius: 999px; background: rgba(10,12,18,.82); color: #cfd3dc; border: 1px solid rgba(255,255,255,.18); }
+.fcard.lg .fc-state { font-size: 12px; }
+.fcard.ls-scheduled .fc-in > :not(.fc-state):not(.fc-bottom) { filter: grayscale(.85) brightness(.6); }
+.fcard.ls-scheduled .fc-name { opacity: .75; }
+.fcard.ls-cancelled { opacity: .45; }
+.fcard.ls-live { box-shadow: 0 0 0 2px var(--red), 0 0 18px rgba(230,57,70,.55); }
+.fcard.ls-live .fc-state { background: var(--red); color: #fff; border-color: transparent; }
+.fcard.ls-live .fc-state .live-dot { background: #fff; width: 7px; height: 7px; }
+.fcard.ls-finished.won { box-shadow: 0 0 0 2px #2ecc71; }
+.fcard.ls-finished.won .fc-state { background: #1f9d55; color: #fff; border-color: transparent; }
+.fcard.ls-finished.lost .fc-state { background: #3a3f4b; color: #ff9a9a; }
+.fcard.ls-finished .fc-num, .fcard.ls-live .fc-num { color: #fff; }
+.fcard.ls-finished.won .fc-num::after { background: #2ecc71; }
+.fcard.ls-live .fc-num::after { background: var(--red); }

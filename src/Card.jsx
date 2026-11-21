@@ -40,24 +40,25 @@ function Photo({ f }) {
  * Carta de luchador. size: 'sm' (mercado, dos columnas) o 'lg'.
  * extra: contenido del pie (botón de pujar, tu puja…)
  */
-export function FighterCard({ f, fight, opp, value, exp, bids, closesIn, size = 'sm', extra, onClick, mine }) {
+export function FighterCard({ f, fight, opp, value, exp, bids, closesIn, size = 'sm', extra, onClick, mine, live }) {
   const tier = tierOf(fight);
   const first = f.name.replace(/ Jr\.$/, '').split(' ').slice(0, -1).join(' ');
   return (
-    <article className={`fcard ${tier} ${size} ${mine ? 'mine' : ''}`} onClick={onClick}>
+    <article className={`fcard ${tier} ${size} ${mine ? 'mine' : ''} ${live ? 'ls ls-' + live.st + (live.st === 'finished' ? (live.won ? ' won' : ' lost') : '') : ''}`} onClick={onClick}>
       <div className="fc-in">
         <Photo f={f} />
         <div className="fc-shade" aria-hidden="true" />
         <div className="fc-stripes" aria-hidden="true" />
         <div className="fc-top">
-          <span className="fc-num">{Math.round(exp || 0)}</span>
-          <span className="fc-pts">PTS ESP.</span>
+          <span className="fc-num">{live && live.pts != null ? String(Math.round(live.pts * 10) / 10).replace('.', ',') : live && live.st !== 'scheduled' ? 0 : Math.round(exp || 0)}</span>
+          <span className="fc-pts">{!live || live.st === 'scheduled' || live.st === 'cancelled' ? 'PTS ESP.' : live.st === 'live' ? 'EN VIVO' : 'PUNTOS'}</span>
           <span className="fc-rule" aria-hidden="true" />
           <span className="fc-div">{abbr(f.division)}</span>
           <span className="fc-badge">{badge(f)}</span>
         </div>
         {size === 'lg' && <span className="fc-tag">{tier === 'oro' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden="true"><rect x="2" y="8" width="20" height="8" rx="2" /><circle cx="12" cy="12" r="2.5" /></svg>}{tier === 'oro' ? 'TÍTULO' : tier === 'plata' ? 'PRINCIPAL' : 'PRELIMS'}</span>}
         {size === 'lg' && <span className="fc-mark" aria-hidden="true">LIGA KO · {tier.toUpperCase()}</span>}
+        {live && <span className="fc-state">{live.st === 'live' && <span className="live-dot" />}{live.label}</span>}
         <div className="fc-bottom">
           {size === 'lg' && first && <div className="fc-first">{first}</div>}
           <div className="fc-name" style={nameSize(surname(f.name), size)}>{surname(f.name)}</div>

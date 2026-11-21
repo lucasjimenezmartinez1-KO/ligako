@@ -2,12 +2,12 @@ import { Avatar } from './ui.jsx';
 import { fmt } from './format.js';
 import { myTeam, activeFights, fightOf, oppOf, MAIN_SLOTS } from './helpers.js';
 
-const METHOD = { KO: 'KO/TKO', SUB: 'sumisión', DEC: 'decisión', DQ: 'descalificación' };
-const hm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
+export const METHOD = { KO: 'KO/TKO', SUB: 'sumisión', DEC: 'decisión', DQ: 'descalificación' };
+export const hm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' });
 
 // Hora aproximada de una pelea que aún no ha empezado: las peleas van de la última de la cartelera a la estelar,
 // unos 25 min cada una, y ninguna parte de la cartelera empieza antes de su hora (primeras +0 h, preliminares +2 h, principal +4 h)
-function eta(c, f, now) {
+export function eta(c, f, now) {
   const start = new Date(c.ev.starts_at).getTime();
   const slotStart = start + (MAIN_SLOTS.includes(f.slot) ? 4 : f.slot === 'Preliminares' ? 2 : 0) * 3600e3;
   const ahead = activeFights(c).filter((x) => x.ord > f.ord && x.status !== 'finished');
