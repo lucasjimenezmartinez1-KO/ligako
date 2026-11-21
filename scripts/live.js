@@ -190,8 +190,9 @@ async function main() {
     return;
   }
   const start = new Date(ev.starts_at).getTime();
-  // Fuera del directo, el workflow no repite la lectura cada minuto
-  if (process.env.LOOP_FLAG && !(Date.now() >= start - 20 * 60e3 && Date.now() < start + 10 * 3600e3)) writeFileSync(process.env.LOOP_FLAG, '1');
+  // Fuera del directo (de 6 h antes a 10 h después del inicio) el workflow no repite la lectura cada minuto.
+  // Así cualquier lectura programada del día del evento ya se queda esperando y leyendo, aunque GitHub retrase o se salte las siguientes.
+  if (process.env.LOOP_FLAG && !(Date.now() >= start - 6 * 3600e3 && Date.now() < start + 10 * 3600e3)) writeFileSync(process.env.LOOP_FLAG, '1');
   if (Date.now() < start - 8 * 864e5) { log(`Evento ${ev.id}: falta más de una semana`); return; }
 
   const fights = await q(db.from('fights').select('*').eq('event_id', ev.id).order('ord'));

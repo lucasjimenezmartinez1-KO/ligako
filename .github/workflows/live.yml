@@ -64,6 +64,16 @@ jobs:
           DRY: ${{ github.event.inputs.dry }}
           LOOP_FLAG: /tmp/notlive
           NEW_EVENT_FLAG: /tmp/new_event
+      - name: Relevo (si el evento sigue en marcha, lanza otra lectura continua)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -f /tmp/notlive ] && { [ "${{ github.event_name }}" = "schedule" ] || [ -n "${{ github.event.inputs.minutes }}" ]; }; then
+            # Solo si no hay ya otra lectura continua en marcha (para no duplicarlas)
+            others=$(gh api "repos/${{ github.repository }}/actions/workflows/live.yml/runs?status=in_progress&event=workflow_dispatch&per_page=20" --jq "[.workflow_runs[] | select(.id != ${{ github.run_id }})] | length")
+            if [ "$others" = "0" ]; then gh workflow run live.yml --repo ${{ github.repository }} -f minutes=340 && echo "::notice::Evento en marcha: lanzada otra lectura continua"; fi
+          fi
       - name: Fotos de la nueva cartelera
         if: always()
         env:
