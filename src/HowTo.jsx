@@ -16,8 +16,8 @@ export const RULES = rulesFor(null);
 export const multsFor = (eventId) => {
   const v3 = eventId != null && Number(eventId) <= 333;
   return [
-    ['Pelea por el título', v3 ? '×1,5' : '×1,2'], ['Estelar sin título', v3 ? '×1,25' : '×1,1'], ['Cartelera principal', '×1'],
-    ['Preliminares', '×0,75 · máx. 60'], ['Primeras preliminares', v3 ? '×0,5 · máx. 40' : '×0,6 · máx. 40'], ['Capitán', '×2'],
+    ['Pelea por el título', v3 ? '×1,5' : '×1,2'], ['Estelar sin título', v3 ? '×1,25' : '×1,2'], ['Cartelera principal', '×1'],
+    ['Preliminares', v3 ? '×0,75 · máx. 60' : '×0,7 · máx. 60'], ['Primeras preliminares', v3 ? '×0,5 · máx. 40' : '×0,6 · máx. 40'], ['Capitán', '×2'],
   ];
 };
 export const MULTS = multsFor(null);

@@ -52,7 +52,7 @@ App de fantasy de MMA para público hispanohablante, inspirada en LaLiga Fantasy
 
 ## Puntuación (implementada en `shared/scoring.js`)
 
-**v3 hasta el evento 333; v4 desde el siguiente** (`isV3(fight)` según `event_id`). Objetivo de v4: una finalización en la cartelera principal puntúa más que una victoria gris por decisión en una pelea por el título o que perder rápido en ella. Cambios de v4: victoria por finalización +35, decisión unánime +10, dividida/mayoritaria +5, título +10; título y "mejor clasificado" se suman después del multiplicador; título ×1,2, estelar ×1,1. La tabla siguiente es la v3.
+**v3 hasta el evento 333; v4 desde el siguiente** (`isV3(fight)` según `event_id`). Objetivo de v4: una finalización en la cartelera principal puntúa más que una victoria gris por decisión en una pelea por el título o que perder rápido en ella. Cambios de v4: victoria por finalización +35, decisión unánime +10, dividida/mayoritaria +5, título +10; título y "mejor clasificado" se suman después del multiplicador; título ×1,2, estelar ×1,2. La tabla siguiente es la v3.
 
 | Acción | Puntos |
 |---|---|
@@ -81,9 +81,9 @@ Se aplica al total de puntos del luchador en esa pelea (también a los negativos
 | Pelea | Multiplicador | Máximo |
 |---|---|---|
 | Por el título | ×1,5 (v4: ×1,2) | — |
-| Estelar sin título | ×1,25 (v4: ×1,1) | — |
+| Estelar sin título | ×1,25 (v4: ×1,2, cambiado el 21 nov 2026) | — |
 | Cartelera principal (incluye coestelar sin título) | ×1 | — |
-| Preliminares | ×0,75 en el evento 333 (cambiado el mismo día; antes ×0,5) → **×0,75 desde el siguiente** | 60 (subido el día del evento 333) |
+| Preliminares | ×0,75 en el evento 333 (cambiado el mismo día; antes ×0,5) → **×0,7 desde el siguiente** (cambiado el 21 nov 2026) | 60 (subido el día del evento 333) |
 | Primeras preliminares | ×0,5 en el evento 333 (antes ×0,3) → **×0,6 desde el siguiente** | 40 |
 
 El cambio (v4) depende del `event_id` de la pelea en `slotMult` (`shared/scoring.js`): ≤ 333 usa v3. La tabla de reglas de la app (`multsFor` en `src/HowTo.jsx`) también.
